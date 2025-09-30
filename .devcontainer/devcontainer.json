@@ -1,0 +1,26 @@
+
+  {
+	"name": "Fullstack Dev Environment",
+	"dockerComposeFile": ["../docker-compose.yml"],
+	"service": "dev",
+	"workspaceFolder": "/workspace",
+	"features": {
+	  "ghcr.io/devcontainers/features/git:1": {},
+	  "ghcr.io/devcontainers/features/github-cli:1": {}
+	},
+	"postCreateCommand": "npm install -g pnpm && cd frontend && pnpm install && cd ../backend && pnpm install ",
+	"customizations": {
+	  "vscode": {
+		"extensions": [
+		  "ms-azuretools.vscode-docker",
+		  "dbaeumer.vscode-eslint",
+		  "esbenp.prettier-vscode",
+		  "mhutchie.git-graph",
+		  "ms-python.python",
+		  "ms-toolsai.jupyter"
+		]
+	  }
+	},
+	"remoteUser": "node"
+  }
+  

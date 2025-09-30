@@ -1,6 +1,7 @@
 version: "3.8"
 
 services:
+ ############## Main Container [Frontend + Backend development] 
   dev:
     build:
       context: .
@@ -11,9 +12,42 @@ services:
     networks:
       - dev-network
     ports:
-      - "3000:3000" # frontend
-      - "5000:5000" # backend
+      - "3000:3000" # frontend (React dev server)
+      - "5000:5000" # backend (Node.js API)
+    depends_on:
+      - db
+      
 
+  ############ PostgreSQL Database Container
+  db:
+    image: postgres:16
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: devuser
+      POSTGRES_PASSWORD: devpass
+      POSTGRES_DB: devdb
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - dev-network
+
+
+
+ 
+      
+
+######## Shared "Bridged" network so services can talk to each other
 networks:
   dev-network:
     driver: bridge
+
+######## Declared volume for persistent Postgres data (not pushed to GitHub)
+volumes:
+  postgres-data:
+
+
+
+# To start the development environment, run:
+# docker-compose up -d
+

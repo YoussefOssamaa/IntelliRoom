@@ -12,7 +12,7 @@ export default function App() {
 
   return (
     <div style={{ textAlign: "center", marginTop: "50px" }}>
-      <h1>Frontend React App</h1>
+      <h1>WELCOME TO INTELLIROOM :)</h1>
       <p>Message from backend: {message}</p>
     </div>
   );

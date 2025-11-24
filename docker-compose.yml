@@ -1,7 +1,7 @@
 version: "3.8"
 
 services:
- ############## Main Container [Frontend + Backend development] 
+  ############## Dev Container (Frontend + Backend)
   dev:
     build:
       context: .
@@ -12,42 +12,48 @@ services:
     networks:
       - dev-network
     ports:
-      - "3000:3000" # frontend (React dev server)
-      - "5000:5000" # backend (Node.js API)
+      - "3000:3000"   # React
+      - "5000:5000"   # Node backend
     depends_on:
-      - db
+      - mongo
       
+      
+      
+    
 
-  ############ PostgreSQL Database Container
-  db:
-    image: postgres:16
-    container_name: postgres
+  ############## MongoDB Database
+  mongo:
+    image: mongo:7
+    container_name: mongodb
     restart: unless-stopped
     environment:
-      POSTGRES_USER: devuser
-      POSTGRES_PASSWORD: devpass
-      POSTGRES_DB: devdb
+      MONGO_INITDB_ROOT_USERNAME: devuser
+      MONGO_INITDB_ROOT_PASSWORD: devpass
+    ports:
+      - "27017:27017"    # For local GUI tools (Compass)
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - mongo-data:/data/db
     networks:
       - dev-network
+      
+ ### THE CONNECTION WITH THE DB IN THE CODE WILL BE:   mongoose.connect("mongodb://devuser:devpass@mongo:27017/mydb?authSource=admin");
+# THE CONNECTION WITH THE DB IN THE CODE WILL BE:
+# mongoose.connect("mongodb://devuser:devpass@mongo:27017/mydb?authSource=admin")
+# Hostname = mongo
+# Port = 27017
+# Username = devuser
+# Password = devpass
+# DB = mydb
 
-
-
- 
+      
       
 
-######## Shared "Bridged" network so services can talk to each other
+########## Shared network
 networks:
   dev-network:
     driver: bridge
 
-######## Declared volume for persistent Postgres data (not pushed to GitHub)
+########## Persistent volume for MongoDB
 volumes:
-  postgres-data:
-
-
-
-# To start the development environment, run:
-# docker-compose up -d
+  mongo-data:
 

@@ -9,9 +9,12 @@
 	  "ghcr.io/devcontainers/features/github-cli:1": {}
 	},
  
-	"postCreateCommand": "corepack enable",
+	"postCreateCommand": "cd backend && pnpm install && cd ../frontend && pnpm install",
 
-    "updateContentCommand": "corepack enable && corepack pnpm install --frozen-lockfile --prefer-offline --strict-peer-dependencies || (echo 'Fixing wrong lockfile...' && rm -f package-lock.json yarn.lock && corepack pnpm install --frozen-lockfile)",
+ 
+
+	"updateContentCommand": "cd backend && pnpm install --frozen-lockfile --prefer-offline --strict-peer-dependencies && cd ../frontend && pnpm install --frozen-lockfile --prefer-offline --strict-peer-dependencies",
+
 
 	"customizations": {
 	  "vscode": {

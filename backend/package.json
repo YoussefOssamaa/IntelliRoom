@@ -3,21 +3,18 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "main": "index.js",
+  "main": "server.js",
 
-  "packageManager": "pnpm@9.12.2",
+
   "engines": {
     "node": ">=20.0.0",
     "pnpm": ">=9.0.0"
   },
-  "pnpm": {
-    "packageManagerStrict": true,
-    "engineStrict": true
-  },
 
   "scripts": {
-    "start": "nodemon index.js",
-    "dev": "nodemon index.js",
+    "preinstall": "node ../scripts/block-npm.js",
+    "start": "nodemon src/server.js",
+    "dev": "nodemon src/server.js",
     "lint": "eslint . --ext .js"
   },
 

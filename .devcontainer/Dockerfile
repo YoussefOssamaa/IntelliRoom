@@ -7,9 +7,6 @@ RUN apt-get update && apt-get install -y \
     curl wget unzip git nano vim \
     && rm -rf /var/lib/apt/lists/*
 
-# Install MongoDB CLI tools (mongosh, mongoimport, mongoexport)
-RUN apt-get update && apt-get install -y mongodb-clients && \
-    rm -rf /var/lib/apt/lists/*
 
 # Default working directory
 WORKDIR /workspace

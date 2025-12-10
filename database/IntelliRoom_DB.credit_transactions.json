@@ -1,0 +1,12 @@
+[{
+  "_id": {
+    "$oid": "693081c975f9d971d61e2623"
+  },
+  "transaction_id": 5001,
+  "amount": 49.99,
+  "type": "spent",
+  "timestamp": {
+    "$date": "2025-12-03T18:30:33.332Z"
+  },
+  "description": "Monthly subscription fee"
+}]

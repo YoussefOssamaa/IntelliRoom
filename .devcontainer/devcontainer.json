@@ -4,11 +4,9 @@
 	"dockerComposeFile": ["../docker-compose.yml"],
 	"service": "dev",
 	"workspaceFolder": "/workspace",
-	"features": {
-	  "ghcr.io/devcontainers/features/git:1": {},
-	  "ghcr.io/devcontainers/features/github-cli:1": {}
-	},
+
  
+	
 	"postCreateCommand": "cd backend && pnpm install && cd ../frontend && pnpm install",
 
  

@@ -30,7 +30,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: devuser
       MONGO_INITDB_ROOT_PASSWORD: devpass
     ports:
-      - "27017:27017"    # For local GUI tools (Compass)
+      - "27018:27017"    # For local GUI tools (Compass)
     volumes:
       - mongo-data:/data/db
     networks:
@@ -40,7 +40,7 @@ services:
 # THE CONNECTION WITH THE DB IN THE CODE WILL BE:
 # mongoose.connect("mongodb://devuser:devpass@mongo:27017/mydb?authSource=admin")
 # Hostname = mongo
-# Port = 27017
+# Port = 27017 (IMPORTANT , The internal port 27017 of the container is used, and mapped to 27018 of the local machine to avoid conflicts) 
 # Username = devuser
 # Password = devpass
 # DB = mydb

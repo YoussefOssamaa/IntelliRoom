@@ -1,0 +1,13 @@
+[{
+  "_id": {
+    "$oid": "69307c4875f9d971d61e2621"
+  },
+  "object_id": 1,
+  "object_name": "Modern Lamp 3000",
+  "type": "Lighting",
+  "preview_img_url": "http://example.com/images/lamp.jpg",
+  "object_model_url": "http://example.com/models/lamp.glb",
+  "default_color": "#FFFFFF",
+  "config_data": "{\"bulb_type\": \"LED\", \"wattage\": 15}",
+  "E_commerce_provider": "Amazon"
+}]

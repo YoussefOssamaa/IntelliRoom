@@ -6,7 +6,7 @@ import orderRoutes from './orderRoutes.js';
 const router = express.Router();
 
 
-router.use('/products', productRoutes);  //// =>  /ecommerce/products
+router.use('/', productRoutes);  //// =>  /ecommerce/products
 router.use('/cart', cartRoutes);   //// =>  /ecommerce/cart
 router.use('/order', orderRoutes);   //// =>  /ecommerce/order
 

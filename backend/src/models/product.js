@@ -17,10 +17,11 @@ const productSchema = new mongoose.Schema(
       min: [0, 'Price cannot be negative'],
     },
     category: {
-      type: String,
-      required: [true, 'Product category is required'],
-      trim: true,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
+      required: true,
     },
+
     stock: {
       type: Number,
       required: true,

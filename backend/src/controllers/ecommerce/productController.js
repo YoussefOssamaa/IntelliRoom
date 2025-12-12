@@ -3,10 +3,11 @@ import Product from '../../models/product.js';
 
 
 
-export const getProductsController =   async (req, res) => {
+export const getProductsByCategory =   async (req, res) => {
 
   
   try{
+      const category_id = req.query.categoryID|| ""
       const searched_product = req.query.search || ""  
       const sort_by = req.query.sort || "featured"
       const currentPage = parseInt(req.query.page) || 1
@@ -23,6 +24,9 @@ export const getProductsController =   async (req, res) => {
       }
 
       const search_filter = {name: {$regex: searched_product, $options: "i"  }}
+      if (category_id) {
+          search_filter.category = category_id
+      }
 
       const total_products = await Product.countDocuments(search_filter)  || 0
 
@@ -41,6 +45,25 @@ export const getProductsController =   async (req, res) => {
 }
 
 
+export const getProductByIdController =   async (req, res) => {
+
+  
+  try{
+      const {id} = req.params;
+      const product = await Product.findById(id);
+
+      if (!product) {
+          return res.status(404).json({ error: "Product not found" });
+        }
+
+      res.status(200).json(product)
+
+  }catch(err){
+    return res.status(500).json({ error: err.message });}
+
+}
+
+
 
 
 
@@ -50,6 +73,7 @@ export const postProductsController =  async (req, res) => {
       const product_posted = req.body;
       const new_product = new Product(product_posted);
       await new_product.save();
+      console.log(new_product);
       res.status(201).json(new_product);
 
 
@@ -71,7 +95,7 @@ export const putProductsController =  async (req, res) => {
       if (!updated_product) {
           return res.status(404).json({ error: "Product not found" });
         }
-        
+      console.log(updated_product);
       res.status(200).json(updated_product);
 
   }catch(err){
@@ -90,6 +114,7 @@ try{
   if (!deleted_product){
     return res.status(404).json({ message: "Product not found" });
     }
+    console.log(deleted_product);
     return res.status(200).json({ message: "Product deleted successfully" });
 }
 catch (err){

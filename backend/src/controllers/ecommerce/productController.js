@@ -1,5 +1,5 @@
 import express from 'express';
-import Product from '../../models/product.js';
+import Product from '../../models/ecommerceModels/product.js';
 
 
 

@@ -1,11 +1,17 @@
 import express from 'express';
-import Cart from '../../models/ecommerceModels/cart';
+import Cart from '../../models/ecommerceModels/cart.js';
 
+const TEST_USER_ID = "64f3a5e6a3c9b7f1a1234567"; // this is a test user ID for development purposes
 
 
 export const getCartController =  async (req, res) => {
   
   try {
+    
+          req.user = {}; ////////////////to be removed in production (test user assignment)
+          req.user.id = TEST_USER_ID ////////////////to be removed in production (test user assignment)
+          
+
   const cart = await Cart.findOne({user : req.user.id}).populate('items.product');
   if (!cart){
     return res.status(404).json({ message: 'Cart not found' });
@@ -21,7 +27,12 @@ export const getCartController =  async (req, res) => {
 export const postCartController =  async (req, res) => {
 
     try{
+          
       
+          req.user = {}; ////////////////to be removed in production (test user assignment)
+          req.user.id = TEST_USER_ID ////////////////to be removed in production (test user assignment)
+
+
     const existingCart = await Cart.findOne({user : req.user.id});
     if (existingCart) {
     return res.status(400).json({ error: "Cart already exists" });
@@ -48,6 +59,12 @@ export const postCartController =  async (req, res) => {
 export const putCartController =  async (req, res) => {
 
     try{
+
+
+          req.user = {}; ////////////////to be removed in production (test user assignment)
+          req.user.id = TEST_USER_ID ////////////////to be removed in production (test user assignment)
+
+
     const {id} = req.params;
     const cart = await Cart.findById(id);
 
@@ -62,7 +79,7 @@ export const putCartController =  async (req, res) => {
         return  res.status(403).json({ error: "Unauthorized action" });
       }
 
-    cart.items = req.body.items || cart.items ;
+      cart.items = req.body.items || cart.items ;
       await cart.save();
       await cart.populate('items.product');
         
@@ -81,6 +98,12 @@ export const putCartController =  async (req, res) => {
 export const deleteCartController =  async (req, res) => {
 
   try{
+
+
+          req.user = {}; ////////////////to be removed in production (test user assignment)
+          req.user.id = TEST_USER_ID ////////////////to be removed in production (test user assignment)
+
+
     const {id} = req.params;
 
     const cart = await Cart.findById(id);
@@ -99,7 +122,7 @@ export const deleteCartController =  async (req, res) => {
 
 
     console.log(cart);
-    res.status(200).json(cart);
+    res.status(200).json({ message: "Cart deleted successfully" });
 
     }catch(err){
       return res.status(500).json({ error: err.message });

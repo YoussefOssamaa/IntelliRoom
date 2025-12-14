@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
-import cartItemSchema from "./cartItem.js";
-
+import orderItemSchema from "./orderItem.js";
 
 
 
@@ -14,33 +13,46 @@ export const calculateTotalPrice = (items)=>{
 
 
 
-const cartSchema = new mongoose.Schema(
+
+const orderSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
-      unique: true
+      required: true
     },
-    items: [cartItemSchema],
+
+    items: [orderItemSchema],
+
     totalPrice: {
       type: Number,
-      default: 0,
+      required: true,
       min: 0
-    } 
+    },
+
+    status: {
+      type: String,
+      enum: ["pending", "paid", "shipped", "delivered", "cancelled"],
+      default: "pending"
+    },
+
+    isPaid: {
+      type: Boolean,
+      default: false
+    },
+
+    paidAt: Date
   },
   { timestamps: true }
 );
 
 
 //////calculate total price before saving, everytime a cart is created or updated
-cartSchema.pre('save' , function() {
+orderSchema.pre('save' , function() {
 
     this.totalPrice = calculateTotalPrice (this.items);
 })
 
 
-export default mongoose.model("Cart", cartSchema);
 
-
-
+export default mongoose.model("Order", orderSchema);

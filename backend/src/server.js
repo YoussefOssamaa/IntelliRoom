@@ -17,7 +17,7 @@ app.use(CORSMiddleware)
 
 app.use('/api/ecommerce', ecommerceIndex);
 app.use ('/api/design2D', design2DIndex); 
-
+app.use ('/api/uploadImage' , uploadIndex)
 
 
 app.listen(PORT, () => {

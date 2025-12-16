@@ -9,8 +9,9 @@ const router = express.Router();
 
 
 router.use('/categories', categoryRoutes);  //// =>  /ecommerce/categories            SELECT THE CATEGORY FIRST 
-router.use('/products', productRoutes);  //// =>  /ecommerce/products       SHOW ALL PRODUCTS WITHOUT SELECTING CATEGORY
+router.use('/products', productRoutes);  //// =>  /ecommerce/products       The products api, can fetch all products or by id or by category 
 router.use('/cart', cartRoutes);   //// =>  /ecommerce/cart
 router.use('/order', orderRoutes);
+router.use('/wishlist', wishlistRoutes);  //// =>  /ecommerce/wishlist
 
 export default router;

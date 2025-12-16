@@ -12,7 +12,13 @@ const userSchema = new mongoose.Schema({
   profile_picture_url: { type: String, default: "" },
   credits: { type: Number, default: 0 },
   plan: { type: String, enum: ['free', 'monthly', 'yearly'], default: 'free' },
-  is_first_time: { type: Boolean, default: true }
+  is_first_time: { type: Boolean, default: true },
+  ecommerce_wishlist: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Product"
+    }
+  ]
 
 });
 

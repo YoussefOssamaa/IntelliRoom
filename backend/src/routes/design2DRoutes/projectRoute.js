@@ -6,8 +6,12 @@ import { getAssetsByCategoryController, getAssetsCatergoriesController } from '.
 
 const router = express.Router();
 
-router.get('/assets/category', getAssetsCatergoriesController);
-router.get('/assets', getAssetsByCategoryController);  /// can be used to fetch assets by category, for ex: /assets?category=furniture  or fetch all assets if no category is provided
+router.get('/assets/categories', getAssetsCatergoriesController); /////Fetch all assets' Categories to be used first in the frontend to show available categories
+router.get('/assets', getAssetsByCategoryController);  /// Fetch assets by category, for ex: /assets?category=furniture  or fetch all assets if no category is provided
+
+
+router.get('/floorPlan/categories', getFloorPlanCatergoriesController); /////Fetch all floor plan tool Categories to be used first in the frontend to show available categories
+router.get('/floorPlan', getFloorPlanByCategoryController);  /// Fetch floor plan tools by category, for ex: /floorPlan?category=wall  or fetch all floor plan tools if no category is provided
 
 
 router.post('/', postProjectController );

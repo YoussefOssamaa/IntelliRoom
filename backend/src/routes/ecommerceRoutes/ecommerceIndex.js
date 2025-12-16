@@ -3,6 +3,7 @@ import productRoutes from './productRoutes.js';
 import cartRoutes from './cartRoutes.js';
 import orderRoutes from './orderRoutes.js'; 
 import categoryRoutes from './categoryRoutes.js';
+import wishlistRoutes from './wishlistRoutes.js';
 
 const router = express.Router();
 

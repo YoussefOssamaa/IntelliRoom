@@ -48,6 +48,50 @@ app.post('/api/test-comfy', async (req, res) => {
   }
 });
 
+// Proxy endpoint to fetch ComfyUI history (to avoid CORS issues)
+app.get('/api/comfy-history/:promptId', async (req, res) => {
+  try {
+    const { promptId } = req.params;
+    const axios = (await import('axios')).default;
+    const headers = {};
+    if (comfyUIServiceInstance.isZrok) {
+      headers['skip_zrok_interstitial'] = 'true';
+    }
+    const response = await axios.get(
+      `${comfyUIServiceInstance.COMFYUI_API_URL}/history/${promptId}`,
+      { headers }
+    );
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error fetching history:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Proxy endpoint to fetch ComfyUI images (to avoid CORS issues)
+app.get('/api/comfy-image', async (req, res) => {
+  try {
+    const { filename } = req.query;
+    if (!filename) {
+      return res.status(400).json({ error: 'Filename is required' });
+    }
+    const axios = (await import('axios')).default;
+    const headers = {};
+    if (comfyUIServiceInstance.isZrok) {
+      headers['skip_zrok_interstitial'] = 'true';
+    }
+    const response = await axios.get(
+      `${comfyUIServiceInstance.COMFYUI_API_URL}/view?filename=${filename}`,
+      { headers, responseType: 'arraybuffer' }
+    );
+    res.set('Content-Type', response.headers['content-type']);
+    res.send(response.data);
+  } catch (error) {
+    console.error('Error fetching image:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

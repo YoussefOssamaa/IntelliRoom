@@ -47,27 +47,36 @@ export class ComfyUIService {
         this.ws.on('open', () => {
             console.log('Connected to ComfyUI WebSocket at', this.COMFYUI_WS_URL);
         });
-        this.ws.on ('message' , (data)=>{
-            const msg = JSON.parse(data.toString());  /// to convert the json message sent by comfyUI ws to object
-            
-            // Only log non-monitor messages to reduce noise
-            if (msg.type !== 'crystools.monitor') {
-                console.log('Received from ComfyUI WS:', msg);
+        this.ws.on('message', (data, isBinary) => {
+            // Skip binary messages (image previews)
+            if (isBinary) {
+                return;
             }
             
-            // Handle both 'executed' and 'progress_state' as completion signals
-            // Different ComfyUI versions may use different message types
-            const isExecuted = msg.type === 'executed' && msg.data?.prompt_id;
-            const isProgressComplete = msg.type === 'progress_state' && msg.data?.prompt_id && msg.data?.nodes;
-            
-            if (isExecuted || isProgressComplete) {
-                const prompt_id = msg.data.prompt_id;
-                if (this.pendingJobs.has(prompt_id)) {
-                    console.log('Workflow completed for prompt_id:', prompt_id);
-                    const resolve = this.pendingJobs.get(prompt_id);
-                    resolve(msg.data);
-                    this.pendingJobs.delete(prompt_id);
+            try {
+                const msg = JSON.parse(data.toString());
+                
+                // Only log non-monitor messages to reduce noise
+                if (msg.type !== 'crystools.monitor') {
+                    console.log('Received from ComfyUI WS:', msg);
                 }
+                
+                // Handle both 'executed' and 'progress_state' as completion signals
+                // Different ComfyUI versions may use different message types
+                const isExecuted = msg.type === 'executed' && msg.data?.prompt_id;
+                const isProgressComplete = msg.type === 'progress_state' && msg.data?.prompt_id && msg.data?.nodes;
+                
+                if (isExecuted || isProgressComplete) {
+                    const prompt_id = msg.data.prompt_id;
+                    if (this.pendingJobs.has(prompt_id)) {
+                        console.log('Workflow completed for prompt_id:', prompt_id);
+                        const resolve = this.pendingJobs.get(prompt_id);
+                        resolve(msg.data);
+                        this.pendingJobs.delete(prompt_id);
+                    }
+                }
+            } catch (e) {
+                // Ignore non-JSON messages (binary data, etc.)
             }
         });
 

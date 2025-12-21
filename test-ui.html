@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComfyUI Test Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+        
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+        
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            left: -9999px;
+        }
+        
+        .file-input-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            background: #f8f9fa;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .file-input-label:hover {
+            background: #e9ecef;
+            border-color: #667eea;
+        }
+        
+        .file-input-label.has-file {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+        
+        .file-name {
+            color: #666;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+        }
+        
+        .status.info {
+            background: #cfe2ff;
+            color: #084298;
+            border-left: 4px solid #0d6efd;
+        }
+        
+        .status.success {
+            background: #d1e7dd;
+            color: #0f5132;
+            border-left: 4px solid #198754;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #842029;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .result {
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .result img {
+            width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .result-info {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+        
+        .result-info strong {
+            color: #667eea;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 ComfyUI Test Interface</h1>
+        <p class="subtitle">Generate images with text prompts using ComfyUI on Kaggle</p>
+        
+        <form id="generateForm">
+            <div class="form-group">
+                <label for="prompt">Positive Prompt</label>
+                <textarea id="prompt" placeholder="e.g., beautiful house, modern architecture, sunset lighting" required>beautiful house, modern architecture, sunset lighting</textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="negativePrompt">Negative Prompt</label>
+                <input type="text" id="negativePrompt" value="text, watermark, blurry" placeholder="e.g., text, watermark, blurry">
+            </div>
+            
+            <div class="form-group">
+                <label for="imageUpload">Upload Image (Optional - for future use)</label>
+                <div class="file-input-wrapper">
+                    <input type="file" id="imageUpload" accept="image/*">
+                    <label for="imageUpload" class="file-input-label" id="fileLabel">
+                        <div>
+                            <span id="fileLabelText">📁 Click to upload image</span>
+                        </div>
+                    </label>
+                </div>
+                <div class="file-name" id="fileName"></div>
+            </div>
+            
+            <button type="submit" id="generateBtn">Generate Image</button>
+        </form>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Generating image... This may take a minute.</p>
+        </div>
+        
+        <div class="status" id="status"></div>
+        
+        <div class="result" id="result">
+            <h2 style="margin-bottom: 15px; color: #333;">Generated Image</h2>
+            <img id="resultImage" src="" alt="Generated image">
+            <div class="result-info">
+                <div><strong>Prompt ID:</strong> <span id="promptId"></span></div>
+                <div><strong>Filename:</strong> <span id="filename"></span></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:5000';
+        const COMFYUI_URL = 'https://1evjlbzy14ld.share.zrok.io';
+        
+        const form = document.getElementById('generateForm');
+        const generateBtn = document.getElementById('generateBtn');
+        const status = document.getElementById('status');
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
+        const fileInput = document.getElementById('imageUpload');
+        const fileLabel = document.getElementById('fileLabel');
+        const fileLabelText = document.getElementById('fileLabelText');
+        const fileName = document.getElementById('fileName');
+        
+        // File input handling
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                fileLabel.classList.add('has-file');
+                fileLabelText.textContent = '✅ File selected';
+                fileName.textContent = file.name;
+            } else {
+                fileLabel.classList.remove('has-file');
+                fileLabelText.textContent = '📁 Click to upload image';
+                fileName.textContent = '';
+            }
+        });
+        
+        function showStatus(message, type) {
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+        }
+        
+        function hideStatus() {
+            status.style.display = 'none';
+        }
+        
+        async function generateImage(prompt, negativePrompt) {
+            // Build the workflow with user's prompts
+            const workflow = {
+                "3": {
+                    "inputs": {
+                        "seed": Math.floor(Math.random() * 999999999999999),
+                        "steps": 8,
+                        "cfg": 2,
+                        "sampler_name": "dpmpp_sde",
+                        "scheduler": "karras",
+                        "denoise": 1,
+                        "model": ["4", 0],
+                        "positive": ["6", 0],
+                        "negative": ["7", 0],
+                        "latent_image": ["5", 0]
+                    },
+                    "class_type": "KSampler",
+                    "_meta": { "title": "KSampler" }
+                },
+                "4": {
+                    "inputs": { "ckpt_name": "RealisticVisionV6.safetensors" },
+                    "class_type": "CheckpointLoaderSimple",
+                    "_meta": { "title": "Load Checkpoint" }
+                },
+                "5": {
+                    "inputs": { "width": 512, "height": 512, "batch_size": 1 },
+                    "class_type": "EmptyLatentImage",
+                    "_meta": { "title": "Empty Latent Image" }
+                },
+                "6": {
+                    "inputs": {
+                        "text": prompt,
+                        "clip": ["4", 1]
+                    },
+                    "class_type": "CLIPTextEncode",
+                    "_meta": { "title": "CLIP Text Encode (Prompt)" }
+                },
+                "7": {
+                    "inputs": {
+                        "text": negativePrompt,
+                        "clip": ["4", 1]
+                    },
+                    "class_type": "CLIPTextEncode",
+                    "_meta": { "title": "CLIP Text Encode (Prompt)" }
+                },
+                "8": {
+                    "inputs": {
+                        "samples": ["3", 0],
+                        "vae": ["4", 2]
+                    },
+                    "class_type": "VAEDecode",
+                    "_meta": { "title": "VAE Decode" }
+                },
+                "9": {
+                    "inputs": {
+                        "filename_prefix": "ComfyUI",
+                        "images": ["8", 0]
+                    },
+                    "class_type": "SaveImage",
+                    "_meta": { "title": "Save Image" }
+                }
+            };
+            
+            // Submit workflow to backend
+            const response = await fetch(`${API_URL}/api/test-comfy`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ workflow })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (!data.success) {
+                throw new Error('Workflow execution failed');
+            }
+            
+            return data.result.prompt_id;
+        }
+        
+        async function getImageFromHistory(promptId) {
+            // Use backend proxy to avoid CORS issues
+            const response = await fetch(`${API_URL}/api/comfy-history/${promptId}`);
+            
+            if (!response.ok) {
+                throw new Error('Failed to fetch history');
+            }
+            
+            const history = await response.json();
+            const outputs = history[promptId]?.outputs;
+            
+            if (!outputs || !outputs['9']) {
+                throw new Error('No output found in history');
+            }
+            
+            return outputs['9'].images[0];
+        }
+        
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const prompt = document.getElementById('prompt').value;
+            const negativePrompt = document.getElementById('negativePrompt').value;
+            
+            if (!prompt) {
+                showStatus('Please enter a prompt', 'error');
+                return;
+            }
+            
+            // Reset UI
+            hideStatus();
+            result.style.display = 'none';
+            loading.style.display = 'block';
+            generateBtn.disabled = true;
+            
+            try {
+                // Generate image
+                showStatus('Submitting workflow to ComfyUI...', 'info');
+                const promptId = await generateImage(prompt, negativePrompt);
+                
+                showStatus('Generating image... Please wait.', 'info');
+                
+                // Wait a bit for ComfyUI to process
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // Get result from history
+                showStatus('Fetching generated image...', 'info');
+                const imageInfo = await getImageFromHistory(promptId);
+                
+                // Display result
+                const imageUrl = `${API_URL}/api/comfy-image?filename=${imageInfo.filename}`;
+                document.getElementById('resultImage').src = imageUrl;
+                document.getElementById('promptId').textContent = promptId;
+                document.getElementById('filename').textContent = imageInfo.filename;
+                
+                loading.style.display = 'none';
+                result.style.display = 'block';
+                showStatus('Image generated successfully!', 'success');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                loading.style.display = 'none';
+                showStatus(`Error: ${error.message}`, 'error');
+            } finally {
+                generateBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

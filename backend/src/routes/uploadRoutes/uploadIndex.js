@@ -43,6 +43,10 @@ const upload = multer({
     fileFilter: extensionFilter
 });
 
+
+
+
+
 router.post('/', upload.single('image'), postImageController);
 
 

@@ -6,7 +6,11 @@ import ecommerceIndex from './routes/ecommerceRoutes/ecommerceIndex.js';
 import design2DIndex from './routes/design2DRoutes/design2DIndex.js';
 import uploadIndex from './routes/uploadRoutes/uploadIndex.js';
 import { CORSMiddleware } from './middleware/CORS.js';
+import {ComfyUIService} from './services/ComfyUIService.js';
+import path from 'path';
 
+
+const __dirname = path.resolve(); 
 
 export const PORT = process.env.PORT || 5000;
 
@@ -15,6 +19,11 @@ const app = express();
 await connectDB();
 app.use(express.json());
 app.use(CORSMiddleware)
+app.use('/uploads', express.static(path.join(__dirname, '../uploads'))); 
+app.use('/comfyOutputs', express.static(path.join(__dirname, '../uploads/comfyOutputs'))); 
+
+export const comfyUIServiceInstance = new ComfyUIService();
+
 
 app.use('/api/ecommerce', ecommerceIndex);
 app.use('/api/design2D', design2DIndex);

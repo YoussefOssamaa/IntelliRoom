@@ -22,12 +22,31 @@ app.use(CORSMiddleware)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads'))); 
 app.use('/comfyOutputs', express.static(path.join(__dirname, '../uploads/comfyOutputs'))); 
 
-export const comfyUIServiceInstance = new ComfyUIService();
+// Use COMFYUI_HOST from environment or default to localhost:8188
+const comfyHost = process.env.COMFYUI_HOST || 'localhost:8188';
+export const comfyUIServiceInstance = new ComfyUIService(comfyHost);
 
 
 app.use('/api/ecommerce', ecommerceIndex);
 app.use('/api/design2D', design2DIndex);
 app.use('/api/uploadImage', uploadIndex);
+
+// Test endpoint for ComfyUI workflow
+app.post('/api/test-comfy', async (req, res) => {
+  try {
+    const { workflow } = req.body;
+    if (!workflow) {
+      return res.status(400).json({ error: 'Workflow is required' });
+    }
+    console.log('Running workflow...');
+    const result = await comfyUIServiceInstance.runComfyWorkflow(workflow);
+    console.log('Workflow completed:', result);
+    res.json({ success: true, result });
+  } catch (error) {
+    console.error('Error running workflow:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 
 app.listen(PORT, () => {

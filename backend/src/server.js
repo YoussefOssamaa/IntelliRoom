@@ -13,6 +13,8 @@ import path from 'path';
 const __dirname = path.resolve(); 
 
 export const PORT = process.env.PORT || 5000;
+const COMFYUI_HOST = process.env.COMFYUI_HOST || 'localhost:8188';
+
 
 const app = express();
 
@@ -22,7 +24,7 @@ app.use(CORSMiddleware)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads'))); 
 app.use('/comfyOutputs', express.static(path.join(__dirname, '../uploads/comfyOutputs'))); 
 
-export const comfyUIServiceInstance = new ComfyUIService();
+export const comfyUIServiceInstance = new ComfyUIService(COMFYUI_HOST);
 
 
 app.use('/api/ecommerce', ecommerceIndex);
@@ -31,8 +33,11 @@ app.use('/api/uploadImage', uploadIndex);
 
 
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+
+
 
 
 

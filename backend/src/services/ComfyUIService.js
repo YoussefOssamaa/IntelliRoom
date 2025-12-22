@@ -11,10 +11,10 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const comfy_output_dir = path.join(__dirname, '../../../uploads/comfyOutputs');
-console.log('📁 ComfyUI output directory:', comfy_output_dir);
+console.log('ComfyUI output directory:', comfy_output_dir);
 if (!fs.existsSync(comfy_output_dir)) {
   fs.mkdirSync(comfy_output_dir, { recursive: true });
-}
+} 
 
 
 
@@ -49,7 +49,7 @@ export class ComfyUIService {
         this.ws = new WebSocket(this.COMFYUI_WS_URL, wsOptions);
         
         this.ws.on('open', () => {
-            console.log('✅Connected to ComfyUI WebSocket');
+            console.log('Connected to ComfyUI WebSocket');
         });
         this.ws.on ('message' , (data, inBinary)=>{
             
@@ -61,7 +61,7 @@ try {
             const msg = JSON.parse(data.toString());  /// to convert the json message sent by comfyUI ws to object
 
             if (msg.type !== 'crystools.monitor') {
-                    console.log('📨 Received from ComfyUI WS:', JSON.stringify(msg, null, 2));
+                    console.log('Received from ComfyUI WS:', JSON.stringify(msg, null, 2));
                 }
 
 
@@ -78,7 +78,7 @@ try {
                         const expectedNodeCount = this.workflowNodeCounts.get(prompt_id);
                         
                         if (finishedNodes >= expectedNodeCount) {
-                            console.log(`🎯 All ${expectedNodeCount} nodes finished for prompt:`, prompt_id);
+                            console.log(`All ${expectedNodeCount} nodes finished for prompt:`, prompt_id);
                             
                             if (this.pendingJobs.has(prompt_id)) {
                                 const { resolve } = this.pendingJobs.get(prompt_id);
@@ -101,7 +101,7 @@ try {
                 if (isExecuted || isProgressComplete) {
                 const prompt_id = msg.data.prompt_id
                 if (this.pendingJobs.has(prompt_id)) {
-                    console.log('✅Workflow completed for prompt_id:', prompt_id);
+                    console.log('Workflow completed for prompt_id:', prompt_id);
                     const {resolve} = this.pendingJobs.get(prompt_id); ///will return the corresponding resolve fun of the prompt_id
                     resolve (msg.data);
                     this.pendingJobs.delete(prompt_id);
@@ -109,13 +109,13 @@ try {
             }
 
 } catch (error) {
-            console.error('❌Error executing ComfyUI workflow:', error);
+            console.error('Error executing ComfyUI workflow:', error);
             throw error;
 }
         });
 
         this.ws.on('close', () => {
-            console.log('⚠️ ComfyUI WebSocket connection closed');
+            console.log('ComfyUI WebSocket connection closed');
             this.pendingJobs.forEach(({ reject }) => {
                 reject(new Error('WebSocket connection closed'));
             });
@@ -123,7 +123,7 @@ try {
         });
 
         this.ws.on('error', (error) => {
-            console.error('❌ ComfyUI WebSocket error:', error);
+            console.error('ComfyUI WebSocket error:', error);
         });
 
 }
@@ -152,11 +152,11 @@ try {
                 { headers }
             );
 
-            console.log('✅ Image uploaded to ComfyUI:', response.data);
+            console.log('Image uploaded to ComfyUI:', response.data);
             
             return response.data.name; // ComfyUI returns the filename
         } catch (error) {
-            console.error('❌ Error uploading image to ComfyUI:', error.response?.data || error.message);
+            console.error('Error uploading image to ComfyUI:', error.response?.data || error.message);
             throw error;
         }
     }
@@ -194,21 +194,21 @@ try {
                 );
 
 
-            console.log('✅ Image fetched from ComfyUI, size:', response.data.length, 'bytes');
+            console.log('Image fetched from ComfyUI, size:', response.data.length, 'bytes');
 
             const outputPath = path.join(comfy_output_dir, filename);
             console.log('💾 Saving to:', outputPath);
             
             
             fs.writeFileSync(outputPath, response.data);
-            console.log('✅ Image saved successfully to:', outputPath);
+            console.log('Image saved successfully to:', outputPath);
             
                         // Verify file was written
             if (fs.existsSync(outputPath)) {
                 const stats = fs.statSync(outputPath);
-                console.log('✅ File verified, size:', stats.size, 'bytes');
+                console.log('File verified, size:', stats.size, 'bytes');
             } else {
-                console.error('❌ File was not written to disk!');
+                console.error('File was not written to disk!');
             }
 
 
@@ -216,7 +216,7 @@ try {
 
                 
             } catch (error) {
-            console.error('❌ Error downloading image from ComfyUI:');
+            console.error('Error downloading image from ComfyUI:');
             console.error('   Status:', error.response?.status);
             console.error('   Message:', error.message);
             console.error('   Data:', error.response?.data);
@@ -247,7 +247,7 @@ try {
 
 
             const prompt_id  = response.data.prompt_id;
-            console.log('✅ ComfyUI workflow started with prompt_id:', prompt_id);
+            console.log('ComfyUI workflow started with prompt_id:', prompt_id);
 
 
             const nodeCount = Object.keys(workflow).length;
@@ -269,7 +269,7 @@ try {
             });    
 
         } catch (error) {
-            console.error('❌ Error running ComfyUI workflow:', error.message);
+            console.error('Error running ComfyUI workflow:', error.message);
             if (error.response) {
                 console.error('Response status:', error.response.status);
                 console.error('Response data:', JSON.stringify(error.response.data, null, 2));

@@ -2,7 +2,7 @@ import mongoose, { Schema, model } from 'mongoose'
 
 
 const userSchema = new mongoose.Schema({
-  user_id: { type: String, required: true, unique: true },  
+  user_id: { type: String, required: true, unique: true },  ///public id will be shown on the website for the user
   user_name: { type: String, required: true, unique: true , maxLength: 30 },
   email: { type: String, required: true, unique: true },
   pass_hash: { type: String, required: true },

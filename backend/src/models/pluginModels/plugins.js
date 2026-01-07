@@ -1,18 +1,19 @@
 import mongoose, { Schema, model } from 'mongoose'
 
-const plugin = new mongoose.Schema({
-    plugin_id: {type: mongoose.Schema.Types.ObjectId, required: true, unique: true},
+const pluginSchema = new mongoose.Schema({
     plugin_name: {type: String, required: true},
     plugin_description: {type: String, required: true},
-    plugin_author: {type: String, required: true},
-    plugin_author_email: {type: String, required: true},
-    plugin_rating: {type: Number, required: true},
-    plugin_reviews: {type: [String] } , 
-    what_is_included: {type: [String] } , 
-    plugin_price: {type: Number, required: true},
-    number_of_downloads: {type: Number, required: true},
-    plugin_created_at: {type: Date, default: Date.now},
-    plugin_updated_at: {type: Date, default: Date.now},
+
+    plugin_author: {type: mongoose.Schema.Types.ObjectId, required: true , ref: 'User'},  /// the public id of the user
+
+
+    plugin_rating: {type: Number, default: 0},
+    plugin_reviews: {type: [String] , default: []} , 
+    what_is_included: {type: [String] , default: []} , 
+    number_of_downloads: {type: Number, default: 0},
+
+    plugin_price: {type: Number, required: true , default: 0},
+
 }, {timestamps: true});
 
 const Plugin = mongoose.model("Plugin", pluginSchema);

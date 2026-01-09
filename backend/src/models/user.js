@@ -2,17 +2,20 @@ import mongoose, { Schema, model } from 'mongoose'
 
 
 const userSchema = new mongoose.Schema({
-  user_id: { type: String, required: true, unique: true },  ///public id will be shown on the website for the user
-  user_name: { type: String, required: true, unique: true , maxLength: 30 },
+
+  user_name: { type: String, required: true, unique: true , maxLength: 50 },
   email: { type: String, required: true, unique: true },
-  pass_hash: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now },
+  password: { type: String, required: true },
+
+  firstName : { type: String, default: "" , maxLength: 30 },
+  lastName : { type: String, default: "" , maxLength: 30 },
   bio: { type: String, default: "" , maxLength: 500 },
   profile_picture_url: { type: String, default: "" },
+
   credits: { type: Number, default: 0 },
   plan: { type: String, enum: ['free', 'monthly', 'yearly'], default: 'free' },
   is_first_time: { type: Boolean, default: true },
+
   ecommerce_wishlist: [
     {
       type: mongoose.Schema.Types.ObjectId,
@@ -20,7 +23,7 @@ const userSchema = new mongoose.Schema({
     }
   ]
 
-});
+}, {timestamps: true});
 
 const User = mongoose.model("User", userSchema);
 

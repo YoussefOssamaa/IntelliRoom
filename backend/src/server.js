@@ -4,6 +4,9 @@ dotenv.config(); // used here, only once to load the variables from .env file in
 import connectDB from "./config/db.js";
 import ecommerceIndex from './routes/ecommerceRoutes/ecommerceIndex.js';
 import design2DIndex from './routes/design2DRoutes/design2DIndex.js';
+import loginIndex from './routes/loginRoutes/loginIndex.js';
+import signupIndex from './routes/signupRoutes/signupIndex.js';
+import contactIndex from './routes/contactRoutes/contactIndex.js'
 import uploadIndex from './routes/uploadRoutes/uploadIndex.js';
 import pluginIndex from './routes/pluginRoutes/pluginIndex.js'
 import { CORSMiddleware } from './middleware/CORS.js';
@@ -32,6 +35,10 @@ app.use('/api/ecommerce', ecommerceIndex);
 app.use('/api/design2D', design2DIndex);
 app.use('/api/uploadImage', uploadIndex);
 app.use('/api/plugins', pluginIndex);
+app.use('/api/login', loginIndex)
+app.use('/api/signup', signupIndex)
+app.use('/api/contact', contactIndex)
+
 
 app.listen(PORT, () => {
 console.log(`Server is running on http://localhost:${PORT}`);

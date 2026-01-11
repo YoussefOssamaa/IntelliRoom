@@ -8,7 +8,7 @@ dist/
 build/
 .cache/
 .vite/
-
+*.pem
 # Backend
 .env
 .env.local

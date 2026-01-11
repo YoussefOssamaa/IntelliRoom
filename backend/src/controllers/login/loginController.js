@@ -14,7 +14,7 @@ const refreshPublicKey = fs.readFileSync(path.join("src", "keys", "RefreshPublic
 // console.log(authPrivateKey);
 // console.log(authPublicKey);
 
-export const loginController = async (req, res) => {
+export const loginHandler = async (req, res) => {
 
     try {
         const { data, success } = userSchema.safeParse(req.body);
@@ -83,3 +83,21 @@ export const loginController = async (req, res) => {
 
 }
 
+export const logoutController = async (req, res) => {
+    try {
+        const cookieOptions = {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+        };
+
+        return res.status(200)
+            .clearCookie("Authentication", cookieOptions)
+            .clearCookie("Refresh", cookieOptions)
+            .json({ success: true, message: "logged out successfully" });
+            
+    } catch (error) {
+        console.error("Logout Error:", error);
+        res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+};

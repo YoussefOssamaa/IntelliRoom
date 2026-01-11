@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import MarketplacePage from '@screens/PluginMarketplace';
+import MarketplacePage from './screens/PluginMarketplace';
 
 const AppRoutes = () => {
   return (

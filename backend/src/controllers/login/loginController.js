@@ -5,6 +5,7 @@ import { normalizeResponseTime } from '../../utils/normalizeResponseTime.util.js
 import jwt from 'jsonwebtoken';
 import fs from 'fs';
 import path from 'path';
+import Refresh from '../../models/refreshToken.js';
 
 const authPrivateKey = fs.readFileSync(path.join("src", "keys", "AuthPrivate.pem"), 'utf8');
 const authPublicKey = fs.readFileSync(path.join("src", "keys", "AuthPublic.pem"), 'utf8');
@@ -22,7 +23,7 @@ export const loginHandler = async (req, res) => {
         if (!success) {
             return res.status(401).json({ success: false, message: genericError });
         }
-        const {email , password} = data;
+        const { email, password } = data;
 
         const logging_user = await User.findOne({ email });
 
@@ -68,6 +69,12 @@ export const loginHandler = async (req, res) => {
             algorithm: "RS256",
         });
 
+        await Refresh.create({
+            user_id: logging_user._id,
+            refreshToken,
+            expireTime: Date.now() + 7 * 24 * 60 * 60 * 1000
+        });
+
         return res.status(200)
             .cookie("Authentication", authToken, authCookieOptions)
             .cookie("Refresh", refreshToken, refreshCookieOptions)
@@ -83,6 +90,54 @@ export const loginHandler = async (req, res) => {
 
 }
 
+export const refreshTokenHandler = async (req, res) => {
+    const genericError = "not authenticated"
+    
+    try {
+        const validation = refreshCookieSchema.safeParse(req.cookies?.Refresh);
+        if (!validation.success) {
+            return res.status(401).json({ success: false, message: genericError })
+        }
+        const token = validation?.data?.Refresh;
+        const user = await Refresh.findOne({ refreshToken: token });
+        if (!user) {
+            return res.status(401).json({ success: false, message: genericError })
+        }
+
+        const payload = jwt.verify(token, refreshPublicKey, {
+            algorithms: ["RS256"],
+        });
+
+        const authCookieOptions = {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+            maxAge: 15 * 60 * 1000
+        }
+        const authPayload = {
+            userId: user.user_id
+        }
+        const authToken = jwt.sign(authPayload, authPrivateKey, {
+            expiresIn: 15 * 60,
+            algorithm: "RS256",
+        })
+        
+
+        return res.status(200)
+        .cookie("Authentication", authToken, authCookieOptions)
+        .json({ success: true, message: "token refreshed successfully" });
+
+
+    } catch (e) {
+        
+        return res.status(401)
+            .clearCookie("Authentication")
+            .clearCookie("Refresh")
+            .json({ success: false, message: genericError});
+    }
+}
+
+
 export const logoutController = async (req, res) => {
     try {
         const cookieOptions = {
@@ -95,7 +150,7 @@ export const logoutController = async (req, res) => {
             .clearCookie("Authentication", cookieOptions)
             .clearCookie("Refresh", cookieOptions)
             .json({ success: true, message: "logged out successfully" });
-            
+
     } catch (error) {
         console.error("Logout Error:", error);
         res.status(500).json({ success: false, message: "Internal Server Error" });

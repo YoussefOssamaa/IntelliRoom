@@ -10,4 +10,7 @@ export const userSchema = z.object({
 export const authCookieSchema = z.object({
     Authentication: z.string().transform(sanitize),
 })
+export const refreshCookieSchema = z.object({
+    Refresh: z.string().transform(sanitize),
+})
 

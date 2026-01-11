@@ -1,0 +1,187 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Primary Colors */
+    --primary-background: #6366f1;
+    --primary-foreground: #ffffff;
+    --primary-light: #8b8ff1;
+    --primary-dark: #5a5ee8;
+
+    /* Secondary Colors */
+    --secondary-background: #ffffff;
+    --secondary-foreground: #000000;
+    --secondary-light: #f8fafc;
+    --secondary-dark: #22252b;
+
+    /* Accent Colors */
+    --accent-color: #22c55e;
+    --accent-foreground: #ffffff;
+    --accent-light: #4ade80;
+    --accent-dark: #15803d;
+
+    /* Border Colors */
+    --border-primary: #6366f1;
+    --border-secondary: #a78bfa;
+    --border-light: #e5e7eb;
+    --border-dark: #374151;
+
+    /* Text Colors */
+    --text-primary: #000000;
+    --text-secondary: #64748b;
+    --text-muted: #ffffffb2;
+    --text-accent: #6366f1;
+
+    /* Background Colors */
+    --bg-main: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-overlay: #d9d9d9;
+    --bg-footer: #1e293b;
+
+    /* Component Colors */
+    --header-bg: #ffffff;
+    --button-bg-primary: #6366f1;
+    --button-bg-secondary: #22c55e;
+    --button-text: #ffffff;
+    --footer-bg:#F8F9FA;
+
+    /* Typography Variables */
+    --font-size-xs: 12px;
+    --font-size-sm: 14px;
+    --font-size-base: 16px;
+    --font-size-lg: 20px;
+    --font-size-xl: 24px;
+    --font-size-2xl: 32px;
+    --font-size-3xl: 40px;
+
+    /* Font Weight Variables */
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+
+    /* Line Height Variables */
+    --line-height-xs: 15px;
+    --line-height-sm: 17px;
+    --line-height-base: 20px;
+    --line-height-lg: 24px;
+    --line-height-xl: 25px;
+    --line-height-2xl: 30px;
+    --line-height-3xl: 39px;
+    --line-height-4xl: 49px;
+
+    /* Spacing Variables */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --spacing-2xl: 48px;
+    --spacing-3xl: 64px;
+
+    /* Padding Variables */
+    --padding-xs: 4px;
+    --padding-sm: 8px;
+    --padding-md: 16px;
+    --padding-lg: 24px;
+    --padding-xl: 32px;
+    --padding-2xl: 48px;
+
+    /* Margin Variables */
+    --margin-xs: 6px;
+    --margin-sm: 14px;
+    --margin-md: 24px;
+    --margin-lg: 48px;
+    --margin-xl: 96px;
+
+    /* Gap Variables */
+    --gap-xs: 2px;
+    --gap-sm: 8px;
+    --gap-md: 16px;
+    --gap-lg: 28px;
+    --gap-xl: 48px;
+
+    /* Border Radius Variables */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+
+    /* Border Width Variables */
+    --border-width-sm: 2px;
+
+    /* Layout Variables */
+    --width-xs: 12px;
+    --width-sm: 162px;
+    --width-md: 260px;
+    --width-lg: 356px;
+    --width-xl: 1136px;
+  }
+}
+
+@layer components {
+  .btn-base {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .btn-base:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+  .btn-base:hover {
+    opacity: 0.9;
+  }
+  .btn-base:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--primary-light), 0 0 0 4px var(--primary-dark);
+  }
+  /* Button Variants */
+  .btn-primary {
+    @apply btn-base text-xs font-semibold leading-xs text-primary-foreground 
+           bg-primary-background rounded-sm;
+  }
+
+  .btn-secondary {
+    @apply btn-base text-xs font-semibold leading-xs text-primary-background 
+           bg-secondary-background rounded-sm hover:bg-primary-light hover:bg-opacity-10 
+           border-[2px_solid_#6366f1];
+  }
+
+  .btn-accent {
+    @apply btn-base text-xs font-semibold leading-xs text-primary-foreground 
+           bg-accent-color rounded-md;
+  }
+
+  
+
+  .hover-underline-animation {
+    position: relative;
+    display: inline-block; 
+    width: fit-content; /* Ensure the element only takes up as much space as the text */
+    color: var(--text-secondary);
+    transition: color 0.3s ease;
+  }
+
+  .hover-underline-animation:hover {
+    color: var(--text-primary);
+  }
+
+  .hover-underline-animation::after {
+    content: '';
+    position: absolute;
+    width: 0; 
+    height: 2px;
+    bottom: 0; 
+    left: 0;
+    background-color: var(--text-primary);
+    transition: width 0.3s ease; 
+  }
+
+  .hover-underline-animation:hover::after {
+    width: 100%; 
+  }
+}

@@ -26,12 +26,12 @@ Summary
 Completed
 ---------
 - Created this initial progress note to capture state and next steps.
+- Documented plugin API endpoints and example requests in backend/README.md.
 
 Next steps
 ----------
 - Add/update tests for plugin endpoints.
 - Verify and finalize routes and middleware integration.
-- Document API endpoints and example requests.
 
 Notes
 -----

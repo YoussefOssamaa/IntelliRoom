@@ -1,17 +1,32 @@
-import express from 'express';
 import Plugin from '../../models/pluginModels/plugins.js';
+import mongoose from 'mongoose';
 import User from '../../models/user.js';
 const TEST_USER_ID = "64f3a5e6a3c9b7f1a1234567"; // this is a test user ID for development purposes
 
 
 export const getPluginsController = async (req, res) => {
     try {
+        const search = req.query.search?.trim();
+        const sort = req.query.sort || 'recent';
 
-        const plugins = await Plugin.find().populate('plugin_author' , 'user_name email');
-        console.log(plugins);
-        if (plugins.length === 0) {
-            return res.status(404).json({ message: 'No plugins found' });
+        const filter = {};
+        if (search) {
+            filter.$or = [
+                { plugin_name: { $regex: search, $options: 'i' } },
+                { plugin_description: { $regex: search, $options: 'i' } }
+            ];
         }
+
+        const sortOptions = {
+            recent: { createdAt: -1 },
+            rating: { plugin_rating: -1 },
+            downloads: { number_of_downloads: -1 },
+            price: { plugin_price: -1 }
+        };
+
+        const plugins = await Plugin.find(filter)
+            .populate('plugin_author' , 'user_name email')
+            .sort(sortOptions[sort] || sortOptions.recent);
 
         res.status(200).json(plugins);
     } catch (error) {
@@ -21,24 +36,17 @@ export const getPluginsController = async (req, res) => {
 
 export const getPluginByIdController = async (req, res) => {
     try {
-        const plugin = await Plugin.findById(req.params.id).populate('plugin_author' , 'user_name email');
-        console.log(plugin);
+        const { id } = req.params;
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ message: 'Invalid plugin ID' });
+        }
+
+        const plugin = await Plugin.findById(id).populate('plugin_author' , 'user_name email');
         if (!plugin) {
             return res.status(404).json({ message: 'Plugin not found' });
         }
 
-        const plugin_data = {
-            plugin_name: plugin.plugin_name,
-            plugin_description: plugin.plugin_description,
-            plugin_author: plugin.plugin_author,
-            plugin_rating: plugin.plugin_rating,
-            plugin_reviews: plugin.plugin_reviews,
-            what_is_included: plugin.what_is_included, 
-            plugin_price: plugin.plugin_price,
-            number_of_downloads: plugin.number_of_downloads, 
-        }
-
-        res.status(200).json(plugin_data);
+        res.status(200).json(plugin);
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: error.message });

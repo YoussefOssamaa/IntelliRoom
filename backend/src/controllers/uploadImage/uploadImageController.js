@@ -12,6 +12,9 @@ export const postImageController = async (req, res) => {
             return res.status(400).json({ error: 'No file uploaded' });
         }
 
+
+        const inputPrompt = req.body.inputPrompt 
+
         console.log('Uploaded file:', req.file);
 
 
@@ -20,7 +23,7 @@ export const postImageController = async (req, res) => {
         console.log('Image uploaded to ComfyUI as:', comfyImageFilename);
 
 
-        const workflow = buildComfyWorkflow(comfyImageFilename);
+        const workflow = buildComfyWorkflow(comfyImageFilename, inputPrompt);
         console.log('Running ComfyUI workflow...');
 
         const result = await comfyUIServiceInstance.runComfyWorkflow(workflow);

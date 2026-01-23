@@ -310,8 +310,8 @@ try {
 
 
 
-export function buildComfyWorkflow(inputImageFilename) {
-    return {
+export function buildComfyWorkflow(inputImageFilename, inputPrompt) {
+        return {
         "1": {
             "inputs": {
             "image": inputImageFilename

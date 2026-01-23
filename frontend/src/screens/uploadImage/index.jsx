@@ -1,12 +1,11 @@
 import axios from 'axios';
 import React, { useState } from 'react';
 import {Routes, Route} from 'react-router-dom'
-//import { BACKEND_URL } from '../../services/uploadImageService';
+import { BACKEND_URL } from '../../services/uploadImageService';
 
 
 
 
-export const BACKEND_URL = "http://localhost:5000/api"
 
 
 function UploadImage() {

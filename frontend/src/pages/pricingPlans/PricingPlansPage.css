@@ -1,0 +1,291 @@
+/* Container Logic */
+.main-wrapper {
+    position: relative;
+    overflow: hidden;
+    padding: 40px 20px;
+    font-family: sans-serif;
+    background-color: white;
+    background-image: linear-gradient(200deg, #F59F0A20 30%, #5048E580);
+    max-width: 100vw;
+    width: 100%;
+    min-height: 100vh;
+    box-sizing: border-box;
+    z-index: 1;
+}
+
+.deco-shape {
+  position: absolute;
+  width: 100px;       /* Default size */
+  height: 100px;      /* Default size */
+  border-radius: 70px; /* Makes it a rounded square */
+  background-color: #FFFFFF; /* Uses your theme blue */
+  opacity: 0.20;       /* Very faint (10% visibility) */
+  z-index: -1;        /* Puts it BEHIND the text and cards */
+  pointer-events: none; /* Allows you to click through it */
+  transform: rotate(30deg); /* Optional: Tults it slightly for style */
+}
+
+.cards-container, 
+.header-section, 
+.toggle-area {
+  position: relative;
+  z-index: 2; /* Ensures content is above the shapes */
+}
+
+.header-section {
+    text-align: center;
+    margin-bottom: 40px;
+    /* Space between title and toggle */
+}
+
+.main-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 10px;
+    background-image: linear-gradient(to right, black 40%, #F59F0A, #5048E5 70%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+
+}
+
+.sub-title {
+    font-size: 1.1rem;
+    color: #4c4b4b;
+    margin-top: 0;
+}
+
+.cards-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    /* Ensure they align at the top */
+    gap: 20px;
+    flex-wrap: wrap;
+    /* Allows stacking on mobile */
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Base Card Style */
+.card {
+    background: white;
+    color: #333;
+    /* Forces text to be dark grey/black */
+    border: 1px solid #ddd;
+    padding: 20px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 280px;
+    box-sizing: border-box;
+    position: relative;
+    /* Needed for positioning the badge */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    cursor: pointer;
+}
+
+.card:hover {
+  /* Move the card up by 10 pixels */
+  transform: translateY(-10px); 
+  
+  /* Make the shadow deeper and softer */
+  box-shadow: 0 20px 40px var(--shadow-color);
+  
+  /* Optional: Highlight the border color */
+  border-color: var(--primary-color);
+}
+
+/* --- MOST POPULAR (PRO) STYLES --- */
+.popular-card {
+    transform: scale(1.05);
+    /* Slightly bigger */
+    box-shadow: 0 15px 30px rgba(0, 123, 255, 0.15);
+    z-index: 10;
+    border: 2px solid #8c7ae6;
+
+}
+
+.popular-badge {
+    text-align: center;
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    /* Centers the badge */
+    background-color: #f3e8ff;
+    color: #7e22ce;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: 1px solid #d8b4fe;
+}
+
+.popular-card:hover {
+  transform: scale(1.05) translateY(-10px);
+}
+
+/* Typography explicitly set to visible colors */
+.plan-name {
+    font-size: 1.5rem;
+    margin-top: 0;
+    color: #000;
+}
+
+.description {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+}
+
+.price-tag {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #000;
+    margin: 20px 0;
+}
+
+.price-tag .period {
+    font-size: 1rem;
+    color: #666;
+    font-weight: normal;
+}
+
+/* Feature List */
+.features {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+    text-align: left;
+}
+
+.features li {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: flex-start;
+    color: #444;
+}
+
+.checkmark {
+    color: #007bff;
+    /* Blue checkmark */
+    margin-right: 10px;
+    font-weight: bold;
+}
+
+/* CTA Button */
+.cta-button {
+    width: 100%;
+    padding: 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: auto;
+    /* Pushes button to bottom */
+}
+
+.cta-button:hover {
+    background-color: #0056b3;
+}
+
+
+
+/* Toggle Switch Area */
+.toggle-area {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 50px;
+    font-size: 1rem;
+}
+
+/* The Background Pill */
+.toggle-switch {
+    width: 50px;
+    height: 26px;
+    background-color: #ccc;
+    border-radius: 13px;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+/* Change background color when active (Annual) */
+.toggle-switch.active {
+    background-color: #007bff;
+}
+
+/* The Moving Circle */
+.switch-knob {
+    width: 22px;
+    height: 22px;
+    background-color: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    /* Bouncy effect */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Move the circle to the right when active */
+.toggle-switch.active .switch-knob {
+    transform: translateX(24px);
+}
+
+/* Text Styles */
+.label-text {
+    color: #666;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.active-text {
+    color: #000;
+    font-weight: bold;
+}
+
+/* Save 17% Badge */
+.save-badge, 
+.active-save-badge {
+  font-size: 0.75rem;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  margin-left: -5px;
+  
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.save-badge {
+  background-color: #f0f0f0;  /* Light Grey */
+  color: #888888;             /* Dark Grey text */
+}
+
+.active-save-badge {
+  background-color: #e6f4ea;  /* Light Green */
+  color: #137333;             /* Dark Green text */
+  
+  /* subtle glow when active */
+  box-shadow: 0 0 8px rgba(19, 115, 51, 0.2); 
+}
+
+.card-divider {
+  border: 0;
+  /* Use the variable we created earlier so it works in Dark Mode */
+  border-top: 1px solid ; 
+  margin: 20px 0; /* Adds spacing above and below the line */
+  width: 100%;
+}

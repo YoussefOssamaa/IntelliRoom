@@ -38,7 +38,7 @@ export function PluginReviewPage() {
                 setLoading(true);
 
                 // PASTE YOUR COPIED ID HERE ↓↓↓
-                const testID = "695ffe135c71b8356374dc7f"; // <--- Replace with the ID from your browser
+                const testID = "6972e2aeca056d77997201d2"; // <--- Replace with the ID from your browser
 
                 const response = await axios.get(`http://localhost:5000/api/plugins/${testID}`);
 
@@ -86,7 +86,7 @@ export function PluginReviewPage() {
                         <h2>{plugin.plugin_name}</h2>
                         <div>
                             <div className='follow-row'>
-                                <h4 className='owner-name'>by {plugin.plugin_author}</h4>
+                                <h4 className='owner-name'>by {plugin.plugin_author.user_name}</h4>
                                 <button className=
                                     {`follow-btn ${isFollowing ? 'following' : ''}`}
                                     onClick={() => setIsFollowing(!isFollowing)}>

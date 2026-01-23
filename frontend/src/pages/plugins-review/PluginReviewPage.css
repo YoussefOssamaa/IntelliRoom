@@ -1,0 +1,255 @@
+/* 1. Main Container: Holds both sides */
+.main-container {
+    padding: 10px;
+    width: 100%;
+    min-height: 100vh;
+    border-radius: 12px;
+    box-sizing: border-box;
+    overflow: visible;
+    /* background: linear-gradient(120deg, #e0f2fe 0%, #bae6fd 100%); */
+    /* background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%); */
+    background: linear-gradient(to right, #89f7fe, #66a6ff);
+
+
+}
+
+.review-page-container {
+    display: flex;
+    /* Puts children side-by-side */
+    width: 100%;
+    height: (100vh - 20px);
+    /* Forces full screen height */
+    overflow: hidden;
+    /* Prevents scrollbar on the main body */
+    background-color: #fff;
+    border-radius: 12px;
+    box-sizing: border-box;
+}
+
+/* 2. Left Side (Visuals) */
+.visual-side {
+    flex: 2;
+    background-color: #f0f2f5;
+    /* Light grey background for contrast */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Centers the content inside it */
+    position: relative;
+}
+
+/* Placeholder box just to show you where the plugin goes */
+.plugin-placeholder {
+    width: 70%;
+    height: 70%;
+    background-color: #e1e4e8;
+    border: 2px dashed #bdc3c7;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #7f8c8d;
+}
+
+/* 3. Right Side (Information) */
+.info-side {
+    flex: 1;
+    /* Takes up the other 50% width */
+    background-color: white;
+    padding: 60px;
+    /* Spacing inside the text area */
+    overflow-y: auto;
+    /* Allows scrolling ONLY on the text side if it gets long */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /* Centers text vertically (optional) */
+}
+
+/* Content Styling */
+.badge {
+    background-color: #e0f2fe;
+    color: #0284c7;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.8rem;
+    display: inline-block;
+    margin-bottom: 15px;
+}
+
+.follow-row {
+    display: flex;
+    /* Puts items side-by-side */
+    align-items: center;
+    /* Aligns them vertically (so the button isn't too high/low) */
+    gap: 15px;
+    /* Adds space between the text and button */
+}
+
+.follow-btn {
+    background-color: white;
+    color: #6366F1;
+    padding: 15px 30px;
+    border-radius: 8px;
+    border: 2px solid #6366F1;
+    font-size: 1rem;
+    font-family:Arial, Helvetica, sans-serif;
+    cursor: pointer;
+    width: fit-content;
+    transition: all 0.3s ease;
+}
+
+.follow-btn:hover {
+    background-color: #6366F1;       
+    color: white;                    
+    transform: translateY(-3px);     
+    box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4); 
+}
+
+
+
+.follow-btn.following {
+  background-color: grey;  
+  color: white;              
+  border: none;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2); 
+}
+
+.follow-btn.following:hover {
+  background-color: #4f46e5; 
+  transform: none;          
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2); 
+}
+
+.follow-btn:focus {
+  outline: none;
+}
+
+.credits-points {
+    color: #6366F1;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.get-item-btn {
+    background-color: #6366F1;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    margin: 10px 0px;
+    width: 100%;
+    cursor: pointer;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+
+}
+
+.preview-item-btn {
+    background-color: #6366F1;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    margin: 10px 0px;
+    width: 100%;
+    cursor: pointer;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.get-item-btn:hover, 
+.preview-item-btn:hover {
+    background-color: #4749ac;
+    transform: translateY(-3px);
+}
+
+.description  {
+    line-height: 24px;
+    color: #000;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.plugin-info {
+    line-height: 16px;
+    color: #000;
+    font-family: Arial, Helvetica, sans-serif;
+
+}
+
+.users-reviews {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.user-name-and-review {
+    line-height: 8px;
+}
+
+.user-name-and-review {
+    display: flex;           /* Puts items side-by-side */
+  align-items: center;     /* Aligns them vertically (so the button isn't too high/low) */
+  justify-content: space-between;
+  width: 100%;
+
+}
+
+/* Container for the stars */
+.star-row {
+    display: flex;
+    gap: 2px;
+    /* Small space between stars */
+}
+
+/* Base style for all stars */
+.star {
+    font-size: 1.2rem;
+    /* Make them slightly larger */
+    line-height: 1;
+}
+
+/* GOLDEN STAR (Filled) */
+.star.filled {
+    color: #f59e0b;
+    /* Amber/Gold color */
+    /* Optional: Add a text shadow for a "glow" effect */
+    text-shadow: 0 0 2px rgba(245, 158, 11, 0.4);
+}
+
+/* GREY STAR (Empty) */
+.star.empty {
+    color: #d1d5db;
+    /* Light grey */
+}
+
+
+
+.divider {
+  border: 0;
+  border-top: 1px solid #000; 
+  opacity: 0.2;               
+  margin: 30px 0;
+}
+
+
+/* Mobile Responsiveness */
+@media (max-width: 1200px) {
+    .review-page-container {
+        flex-direction: column;
+        /* Stack them on mobile */
+        height: auto;
+        /* Allow scroll on mobile */
+        overflow: visible;
+    }
+
+    .visual-side {
+        height: 40vh;
+        /* Fixed height for visual on mobile */
+        min-height: 300px;
+        flex: none;
+    }
+
+    .info-side {
+        height: auto;
+        overflow: visible;
+        padding: 40px 20px;
+        justify-content: flex-start;
+    }
+}

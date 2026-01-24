@@ -4,7 +4,9 @@ import fs from 'fs';
 import { comfyUIServiceInstance } from '../../server.js';
 //import { buildComfyWorkflow, COMFYUI_OUTPUT_NODE } from '../../services/ComfyUIService.js';
 import { setTimeout } from 'node:timers/promises';
-import { buildComfyWorkflow1, buildComfyWorkflow2, COMFYUI_OUTPUT_NODE_WF1 } from '../../services/workflow_1.js';
+import { buildComfyWorkflow1, COMFYUI_OUTPUT_NODE_WF1 } from '../../services/workflow_1.js';
+import { buildComfyWorkflow3, COMFYUI_OUTPUT_NODE_WF3 } from '../../services/workflow_3.js';
+import { buildComfyWorkflow2, COMFYUI_OUTPUT_NODE_WF2 } from '../../services/workflow_2.js';
 import { escape } from 'node:querystring';
 
 

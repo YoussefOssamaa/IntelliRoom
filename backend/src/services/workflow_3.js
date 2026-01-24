@@ -2,7 +2,7 @@
 import express from 'express';
 
 
-export function buildComfyWorkflow2(inputImageFilename, inputPrompt) {
+export function buildComfyWorkflow3(inputImageFilename, inputPrompt) {
         return {
 
 };

@@ -15,10 +15,12 @@ const limiter = rateLimit({
 const router = express.Router();
 
 
-router.post('/login', limiter , loginHandler )
+/*router.post('/login', limiter , loginHandler )
 router.post('/signup', limiter , registerHandler )
 router.post('/refreshToken', limiter , refreshTokenHandler )
 router.post('/logout', limiter , logoutController )
+*/
+
 // router.post('/forgetPassword', limiter , forgetPasswordHandler )
 // router.post('/resetPassword', limiter , resetPasswordHandler )
 

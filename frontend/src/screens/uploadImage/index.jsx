@@ -11,8 +11,7 @@ function UploadImage() {
     const [imagePreview, setImagePreview] = useState (null)
     const [inputPrompt , setInputPrompt] = useState ('')
     const [loading , setLoading] = useState (false)
-
-
+    const [workflowNumber, setWorkflowNumber] = useState('1');  // wf 1 by default
 
 
     const handleImageChange = (e)=> {
@@ -37,33 +36,30 @@ function UploadImage() {
         const formData = new FormData ()
         formData.append ("image" , imageFile)
         formData.append ("inputPrompt" , inputPrompt)
+        formData.append ("workflowNumber" , workflowNumber)  
 
         try{
 
-           /* const res = await axios.post(`${BACKEND_URL}/uploadImage`, 
+            const res = await axios.post(`${BACKEND_URL}/uploadImage`, 
                 formData,
                 {
                     headers: {
                         'Content-Type': 'multipart/form-data'
                     }
                 }
-            )*/
+            )
 
-                const testurl = "test.png" //////
 
             console.log('Responseeeeee from server:', res.data);
             
-           // const fullImageUrl = `${BACKEND_URL}${res.data.enhancedImageUrl}`;
-            setImagePreview(testurl);  ////////
+           const fullImageUrl = `${BACKEND_URL}${res.data.enhancedImageUrl}`;
+            setImagePreview(fullImageUrl);  
             setLoading(false)
 
         }
         catch(err){
             console.error(err);
             alert("Processing failed");
-                const testurl = "test.png" //////
-            setImagePreview(testurl);
-            
             setLoading(false)
         }
     } 
@@ -112,6 +108,22 @@ function UploadImage() {
 
         <br /><br />
 
+
+        <label>
+            Choose Workflow:
+            <select 
+                value ={workflowNumber}
+                onChange={(e)=>{ setWorkflowNumber (e.target.value) }}>
+                <option value="1">Workflow 1 - Empty Room</option>
+                <option value="2">Workflow 2 - Detect and Replace</option>
+                <option value="3">Workflow 3 - other</option>
+            </select>
+
+        </label>
+
+
+
+        <br /><br />
         <button
         onClick={handleSubmit}  disabled={loading}>
             { loading? "Processing..." : "Send"  }

@@ -2,8 +2,10 @@ import express from 'express';
 import multer from 'multer';
 import fs from 'fs';
 import { comfyUIServiceInstance } from '../../server.js';
-import { buildComfyWorkflow, COMFYUI_OUTPUT_NODE } from '../../services/ComfyUIService.js';
+//import { buildComfyWorkflow, COMFYUI_OUTPUT_NODE } from '../../services/ComfyUIService.js';
 import { setTimeout } from 'node:timers/promises';
+import { buildComfyWorkflow1, buildComfyWorkflow2, COMFYUI_OUTPUT_NODE_WF1 } from '../../services/workflow_1.js';
+import { escape } from 'node:querystring';
 
 
 export const postImageController = async (req, res) => {
@@ -12,7 +14,7 @@ export const postImageController = async (req, res) => {
             return res.status(400).json({ error: 'No file uploaded' });
         }
 
-
+        const workflowNumber = req.body.workflowNumber;
         const inputPrompt = req.body.inputPrompt 
 
         console.log('Uploaded file:', req.file);
@@ -23,14 +25,38 @@ export const postImageController = async (req, res) => {
         console.log('Image uploaded to ComfyUI as:', comfyImageFilename);
 
 
-        const workflow = buildComfyWorkflow(comfyImageFilename, inputPrompt);
+
+
+
+
+        
+    
+        let comfyOutputNode = "";
+        let workflow = null;
+
+      if (workflowNumber === 1) {
+        workflow = buildComfyWorkflow1(comfyImageFilename);
+        comfyOutputNode = COMFYUI_OUTPUT_NODE_WF1;
+      }
+      else if (workflowNumber === 2) {
+        workflow = buildComfyWorkflow2(comfyImageFilename, inputPrompt);
+        comfyOutputNode = COMFYUI_OUTPUT_NODE_WF2;
+      }
+      else if (workflowNumber === 3) {
+       workflow = buildComfyWorkflow3(comfyImageFilename, inputPrompt);
+       comfyOutputNode = COMFYUI_OUTPUT_NODE_WF3;
+      }
+
+
+
+
         console.log('Running ComfyUI workflow...');
 
         const result = await comfyUIServiceInstance.runComfyWorkflow(workflow);
         console.log('Workflow result:', result);
 
 
-        const outputNode = result.outputs[COMFYUI_OUTPUT_NODE];
+        const outputNode = result.outputs[comfyOutputNode];
         
         if (!outputNode || !outputNode.images || outputNode.images.length === 0) {
             console.error('No output image in history:', history);
@@ -55,6 +81,7 @@ export const postImageController = async (req, res) => {
             outputType
         );
 
+        await setTimeout(1000);
         
          return res.status(200).json({
             message: 'Image uploaded and processed successfully',

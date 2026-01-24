@@ -18,6 +18,31 @@ const resetPublicKey = fs.readFileSync(path.join("src", "keys", "ResetPublic.pem
 
 // console.log(authPrivateKey);
 // console.log(authPublicKey);
+export const registerHandler = async (req, res) => {
+    const genericError = "Invalid credentials or user already exists"
+    try {
+        const validation = userSchema.safeParse(req.body);
+        await normalizeResponseTime()
+        if (!validation.success) {
+            return res.status(400).json({success : false , message : genericError})
+        }
+        const { email, password } = validation.data;
+        const user = await User.findOne({ email });
+        if (user) {
+            return res.status(400).json({success : false , message : genericError})
+        }
+        const hashedPassword = await bcrypt.hash(password, 10)
+        await User.create({
+            email,
+            password: hashedPassword
+        })
+        return res.status(201).json({success : true , message : "User registered successfully."})
+        
+    }catch(e){
+        console.log(e.message);
+        return res.status(400).json({success : false , message : genericError})
+    }
+}
 
 export const loginHandler = async (req, res) => {
 
@@ -38,6 +63,7 @@ export const loginHandler = async (req, res) => {
         }
 
         const check = await bcrypt.compare(password, logging_user.password);
+
         if (!check) {
             return res.status(401).json({ success: false, message: genericMessage });
         }
@@ -98,6 +124,8 @@ export const refreshTokenHandler = async (req, res) => {
     const genericError = "not authenticated"
 
     try {
+        await normalizeResponseTime();
+        
         const validation = refreshCookieSchema.safeParse(req.cookies?.Refresh);
         if (!validation.success) {
             return res.status(401).json({ success: false, message: genericError })
@@ -121,6 +149,7 @@ export const refreshTokenHandler = async (req, res) => {
         const authPayload = {
             userId: user.user_id
         }
+
         const authToken = jwt.sign(authPayload, authPrivateKey, {
             expiresIn: 15 * 60,
             algorithm: "RS256",
@@ -177,8 +206,7 @@ export const forgetPasswordHandler = async (req, res) => {
         return res.json({ success: true, message: genericError })
 
     } catch (e) {
-        console.log(e.messsage);
-        
+        console.log(e.messsage);       
         return res.json({ success: false, message: genericError })
 
     }

@@ -12,6 +12,7 @@ const protect = (req, res, next) => {
     const validation = authCookieSchema.safeParse(req.cookies?.Authentication);
 
     const genericError = "not authenticated"
+
     if (!validation.success) {
         return res.status(401).json({ success: false, message: genericError });
     }
@@ -33,7 +34,8 @@ const protect = (req, res, next) => {
         return res.status(401).json({ success: false, message: genericError })
     }
 
-    req.user = payload;
+    req.userId = payload.userId;
+    
     next();
 }
 

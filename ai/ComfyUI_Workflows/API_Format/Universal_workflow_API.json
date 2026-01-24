@@ -1,0 +1,1165 @@
+{
+  "1": {
+    "inputs": {
+      "ckpt_name": "RealisticVisionV6.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple",
+    "_meta": {
+      "title": "Load Checkpoint"
+    }
+  },
+  "2": {
+    "inputs": {
+      "model": "microsoft/Florence-2-base-ft",
+      "precision": "fp16",
+      "attention": "sdpa",
+      "convert_to_safetensors": false
+    },
+    "class_type": "DownloadAndLoadFlorence2Model",
+    "_meta": {
+      "title": "Florence2 Model"
+    }
+  },
+  "3": {
+    "inputs": {
+      "text": "text",
+      "clip": [
+        "43",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "Negative Prompt"
+    }
+  },
+  "18": {
+    "inputs": {
+      "keep_model_loaded": true,
+      "individual_objects": false,
+      "sam2_model": [
+        "19",
+        0
+      ],
+      "image": [
+        "42",
+        0
+      ],
+      "bboxes": [
+        "20",
+        1
+      ]
+    },
+    "class_type": "Sam2Segmentation",
+    "_meta": {
+      "title": "SAM2 Segmentation"
+    }
+  },
+  "19": {
+    "inputs": {
+      "model": "sam2.1_hiera_base_plus.safetensors",
+      "segmentor": "single_image",
+      "device": "cuda",
+      "precision": "fp16"
+    },
+    "class_type": "DownloadAndLoadSAM2Model",
+    "_meta": {
+      "title": "SAM2 Model"
+    }
+  },
+  "20": {
+    "inputs": {
+      "index": "0",
+      "batch": false,
+      "data": [
+        "307",
+        3
+      ]
+    },
+    "class_type": "Florence2toCoordinates",
+    "_meta": {
+      "title": "Florence2 Coordinates"
+    }
+  },
+  "24": {
+    "inputs": {
+      "ipadapter_file": "ip-adapter-plus_sd15.safetensors"
+    },
+    "class_type": "IPAdapterModelLoader",
+    "_meta": {
+      "title": "Load IP-Adapter"
+    }
+  },
+  "26": {
+    "inputs": {
+      "weight": 1,
+      "weight_type": "linear",
+      "combine_embeds": "concat",
+      "start_at": 0,
+      "end_at": 1,
+      "embeds_scaling": "V only",
+      "model": [
+        "43",
+        0
+      ],
+      "ipadapter": [
+        "24",
+        0
+      ],
+      "image": [
+        "309",
+        0
+      ],
+      "attn_mask": [
+        "310",
+        0
+      ],
+      "clip_vision": [
+        "27",
+        0
+      ]
+    },
+    "class_type": "IPAdapterAdvanced",
+    "_meta": {
+      "title": "IP-Adapter Advanced"
+    }
+  },
+  "27": {
+    "inputs": {
+      "clip_name": "CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors"
+    },
+    "class_type": "CLIPVisionLoader",
+    "_meta": {
+      "title": "Load CLIP Vision"
+    }
+  },
+  "30": {
+    "inputs": {
+      "seed": 1009097797051388,
+      "steps": 20,
+      "cfg": 3,
+      "sampler_name": "dpmpp_sde",
+      "scheduler": "normal",
+      "denoise": [
+        "330",
+        0
+      ],
+      "model": [
+        "313",
+        0
+      ],
+      "positive": [
+        "346",
+        0
+      ],
+      "negative": [
+        "347",
+        0
+      ],
+      "latent_image": [
+        "312",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "32": {
+    "inputs": {
+      "samples": [
+        "30",
+        0
+      ],
+      "vae": [
+        "1",
+        2
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "35": {
+    "inputs": {
+      "text": "",
+      "clip": [
+        "43",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "Positive Prompt (Global)"
+    }
+  },
+  "40": {
+    "inputs": {
+      "pixels": [
+        "42",
+        0
+      ],
+      "vae": [
+        "1",
+        2
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "VAE Encode (img2img)"
+    }
+  },
+  "42": {
+    "inputs": {
+      "upscale_method": "lanczos",
+      "width": 512,
+      "height": 512,
+      "crop": "center",
+      "image": [
+        "55",
+        0
+      ]
+    },
+    "class_type": "ImageScale",
+    "_meta": {
+      "title": "Upscale Image (512x512)"
+    }
+  },
+  "43": {
+    "inputs": {
+      "PowerLoraLoaderHeaderWidget": {
+        "type": "PowerLoraLoaderHeaderWidget"
+      },
+      "lora_1": {
+        "on": false,
+        "lora": "SD1.5/lcm/pytorch_lora_weights.safetensors",
+        "strength": 1
+      },
+      "➕ Add Lora": "",
+      "model": [
+        "1",
+        0
+      ],
+      "clip": [
+        "1",
+        1
+      ]
+    },
+    "class_type": "Power Lora Loader (rgthree)",
+    "_meta": {
+      "title": "Power Lora Loader (rgthree)"
+    }
+  },
+  "55": {
+    "inputs": {
+      "image": "pexels-athenea-codjambassis-rossitto-472760075-26571197.jpg"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Input Image"
+    }
+  },
+  "56": {
+    "inputs": {
+      "rgthree_comparer": {
+        "images": [
+          {
+            "name": "A",
+            "selected": true,
+            "url": "/api/view?filename=rgthree.compare._temp_byiuo_00059_.png&type=temp&subfolder=&rand=0.07002990981575474"
+          },
+          {
+            "name": "B",
+            "selected": true,
+            "url": "/api/view?filename=rgthree.compare._temp_byiuo_00060_.png&type=temp&subfolder=&rand=0.2946954109487723"
+          }
+        ]
+      },
+      "image_a": [
+        "42",
+        0
+      ],
+      "image_b": [
+        "324",
+        0
+      ]
+    },
+    "class_type": "Image Comparer (rgthree)",
+    "_meta": {
+      "title": "Image Comparer"
+    }
+  },
+  "57": {
+    "inputs": {
+      "filename_prefix": "ComfyUI",
+      "images": [
+        "324",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image"
+    }
+  },
+  "60": {
+    "inputs": {
+      "width": 512,
+      "height": 512,
+      "batch_size": 1
+    },
+    "class_type": "EmptyLatentImage",
+    "_meta": {
+      "title": "Empty Latent Image (txt2img)"
+    }
+  },
+  "62": {
+    "inputs": {
+      "downscale_algorithm": "bilinear",
+      "upscale_algorithm": "bicubic",
+      "preresize": false,
+      "preresize_mode": "ensure minimum resolution",
+      "preresize_min_width": 1024,
+      "preresize_min_height": 1024,
+      "preresize_max_width": 16384,
+      "preresize_max_height": 16384,
+      "mask_fill_holes": true,
+      "mask_expand_pixels": 0,
+      "mask_invert": false,
+      "mask_blend_pixels": 0,
+      "mask_hipass_filter": 0.1,
+      "extend_for_outpainting": false,
+      "extend_up_factor": 1,
+      "extend_down_factor": 1,
+      "extend_left_factor": 1,
+      "extend_right_factor": 1,
+      "context_from_mask_extend_factor": 1,
+      "output_resize_to_target_size": true,
+      "output_target_width": 512,
+      "output_target_height": 512,
+      "output_padding": "32",
+      "device_mode": "gpu (much faster)",
+      "image": [
+        "42",
+        0
+      ],
+      "mask": [
+        "310",
+        0
+      ]
+    },
+    "class_type": "InpaintCropImproved",
+    "_meta": {
+      "title": "Inpaint Crop"
+    }
+  },
+  "78": {
+    "inputs": {
+      "control_net_name": "control_lora_rank128_v11f1p_sd15_depth_fp16.safetensors"
+    },
+    "class_type": "ControlNetLoader",
+    "_meta": {
+      "title": "Load Depth ControlNet"
+    }
+  },
+  "79": {
+    "inputs": {
+      "control_net_name": "control_lora_rank128_v11p_sd15_inpaint_fp16.safetensors"
+    },
+    "class_type": "ControlNetLoader",
+    "_meta": {
+      "title": "Load Inpaint ControlNet"
+    }
+  },
+  "80": {
+    "inputs": {
+      "strength": 1,
+      "start_percent": 0,
+      "end_percent": 1,
+      "positive": [
+        "342",
+        0
+      ],
+      "negative": [
+        "3",
+        0
+      ],
+      "control_net": [
+        "78",
+        0
+      ],
+      "image": [
+        "42",
+        0
+      ]
+    },
+    "class_type": "ControlNetApplyAdvanced",
+    "_meta": {
+      "title": "Apply Depth ControlNet"
+    }
+  },
+  "81": {
+    "inputs": {
+      "strength": 1,
+      "start_percent": 0,
+      "end_percent": 1,
+      "positive": [
+        "317",
+        0
+      ],
+      "negative": [
+        "318",
+        0
+      ],
+      "control_net": [
+        "79",
+        0
+      ],
+      "image": [
+        "315",
+        0
+      ]
+    },
+    "class_type": "ControlNetApplyAdvanced",
+    "_meta": {
+      "title": "Apply Inpaint ControlNet"
+    }
+  },
+  "82": {
+    "inputs": {
+      "strength": 0.7,
+      "start_percent": 0,
+      "end_percent": 1,
+      "positive": [
+        "319",
+        0
+      ],
+      "negative": [
+        "320",
+        0
+      ],
+      "control_net": [
+        "314",
+        0
+      ],
+      "image": [
+        "316",
+        0
+      ]
+    },
+    "class_type": "ControlNetApplyAdvanced",
+    "_meta": {
+      "title": "Apply Canny ControlNet"
+    }
+  },
+  "300": {
+    "inputs": {
+      "value": 3
+    },
+    "class_type": "easy int",
+    "_meta": {
+      "title": "[CTRL] Generation Mode (1=txt2img | 2=img2img | 3=Inpaint)"
+    }
+  },
+  "301": {
+    "inputs": {
+      "value": 2
+    },
+    "class_type": "easy int",
+    "_meta": {
+      "title": "[CTRL] Mask Mode (1=Manual | 2=Auto Florence+SAM2)"
+    }
+  },
+  "302": {
+    "inputs": {
+      "value": 1
+    },
+    "class_type": "easy int",
+    "_meta": {
+      "title": "[CTRL] Style IP-Adapter (1=OFF | 2=ON)"
+    }
+  },
+  "303": {
+    "inputs": {
+      "value": 1
+    },
+    "class_type": "easy int",
+    "_meta": {
+      "title": "[CTRL] ControlNet Depth (1=OFF | 2=ON)"
+    }
+  },
+  "304": {
+    "inputs": {
+      "value": 2
+    },
+    "class_type": "easy int",
+    "_meta": {
+      "title": "[CTRL] ControlNet Inpaint (1=OFF | 2=ON)"
+    }
+  },
+  "305": {
+    "inputs": {
+      "value": 1
+    },
+    "class_type": "easy int",
+    "_meta": {
+      "title": "[CTRL] ControlNet Canny (1=OFF | 2=ON)"
+    }
+  },
+  "307": {
+    "inputs": {
+      "text_input": [
+        "381",
+        0
+      ],
+      "task": "caption_to_phrase_grounding",
+      "fill_mask": false,
+      "keep_model_loaded": true,
+      "max_new_tokens": 1024,
+      "num_beams": 3,
+      "do_sample": true,
+      "output_mask_select": "",
+      "seed": 900701366838268,
+      "image": [
+        "42",
+        0
+      ],
+      "florence2_model": [
+        "2",
+        0
+      ]
+    },
+    "class_type": "Florence2Run",
+    "_meta": {
+      "title": "Florence2 Object Detection"
+    }
+  },
+  "308": {
+    "inputs": {
+      "image": "style_ref.jpg"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Style Reference Image"
+    }
+  },
+  "309": {
+    "inputs": {
+      "upscale_method": "lanczos",
+      "width": 512,
+      "height": 512,
+      "crop": "center",
+      "image": [
+        "308",
+        0
+      ]
+    },
+    "class_type": "ImageScale",
+    "_meta": {
+      "title": "Upscale Style Image"
+    }
+  },
+  "310": {
+    "inputs": {
+      "select": [
+        "301",
+        0
+      ],
+      "sel_mode": false,
+      "input2": [
+        "18",
+        0
+      ]
+    },
+    "class_type": "ImpactSwitch",
+    "_meta": {
+      "title": "Mask Switch (Manual vs Auto)"
+    }
+  },
+  "311": {
+    "inputs": {
+      "grow_mask_by": 0,
+      "pixels": [
+        "62",
+        1
+      ],
+      "vae": [
+        "1",
+        2
+      ],
+      "mask": [
+        "62",
+        2
+      ]
+    },
+    "class_type": "VAEEncodeForInpaint",
+    "_meta": {
+      "title": "VAE Encode (Inpaint)"
+    }
+  },
+  "312": {
+    "inputs": {
+      "select": [
+        "300",
+        0
+      ],
+      "sel_mode": false,
+      "input1": [
+        "60",
+        0
+      ],
+      "input2": [
+        "40",
+        0
+      ],
+      "input3": [
+        "311",
+        0
+      ]
+    },
+    "class_type": "ImpactSwitch",
+    "_meta": {
+      "title": "Latent Switch (Mode)"
+    }
+  },
+  "313": {
+    "inputs": {
+      "select": [
+        "302",
+        0
+      ],
+      "sel_mode": false,
+      "input1": [
+        "43",
+        0
+      ],
+      "input2": [
+        "26",
+        0
+      ]
+    },
+    "class_type": "ImpactSwitch",
+    "_meta": {
+      "title": "Model Switch (IP-Adapter)"
+    }
+  },
+  "314": {
+    "inputs": {
+      "control_net_name": "control_lora_rank128_v11p_sd15_canny_fp16.safetensors"
+    },
+    "class_type": "ControlNetLoader",
+    "_meta": {
+      "title": "Load Canny ControlNet"
+    }
+  },
+  "315": {
+    "inputs": {
+      "black_pixel_for_xinsir_cn": false,
+      "image": [
+        "62",
+        1
+      ],
+      "mask": [
+        "62",
+        2
+      ]
+    },
+    "class_type": "InpaintPreprocessor",
+    "_meta": {
+      "title": "Inpaint Preprocessor"
+    }
+  },
+  "316": {
+    "inputs": {
+      "preprocessor": "CannyEdgePreprocessor",
+      "resolution": 512,
+      "image": [
+        "329",
+        0
+      ]
+    },
+    "class_type": "AIO_Preprocessor",
+    "_meta": {
+      "title": "Canny Preprocessor"
+    }
+  },
+  "317": {
+    "inputs": {
+      "select": [
+        "303",
+        0
+      ],
+      "sel_mode": false,
+      "input1": [
+        "342",
+        0
+      ],
+      "input2": [
+        "80",
+        0
+      ]
+    },
+    "class_type": "ImpactSwitch",
+    "_meta": {
+      "title": "Pos Switch (Depth)"
+    }
+  },
+  "318": {
+    "inputs": {
+      "select": [
+        "303",
+        0
+      ],
+      "sel_mode": false,
+      "input1": [
+        "3",
+        0
+      ],
+      "input2": [
+        "80",
+        1
+      ]
+    },
+    "class_type": "ImpactSwitch",
+    "_meta": {
+      "title": "Neg Switch (Depth)"
+    }
+  },
+  "319": {
+    "inputs": {
+      "select": [
+        "304",
+        0
+      ],
+      "sel_mode": false,
+      "input1": [
+        "317",
+        0
+      ],
+      "input2": [
+        "81",
+        0
+      ]
+    },
+    "class_type": "ImpactSwitch",
+    "_meta": {
+      "title": "Pos Switch (Inpaint)"
+    }
+  },
+  "320": {
+    "inputs": {
+      "select": [
+        "304",
+        0
+      ],
+      "sel_mode": false,
+      "input1": [
+        "318",
+        0
+      ],
+      "input2": [
+        "81",
+        1
+      ]
+    },
+    "class_type": "ImpactSwitch",
+    "_meta": {
+      "title": "Neg Switch (Inpaint)"
+    }
+  },
+  "321": {
+    "inputs": {
+      "select": [
+        "305",
+        0
+      ],
+      "sel_mode": false,
+      "input1": [
+        "319",
+        0
+      ],
+      "input2": [
+        "82",
+        0
+      ]
+    },
+    "class_type": "ImpactSwitch",
+    "_meta": {
+      "title": "Pos Switch (Canny)"
+    }
+  },
+  "322": {
+    "inputs": {
+      "select": [
+        "305",
+        0
+      ],
+      "sel_mode": false,
+      "input1": [
+        "320",
+        0
+      ],
+      "input2": [
+        "82",
+        1
+      ]
+    },
+    "class_type": "ImpactSwitch",
+    "_meta": {
+      "title": "Neg Switch (Canny)"
+    }
+  },
+  "323": {
+    "inputs": {
+      "stitcher": [
+        "62",
+        0
+      ],
+      "inpainted_image": [
+        "32",
+        0
+      ]
+    },
+    "class_type": "InpaintStitchImproved",
+    "_meta": {
+      "title": "Inpaint Stitch"
+    }
+  },
+  "324": {
+    "inputs": {
+      "select": [
+        "300",
+        0
+      ],
+      "sel_mode": false,
+      "input1": [
+        "32",
+        0
+      ],
+      "input2": [
+        "32",
+        0
+      ],
+      "input3": [
+        "323",
+        0
+      ]
+    },
+    "class_type": "ImpactSwitch",
+    "_meta": {
+      "title": "Output Switch (Stitch for Inpaint)"
+    }
+  },
+  "325": {
+    "inputs": {
+      "value": 1
+    },
+    "class_type": "easy int",
+    "_meta": {
+      "title": "[CTRL] Canny Source (1=Structure | 2=Mask Boundary)"
+    }
+  },
+  "326": {
+    "inputs": {
+      "value": 1
+    },
+    "class_type": "easy int",
+    "_meta": {
+      "title": "[CTRL] Denoise Strength (1=Refine 0.6 | 2=Create 1.0)"
+    }
+  },
+  "327": {
+    "inputs": {
+      "value": 0.6
+    },
+    "class_type": "easy float",
+    "_meta": {
+      "title": "Denoise 0.6 (Refine)"
+    }
+  },
+  "328": {
+    "inputs": {
+      "value": 1
+    },
+    "class_type": "easy float",
+    "_meta": {
+      "title": "Denoise 1.0 (Create)"
+    }
+  },
+  "329": {
+    "inputs": {
+      "select": [
+        "325",
+        0
+      ],
+      "sel_mode": false,
+      "input1": [
+        "42",
+        0
+      ],
+      "input2": [
+        "315",
+        0
+      ]
+    },
+    "class_type": "ImpactSwitch",
+    "_meta": {
+      "title": "Canny Source Switch"
+    }
+  },
+  "330": {
+    "inputs": {
+      "select": [
+        "326",
+        0
+      ],
+      "sel_mode": false,
+      "input1": [
+        "327",
+        0
+      ],
+      "input2": [
+        "328",
+        0
+      ]
+    },
+    "class_type": "ImpactSwitch",
+    "_meta": {
+      "title": "Denoise Switch"
+    }
+  },
+  "340": {
+    "inputs": {
+      "value": 1
+    },
+    "class_type": "easy int",
+    "_meta": {
+      "title": "[CTRL] M-LSD Lines (1=OFF | 2=ON)"
+    }
+  },
+  "341": {
+    "inputs": {
+      "text": "white sofa, bright",
+      "clip": [
+        "43",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "Inpaint / Target Prompt"
+    }
+  },
+  "342": {
+    "inputs": {
+      "select": [
+        "300",
+        0
+      ],
+      "sel_mode": false,
+      "input1": [
+        "35",
+        0
+      ],
+      "input2": [
+        "35",
+        0
+      ],
+      "input3": [
+        "341",
+        0
+      ]
+    },
+    "class_type": "ImpactSwitch",
+    "_meta": {
+      "title": "Prompt Switch (Global vs Target)"
+    }
+  },
+  "343": {
+    "inputs": {
+      "control_net_name": "control_v11p_sd15_mlsd.pth"
+    },
+    "class_type": "ControlNetLoader",
+    "_meta": {
+      "title": "Load M-LSD ControlNet"
+    }
+  },
+  "344": {
+    "inputs": {
+      "preprocessor": "M-LSDPreprocessor",
+      "resolution": 512,
+      "image": [
+        "42",
+        0
+      ]
+    },
+    "class_type": "AIO_Preprocessor",
+    "_meta": {
+      "title": "M-LSD Preprocessor"
+    }
+  },
+  "345": {
+    "inputs": {
+      "strength": 0.8,
+      "start_percent": 0,
+      "end_percent": 1,
+      "positive": [
+        "321",
+        0
+      ],
+      "negative": [
+        "322",
+        0
+      ],
+      "control_net": [
+        "343",
+        0
+      ],
+      "image": [
+        "344",
+        0
+      ]
+    },
+    "class_type": "ControlNetApplyAdvanced",
+    "_meta": {
+      "title": "Apply M-LSD ControlNet"
+    }
+  },
+  "346": {
+    "inputs": {
+      "select": [
+        "340",
+        0
+      ],
+      "sel_mode": false,
+      "input1": [
+        "321",
+        0
+      ],
+      "input2": [
+        "345",
+        0
+      ]
+    },
+    "class_type": "ImpactSwitch",
+    "_meta": {
+      "title": "Pos Switch (M-LSD)"
+    }
+  },
+  "347": {
+    "inputs": {
+      "select": [
+        "340",
+        0
+      ],
+      "sel_mode": false,
+      "input1": [
+        "322",
+        0
+      ],
+      "input2": [
+        "345",
+        1
+      ]
+    },
+    "class_type": "ImpactSwitch",
+    "_meta": {
+      "title": "Neg Switch (M-LSD)"
+    }
+  },
+  "381": {
+    "inputs": {
+      "text": [
+        "382",
+        0
+      ]
+    },
+    "class_type": "Text to String",
+    "_meta": {
+      "title": "Text to String"
+    }
+  },
+  "382": {
+    "inputs": {
+      "prompt": "sofa"
+    },
+    "class_type": "CR Prompt Text",
+    "_meta": {
+      "title": "What do you want to detect ?"
+    }
+  },
+  "383": {
+    "inputs": {
+      "mask": [
+        "18",
+        0
+      ]
+    },
+    "class_type": "MaskPreview+",
+    "_meta": {
+      "title": "🔧 Mask Preview"
+    }
+  },
+  "384": {
+    "inputs": {
+      "images": [
+        "307",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "385": {
+    "inputs": {
+      "images": [
+        "42",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "386": {
+    "inputs": {
+      "images": [
+        "315",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "388": {
+    "inputs": {
+      "images": [
+        "316",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "389": {
+    "inputs": {
+      "images": [
+        "344",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  }
+}

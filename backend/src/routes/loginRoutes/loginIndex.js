@@ -1,5 +1,5 @@
 import express from 'express';
-import { loginHandler } from '../../controllers/login/loginController.js';
+import { loginHandler, registerHandler } from '../../controllers/login/loginController.js';
 
 import { rateLimit } from 'express-rate-limit'
 
@@ -16,6 +16,11 @@ const router = express.Router();
 
 
 router.post('/', limiter , loginHandler )
+router.post('/signup', limiter , registerHandler )
+router.post('/refreshToken', limiter , refreshTokenHandler )
+router.post('/logout', limiter , logoutController )
+// router.post('/forgetPassword', limiter , forgetPasswordHandler )
+// router.post('/resetPassword', limiter , resetPasswordHandler )
 
 
 export default router;

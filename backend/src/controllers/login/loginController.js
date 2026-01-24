@@ -1,5 +1,5 @@
 import User from '../../models/user.js';
-import { emailSchema, resetPasswordSchema, userSchema } from '../../validations/login.validator.js';
+import { emailSchema, newUserSchema, resetPasswordSchema, userSchema } from '../../validations/login.validator.js';
 import bcrypt from "bcryptjs";
 import { normalizeResponseTime } from '../../utils/normalizeResponseTime.util.js';
 import jwt from 'jsonwebtoken';
@@ -21,26 +21,29 @@ const resetPublicKey = fs.readFileSync(path.join("src", "keys", "ResetPublic.pem
 export const registerHandler = async (req, res) => {
     const genericError = "Invalid credentials or user already exists"
     try {
-        const validation = userSchema.safeParse(req.body);
         await normalizeResponseTime()
+        const validation = newUserSchema.safeParse(req.body);
         if (!validation.success) {
-            return res.status(400).json({success : false , message : genericError})
+            return res.status(400).json({ success: false, message: genericError })
         }
-        const { email, password } = validation.data;
-        const user = await User.findOne({ email });
+        const { email, firstName, lastName, user_name, password } = validation.data;
+        const user = await User.findOne({ $or: [{ email }, { user_name }] });
         if (user) {
-            return res.status(400).json({success : false , message : genericError})
+            return res.status(400).json({ success: false, message: genericError })
         }
         const hashedPassword = await bcrypt.hash(password, 10)
         await User.create({
             email,
+            firstName,
+            lastName,
+            user_name,
             password: hashedPassword
         })
-        return res.status(201).json({success : true , message : "User registered successfully."})
-        
-    }catch(e){
+        return res.status(201).json({ success: true, message: "User registered successfully." })
+
+    } catch (e) {
         console.log(e.message);
-        return res.status(400).json({success : false , message : genericError})
+        return res.status(400).json({ success: false, message: genericError })
     }
 }
 
@@ -125,7 +128,7 @@ export const refreshTokenHandler = async (req, res) => {
 
     try {
         await normalizeResponseTime();
-        
+
         const validation = refreshCookieSchema.safeParse(req.cookies?.Refresh);
         if (!validation.success) {
             return res.status(401).json({ success: false, message: genericError })
@@ -206,7 +209,7 @@ export const forgetPasswordHandler = async (req, res) => {
         return res.json({ success: true, message: genericError })
 
     } catch (e) {
-        console.log(e.messsage);       
+        console.log(e.messsage);
         return res.json({ success: false, message: genericError })
 
     }

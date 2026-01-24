@@ -7,6 +7,14 @@ export const userSchema = z.object({
     password: z.string().transform(sanitize)
 })
 
+export const newUserSchema = z.object({
+    email: z.email().min(3).max(20).transform(sanitize),
+    firstName: z.min(3).max(20).transform(sanitize),
+    lastName: z.min(3).max(20).transform(sanitize),
+    user_name : z.min(3).max(20).transform(sanitize),
+    password: z.string().transform(sanitize)
+})
+
 export const authCookieSchema = z.object({
     Authentication: z.string().transform(sanitize),
 })

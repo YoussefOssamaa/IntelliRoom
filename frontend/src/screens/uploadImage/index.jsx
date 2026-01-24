@@ -2,7 +2,7 @@ import axios from 'axios';
 import React, { useState } from 'react';
 import {Routes, Route} from 'react-router-dom'
 import { BACKEND_URL } from '../../services/uploadImageService';
-
+import './upload.css'
 
 
 
@@ -67,10 +67,10 @@ function UploadImage() {
     return (
 <>
             
-        <h1>Upload Image Page</h1> 
                 
                 
         <div> 
+        <h1>Upload Image Page</h1> 
 
         
         <input 

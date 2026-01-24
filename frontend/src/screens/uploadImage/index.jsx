@@ -40,24 +40,30 @@ function UploadImage() {
 
         try{
 
-            const res = await axios.post(`${BACKEND_URL}/uploadImage`, 
+           /* const res = await axios.post(`${BACKEND_URL}/uploadImage`, 
                 formData,
                 {
                     headers: {
                         'Content-Type': 'multipart/form-data'
                     }
                 }
-            )
+            )*/
+
+                const testurl = "test.png" //////
 
             console.log('Responseeeeee from server:', res.data);
-
-            setImagePreview(res.data.enhancedImageUrl)
+            
+           // const fullImageUrl = `${BACKEND_URL}${res.data.enhancedImageUrl}`;
+            setImagePreview(testurl);  ////////
             setLoading(false)
 
         }
         catch(err){
             console.error(err);
             alert("Processing failed");
+                const testurl = "test.png" //////
+            setImagePreview(testurl);
+            
             setLoading(false)
         }
     } 
@@ -78,8 +84,23 @@ function UploadImage() {
 
         <br></br>
 
-        {imagePreview && <img src={imagePreview} alt="Preview" />}
-        
+        {imagePreview && (
+                <div style={{ marginTop: '20px' }}>
+                    <img 
+                        src={imagePreview} 
+                        alt="Preview" 
+                        style={{ 
+                            maxWidth: '100%', 
+                            height: 'auto', 
+                            display: 'block',
+                            borderRadius: '8px',
+                            border: '1px solid #ccc' 
+                        }} 
+                    />
+                </div>
+            )}
+
+
         <br /><br />
 
 

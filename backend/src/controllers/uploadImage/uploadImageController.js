@@ -3,7 +3,7 @@ import multer from 'multer';
 import fs from 'fs';
 import { comfyUIServiceInstance } from '../../server.js';
 import { buildComfyWorkflow, COMFYUI_OUTPUT_NODE } from '../../services/ComfyUIService.js';
-
+import { setTimeout } from 'node:timers/promises';
 
 
 export const postImageController = async (req, res) => {
@@ -29,11 +29,8 @@ export const postImageController = async (req, res) => {
         const result = await comfyUIServiceInstance.runComfyWorkflow(workflow);
         console.log('Workflow result:', result);
 
-        const history = await comfyUIServiceInstance.getHistory(result.prompt_id);
-        console.log('Workflow history:', history);
 
-
-        const outputNode = history?.outputs?.[COMFYUI_OUTPUT_NODE];
+        const outputNode = result.outputs[COMFYUI_OUTPUT_NODE];
         
         if (!outputNode || !outputNode.images || outputNode.images.length === 0) {
             console.error('No output image in history:', history);
@@ -42,8 +39,8 @@ export const postImageController = async (req, res) => {
                 debug: history
             });
         }
-
-        const outputImageInfo = outputNode.images[0];
+        
+        const outputImageInfo = outputNode.images[0];  
         const outputFilename = outputImageInfo.filename;
         const outputSubfolder = outputImageInfo.subfolder || '';
         const outputType = outputImageInfo.type || 'output';

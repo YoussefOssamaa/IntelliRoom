@@ -35,7 +35,7 @@ app.use('/api/ecommerce', ecommerceIndex);
 app.use('/api/design2D', design2DIndex);
 app.use('/api/uploadImage', uploadIndex);
 app.use('/api/plugins', pluginIndex);
-app.use('/api/login', loginIndex)
+app.use('/api/auth', loginIndex)
 app.use('/api/signup', signupIndex)
 app.use('/api/contact', contactIndex)
 

@@ -16,7 +16,7 @@ export const postImageController = async (req, res) => {
             return res.status(400).json({ error: 'No file uploaded' });
         }
 
-        const workflowNumber = req.body.workflowNumber;
+        const workflowNumber = Number(req.body.workflowNumber || 1);
         const inputPrompt = req.body.inputPrompt 
 
         console.log('Uploaded file:', req.file);
@@ -26,15 +26,11 @@ export const postImageController = async (req, res) => {
         const comfyImageFilename = await comfyUIServiceInstance.uploadImage(req.file.path);
         console.log('Image uploaded to ComfyUI as:', comfyImageFilename);
 
-
-
-
-
-
         
     
         let comfyOutputNode = "";
         let workflow = null;
+
 
       if (workflowNumber === 1) {
         workflow = buildComfyWorkflow1(comfyImageFilename);

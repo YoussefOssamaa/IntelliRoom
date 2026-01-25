@@ -19,7 +19,7 @@ const StarRating = ({ rating }) => {
     );
 };
 
-export default function PluginReviewPage() {
+export function PluginReviewPage() {
 
     const { id } = useParams();
     const navigate = useNavigate();

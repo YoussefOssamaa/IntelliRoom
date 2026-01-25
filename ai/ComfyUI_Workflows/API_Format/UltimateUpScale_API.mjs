@@ -1,4 +1,8 @@
-export default {
+import express from 'express';
+
+export function buildComfyWorkflow_ultimateUpScale(inputImageFilename, inputPrompt) {
+        return {
+
   "1": {
     "inputs": {
       "upscale_by": 2,
@@ -74,7 +78,7 @@ export default {
   },
   "6": {
     "inputs": {
-      "image": "pasted/image (3).png"
+      "image": inputImageFilename
     },
     "class_type": "LoadImage",
     "_meta": {
@@ -92,7 +96,7 @@ export default {
   },
   "8": {
     "inputs": {
-      "text": "modern house, garden, morning",
+      "text": inputPrompt,
       "clip": [
         "7",
         1
@@ -157,3 +161,6 @@ export default {
     }
   }
 }
+}
+export const COMFYUI_OUTPUT_NODE_WF_ULTIMATEUPSCALE = "4";
+

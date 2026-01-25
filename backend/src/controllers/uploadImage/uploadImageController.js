@@ -69,10 +69,8 @@ export const postImageController = async (req, res) => {
         const outputNode = result.outputs[comfyOutputNode];
         
         if (!outputNode || !outputNode.images || outputNode.images.length === 0) {
-            console.error('No output image in history:', history);
             return res.status(500).json({ 
                 error: 'Failed to process image - no output received',
-                debug: history
             });
         }
         

@@ -1,4 +1,9 @@
-export default {
+import express from 'express';
+
+
+export function buildComfyWorkflow_objectReplaceWithST(inputImageFilename, inputPrompt , replacementPrompt) {
+        return {
+
   "2": {
     "inputs": {
       "model": "microsoft/Florence-2-base-ft",
@@ -13,7 +18,7 @@ export default {
   },
   "3": {
     "inputs": {
-      "text_input": "carpet",
+      "text_input": replacementPrompt,
       "task": "caption_to_phrase_grounding",
       "fill_mask": false,
       "keep_model_loaded": true,
@@ -47,7 +52,7 @@ export default {
   },
   "7": {
     "inputs": {
-      "text": "carpet",
+      "text": inputPrompt,
       "clip": [
         "5",
         1
@@ -251,7 +256,7 @@ export default {
   },
   "30": {
     "inputs": {
-      "image": "download (1).png"
+      "image": inputImageFilename
     },
     "class_type": "LoadImage",
     "_meta": {
@@ -471,4 +476,7 @@ export default {
       "title": "✂️ Inpaint Crop"
     }
   }
+  };
 }
+
+export const COMFYUI_OUTPUT_NODE_WF_OBJECTREPLACEWITHST = "35";

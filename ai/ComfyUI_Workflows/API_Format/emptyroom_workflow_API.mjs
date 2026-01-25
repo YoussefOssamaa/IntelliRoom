@@ -1,4 +1,9 @@
-export default {
+import express from 'express';
+
+
+export function buildComfyWorkflow_emptyRoom(inputImageFilename, inputPrompt) {
+        return {
+
   "17": {
     "inputs": {
       "ckpt_name": "RealisticVisionV6.safetensors"
@@ -10,7 +15,7 @@ export default {
   },
   "18": {
     "inputs": {
-      "image": "pexels-curtis-adams-1694007-4529501.jpg"
+      "image": inputImageFilename
     },
     "class_type": "LoadImage",
     "_meta": {
@@ -119,7 +124,7 @@ export default {
   },
   "25": {
     "inputs": {
-      "text": "living room",
+      "text": inputPrompt,
       "clip": [
         "17",
         1
@@ -233,3 +238,7 @@ export default {
     }
   }
 }
+
+}
+
+export const COMFYUI_OUTPUT_NODE_WF_EMPTYROOM = "35";

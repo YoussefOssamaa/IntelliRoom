@@ -24,6 +24,6 @@ const generateKeyPair = (prefix = '') => {
     }
 }
 
-// generateKeyPair("Auth");
-// generateKeyPair("Refresh");
-// generateKeyPair("Reset");
+generateKeyPair("Auth");
+generateKeyPair("Refresh");
+generateKeyPair("Reset");

@@ -1,5 +1,5 @@
-import React, { useRef, useState } from 'react';
-import '../../styles/auth/login.css';
+import React, { useEffect, useRef, useState } from 'react';
+import '../../styles/auth/signup.css';
 import axios from '../../config/axios.config';
 import { useNavigate } from 'react-router-dom';
 
@@ -8,7 +8,7 @@ const SignUpModal = () => {
     const [loginMessage, setLoginMessage] = useState('');
     const [isMessageVisible, setIsMessageVisible] = useState(false);
     const [isSuccessFullLogin, setIsSuccessFullLogin] = useState(false);
-
+    const messageRef = useRef(null);
     const formData = useRef({
         email: '',
         password: '',
@@ -57,14 +57,27 @@ const SignUpModal = () => {
 
         }
     }
-
-
+    useEffect(() => {
+    if (isMessageVisible && messageRef.current) {
+        messageRef.current.scrollIntoView({ 
+            behavior: 'smooth', // حركة ناعمة
+            block: 'start'      // يخلي الرسالة في أعلى الكارد
+        });
+    }
+}, [isMessageVisible]);
 
     return (
         <div className="overlay">
             <div className="login-card">
                 {/* <button className="close-btn">&times;</button> */}
-                {isMessageVisible && <div className={"message-banner " + (isSuccessFullLogin ? 'success-message' : 'error-message')}>{loginMessage}</div>}
+                {isMessageVisible && (
+                    <div
+                        ref={messageRef}
+                        className={"message-banner " + (isSuccessFullLogin ? 'success-message' : 'error-message')}
+                    >
+                        {loginMessage}
+                    </div>
+                )}
                 <h2>Become an artist!</h2>
                 <p className="subtitle">Sign up to start designing</p>
 

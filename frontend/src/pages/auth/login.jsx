@@ -66,8 +66,6 @@ const LoginModal = () => {
                         Sign in with Facebook
                     </button>
                 </div>
-                <br></br>
-                <br></br>
                 <form onSubmit={handleSubmit}>
                     <div className="input-group">
                         <label>Email</label>
@@ -80,7 +78,6 @@ const LoginModal = () => {
                             required
                         />
                     </div>
-
                     <div className="input-group">
                         <label>Password</label>
                         <input

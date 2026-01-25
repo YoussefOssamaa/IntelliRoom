@@ -8,8 +8,8 @@
 
 .login-card {
     background: #fff;
-    width: 380px;
-    padding: 40px;
+    width: 320px;
+    padding: 30px;
     border-radius: 15px;
     position: relative;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
@@ -72,13 +72,13 @@ h2 {
     border-radius: 8px;
 }
 .sign-in-btn:hover {
-    background-color: #2326f1;
+    background-color: #3e40c2;
     border-color: #6366f1;
 }
 .sign-in-btn {
     width: 100%;
     padding: 14px;
-    background-color: #6366f1;
+    background-color: #2b2ef7;
     color: white;
     border: none;
     border-radius: 8px;

@@ -5,12 +5,18 @@ import { PricingPlansPage } from './pages/pricingPlans/PricingPlansPage';
 import { PluginReviewPage } from './pages/plugins-review/PluginReviewPage';
 import UploadImagePage from './screens/uploadImage';
 import LoginModal from './pages/auth/login';
+import ProtectedRoute from './components/protectedRoute';
 
 const AppRoutes = () => {
   return (
     <Router>
       <Routes>
         <Route path="/login" element={<LoginModal />} />
+        <Route path="/test" element={
+          <ProtectedRoute>
+            <h1>Protected Route</h1>
+        </ProtectedRoute>} />
+        
         <Route path="/" element={<MarketplacePage />} />
         <Route path="/marketplace" element={<MarketplacePage />} />
         <Route path="/pricingPlans" element={<PricingPlansPage />} />

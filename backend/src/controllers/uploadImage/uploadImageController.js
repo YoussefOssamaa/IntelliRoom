@@ -2,12 +2,15 @@ import express from 'express';
 import multer from 'multer';
 import fs from 'fs';
 import { comfyUIServiceInstance } from '../../server.js';
-//import { buildComfyWorkflow, COMFYUI_OUTPUT_NODE } from '../../services/ComfyUIService.js';
 import { setTimeout } from 'node:timers/promises';
-import { buildComfyWorkflow1, COMFYUI_OUTPUT_NODE_WF1 } from '../../services/workflow_1.js';
-import { buildComfyWorkflow3, COMFYUI_OUTPUT_NODE_WF3 } from '../../services/workflow_3.js';
-import { buildComfyWorkflow2, COMFYUI_OUTPUT_NODE_WF2 } from '../../services/workflow_2.js';
 import { escape } from 'node:querystring';
+import { buildComfyWorkflow_emptyRoom, COMFYUI_OUTPUT_NODE_WF_EMPTYROOM } from '../../../../ai/ComfyUI_Workflows/API_Format/emptyroom_workflow_API.mjs';
+import { buildComfyWorkflow_ultimateUpScale, COMFYUI_OUTPUT_NODE_WF_ULTIMATEUPSCALE } from '../../../../ai/ComfyUI_Workflows/API_Format/UltimateUpScale_API.mjs';
+import { buildComfyWorkflow_sketch, COMFYUI_OUTPUT_NODE_WF_SKETCH } from '../../../../ai/ComfyUI_Workflows/API_Format/Sketch_workflow_API.mjs';
+import { buildComfyWorkflow_objectReplace, COMFYUI_OUTPUT_NODE_WF_OBJECTREPLACE } from '../../../../ai/ComfyUI_Workflows/API_Format/object_replace_API.mjs';
+import { buildComfyWorkflow_objectReplaceWithST, COMFYUI_OUTPUT_NODE_WF_OBJECTREPLACEWITHST } from '../../../../ai/ComfyUI_Workflows/API_Format/object_replace_with_ST_API.mjs';
+
+
 
 
 export const postImageController = async (req, res) => {
@@ -17,7 +20,8 @@ export const postImageController = async (req, res) => {
         }
 
         const workflowNumber = Number(req.body.workflowNumber || 1);
-        const inputPrompt = req.body.inputPrompt 
+        const inputPrompt = req.body.inputPrompt || ''
+        const replacementPrompt = req.body.replacementPrompt || '';
 
         console.log('Uploaded file:', req.file);
 
@@ -33,16 +37,24 @@ export const postImageController = async (req, res) => {
 
 
       if (workflowNumber === 1) {
-        workflow = buildComfyWorkflow1(comfyImageFilename);
-        comfyOutputNode = COMFYUI_OUTPUT_NODE_WF1;
+        workflow = buildComfyWorkflow_emptyRoom(comfyImageFilename, inputPrompt);
+        comfyOutputNode = COMFYUI_OUTPUT_NODE_WF_EMPTYROOM;
       }
       else if (workflowNumber === 2) {
-        workflow = buildComfyWorkflow2(comfyImageFilename, inputPrompt);
-        comfyOutputNode = COMFYUI_OUTPUT_NODE_WF2;
+        workflow = buildComfyWorkflow_ultimateUpScale(comfyImageFilename, inputPrompt);
+        comfyOutputNode = COMFYUI_OUTPUT_NODE_WF_ULTIMATEUPSCALE;
       }
       else if (workflowNumber === 3) {
-       workflow = buildComfyWorkflow3(comfyImageFilename, inputPrompt);
-       comfyOutputNode = COMFYUI_OUTPUT_NODE_WF3;
+       workflow = buildComfyWorkflow_sketch(comfyImageFilename, inputPrompt);
+       comfyOutputNode = COMFYUI_OUTPUT_NODE_WF_SKETCH;
+      }
+      else if (workflowNumber === 4) {
+       workflow = buildComfyWorkflow_objectReplace(comfyImageFilename, inputPrompt, replacementPrompt);
+       comfyOutputNode = COMFYUI_OUTPUT_NODE_WF_OBJECTREPLACE;
+      }
+      else if (workflowNumber === 5) {
+       workflow = buildComfyWorkflow_objectReplaceWithST(comfyImageFilename, inputPrompt , replacementPrompt);
+       comfyOutputNode = COMFYUI_OUTPUT_NODE_WF_OBJECTREPLACEWITHST;
       }
 
 
@@ -97,6 +109,5 @@ export const postImageController = async (req, res) => {
         });
     }
 }
-
 
 

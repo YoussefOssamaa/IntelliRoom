@@ -1,4 +1,4 @@
-{
+export default {
   "128": {
     "inputs": {
       "seed": 450921362064296,

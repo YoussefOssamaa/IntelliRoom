@@ -1,5 +1,5 @@
 import User from '../../models/user.js';
-import { emailSchema, newUserSchema, resetPasswordSchema, userSchema } from '../../validations/login.validator.js';
+import { authCookieSchema, emailSchema, newUserSchema, refreshCookieSchema, resetPasswordSchema, userSchema } from '../../validations/login.validator.js';
 import bcrypt from "bcryptjs";
 import { normalizeResponseTime } from '../../utils/normalizeResponseTime.util.js';
 import jwt from 'jsonwebtoken';
@@ -16,13 +16,14 @@ const refreshPublicKey = fs.readFileSync(path.join("src", "keys", "RefreshPublic
 const resetPrivateKey = fs.readFileSync(path.join("src", "keys", "ResetPrivate.pem"), 'utf8');
 const resetPublicKey = fs.readFileSync(path.join("src", "keys", "ResetPublic.pem"), 'utf8');
 
-// console.log(authPrivateKey);
-// console.log(authPublicKey);
 export const registerHandler = async (req, res) => {
     const genericError = "Invalid credentials or user already exists"
     try {
         await normalizeResponseTime()
+        
         const validation = newUserSchema.safeParse(req.body);
+        console.log(validation);
+
         if (!validation.success) {
             return res.status(400).json({ success: false, message: genericError })
         }
@@ -49,11 +50,13 @@ export const registerHandler = async (req, res) => {
 
 export const loginHandler = async (req, res) => {
 
+    const genericMessage = "invalid username or password"
     try {
         const { data, success } = userSchema.safeParse(req.body);
-        const genericMessage = "invalid username or password"
+        // console.log(success);
+        
         if (!success) {
-            return res.status(401).json({ success: false, message: genericError });
+            return res.status(401).json({ success: false, message: genericMessage });
         }
         const { email, password } = data;
 
@@ -129,10 +132,12 @@ export const refreshTokenHandler = async (req, res) => {
     try {
         await normalizeResponseTime();
 
-        const validation = refreshCookieSchema.safeParse(req.cookies?.Refresh);
+        const validation = refreshCookieSchema.safeParse(req.cookies);
+        // console.log(validation);
         if (!validation.success) {
             return res.status(401).json({ success: false, message: genericError })
         }
+        
         const token = validation?.data?.Refresh;
         const user = await Refresh.findOne({ refreshToken: token });
         if (!user) {
@@ -254,7 +259,7 @@ export const logoutController = async (req, res) => {
             secure: true,
             sameSite: "none",
         };
-        const validation = authCookieSchema.safeParse(req.cookies?.Refresh);
+        const validation = authCookieSchema.safeParse(req.cookies);
         if (!validation.success) {
             return res.status(401).json({ success: false, message: "not authenticated" });
         }

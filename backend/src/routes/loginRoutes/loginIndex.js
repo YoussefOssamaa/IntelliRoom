@@ -1,5 +1,5 @@
 import express from 'express';
-import { loginHandler, registerHandler } from '../../controllers/login/loginController.js';
+import { loginHandler, logoutController, refreshTokenHandler, registerHandler } from '../../controllers/login/loginController.js';
 
 import { rateLimit } from 'express-rate-limit'
 

@@ -53,7 +53,6 @@ export const loginHandler = async (req, res) => {
     const genericMessage = "invalid username or password"
     try {
         const { data, success } = userSchema.safeParse(req.body);
-        // console.log(success);
         
         if (!success) {
             return res.status(401).json({ success: false, message: genericMessage });

@@ -8,16 +8,16 @@ import path from 'path';
 import Refresh from '../../models/refreshToken.js';
 import { sendEmail } from '../../utils/sendEmail.util.js';
 import ForgetPassword from '../../models/forgetPassword.js';
-
+/*
 const authPrivateKey = fs.readFileSync(path.join("src", "keys", "AuthPrivate.pem"), 'utf8');
 const authPublicKey = fs.readFileSync(path.join("src", "keys", "AuthPublic.pem"), 'utf8');
 const refreshPrivateKey = fs.readFileSync(path.join("src", "keys", "RefreshPrivate.pem"), 'utf8');
 const refreshPublicKey = fs.readFileSync(path.join("src", "keys", "RefreshPublic.pem"), 'utf8');
 const resetPrivateKey = fs.readFileSync(path.join("src", "keys", "ResetPrivate.pem"), 'utf8');
-const resetPublicKey = fs.readFileSync(path.join("src", "keys", "ResetPublic.pem"), 'utf8');
+const resetPublicKey = fs.readFileSync(path.join("src", "keys", "ResetPublic.pem"), 'utf8');*/
 
 export const registerHandler = async (req, res) => {
-    const genericError = "Invalid credentials or user already exists"
+  /*  const genericError = "Invalid credentials or user already exists"
     try {
         await normalizeResponseTime()
 
@@ -49,13 +49,14 @@ export const registerHandler = async (req, res) => {
     } catch (e) {
         console.log(e.message);
         return res.status(400).json({ success: false, message: genericError })
-    }
+    }*/
 }
 
 export const loginHandler = async (req, res) => {
 
     const genericMessage = "invalid username or password"
     try {
+
         const { data, success } = userSchema.safeParse(req.body);
 
         if (!success) {
@@ -125,12 +126,12 @@ export const loginHandler = async (req, res) => {
         console.log(error);
         res.status(500).json({ message: error.message });
 
-    }
+    }*/
 
 }
 
 export const refreshTokenHandler = async (req, res) => {
-    const genericError = "not authenticated"
+  /*  const genericError = "not authenticated"
 
     try {
         await normalizeResponseTime();
@@ -178,11 +179,11 @@ export const refreshTokenHandler = async (req, res) => {
             .clearCookie("Authentication")
             .clearCookie("Refresh")
             .json({ success: false, message: genericError });
-    }
+    }*/
 }
 
 export const forgetPasswordHandler = async (req, res) => {
-    const genericError = "If an account exists with this email, a password reset link has been sent."
+   /* const genericError = "If an account exists with this email, a password reset link has been sent."
 
     try {
         const validation = emailSchema.safeParse(req.body);
@@ -220,11 +221,11 @@ export const forgetPasswordHandler = async (req, res) => {
         console.log(e.messsage);
         return res.json({ success: false, message: genericError })
 
-    }
+    }*/
 }
 
 export const resetPasswordHandler = async (req, res) => {
-    const genericError = "password reset failed"
+ /*   const genericError = "password reset failed"
     try {
         const validation = resetPasswordSchema.safeParse(req.body);
         const newPassword = validation.data.newPassword
@@ -252,11 +253,11 @@ export const resetPasswordHandler = async (req, res) => {
         console.log(e.message)
         return res.status(401).json({ success: false, message: genericError });
 
-    }
+    }*/
 }
 
 export const logoutController = async (req, res) => {
-    try {
+ /*   try {
         const cookieOptions = {
             httpOnly: true,
             secure: true,
@@ -278,5 +279,5 @@ export const logoutController = async (req, res) => {
     } catch (error) {
         console.error("Logout Error:", error);
         res.status(500).json({ success: false, message: "Internal Server Error" });
-    }
+    }*/
 };

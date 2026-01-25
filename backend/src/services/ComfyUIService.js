@@ -230,8 +230,6 @@
 // }
 
 
-
-
 // export function buildComfyWorkflow(inputImageFilename, inputPrompt) {
 //         return {
  
@@ -239,3 +237,4 @@
 // }
 
 // export const COMFYUI_OUTPUT_NODE = "45";
+

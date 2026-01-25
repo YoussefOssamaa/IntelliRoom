@@ -18,9 +18,12 @@ router.get('/me', protect ,(req, res) =>{
 	res.status(200).json({success : true , message : "user authenticated"});
 })
 router.post('/login', limiter , loginHandler )
+
 router.post('/signup', limiter , registerHandler )
 router.post('/refreshToken', limiter , refreshTokenHandler )
 router.post('/logout', limiter , logoutController )
+*/
+
 // router.post('/forgetPassword', limiter , forgetPasswordHandler )
 // router.post('/resetPassword', limiter , resetPasswordHandler )
 

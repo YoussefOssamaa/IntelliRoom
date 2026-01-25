@@ -1,8 +1,8 @@
 import axios from 'axios';
 import React, { useState } from 'react';
-import {Routes, Route} from 'react-router-dom'
+import {Routes, Route, replace} from 'react-router-dom'
 import { BACKEND_URL } from '../../services/uploadImageService';
-
+//import './upload.css'
 
 
 
@@ -10,9 +10,9 @@ function UploadImage() {
     const [imageFile, setImageFile ] = useState (null)
     const [imagePreview, setImagePreview] = useState (null)
     const [inputPrompt , setInputPrompt] = useState ('')
+    const [replacementPrompt , setReplacementPrompt] = useState ('')
     const [loading , setLoading] = useState (false)
-
-
+    const [workflowNumber, setWorkflowNumber] = useState('1');  // wf 1 by default
 
 
     const handleImageChange = (e)=> {
@@ -26,7 +26,7 @@ function UploadImage() {
 
 
     const handleSubmit = async () => {
-        if (!imageFile || inputPrompt.length === 0) {
+        if (!imageFile) {
             alert ('Please provide an image and a prompt')
             return
         }
@@ -37,33 +37,31 @@ function UploadImage() {
         const formData = new FormData ()
         formData.append ("image" , imageFile)
         formData.append ("inputPrompt" , inputPrompt)
+        formData.append ("replacementPrompt" , replacementPrompt)
+        formData.append ("workflowNumber" , workflowNumber)  
 
         try{
 
-           /* const res = await axios.post(`${BACKEND_URL}/uploadImage`, 
+            const res = await axios.post(`${BACKEND_URL}/uploadImage`, 
                 formData,
                 {
                     headers: {
                         'Content-Type': 'multipart/form-data'
                     }
                 }
-            )*/
+            )
 
-                const testurl = "test.png" //////
 
             console.log('Responseeeeee from server:', res.data);
             
-           // const fullImageUrl = `${BACKEND_URL}${res.data.enhancedImageUrl}`;
-            setImagePreview(testurl);  ////////
+           const fullImageUrl = `${BACKEND_URL}${res.data.enhancedImageUrl}`;
+            setImagePreview(fullImageUrl);  
             setLoading(false)
 
         }
         catch(err){
             console.error(err);
             alert("Processing failed");
-                const testurl = "test.png" //////
-            setImagePreview(testurl);
-            
             setLoading(false)
         }
     } 
@@ -71,10 +69,10 @@ function UploadImage() {
     return (
 <>
             
-        <h1>Upload Image Page</h1> 
                 
                 
         <div> 
+        <h1>Upload Image Page</h1> 
 
         
         <input 
@@ -109,9 +107,32 @@ function UploadImage() {
         value = {inputPrompt}
         onChange={(e)=> { setInputPrompt (e.target.value)} }
         />
+        <textarea
+        placeholder = "Object Replacement Prompt"
+        value = {replacementPrompt}
+        onChange={(e)=> { setReplacementPrompt (e.target.value)} }
+        />
 
         <br /><br />
 
+
+        <label>
+            Choose Workflow:
+            <select 
+                value ={workflowNumber}
+                onChange={(e)=>{ setWorkflowNumber (e.target.value) }}>
+                <option value="1">Empty Room Workflow </option>
+                <option value="2">Ultimate Upscale Workflow </option>
+                <option value="3">Sketch Workflow</option>
+                <option value="4">Object Replacement Workflow </option>
+                <option value="5">Object Replacement with Stable Diffusion Workflow </option>
+            </select>
+
+        </label>
+
+
+
+        <br /><br />
         <button
         onClick={handleSubmit}  disabled={loading}>
             { loading? "Processing..." : "Send"  }

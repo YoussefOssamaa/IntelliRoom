@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useParams, useNavigate } from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
 import './PluginReviewPage.css';
 
@@ -7,17 +8,14 @@ import './PluginReviewPage.css';
 
 
 const StarRating = ({ rating }) => {
-    // Create an array of 5 items (for 5 stars)
     return (
         <div className="star-row">
             {[...Array(5)].map((_, index) => {
-                // If the current index is less than the rating, show a filled star
-                // Example: If rating is 3, indices 0, 1, 2 are filled.
                 const isFilled = index < rating;
 
                 return (
                     <span key={index} className={`star ${isFilled ? 'filled' : 'empty'}`}>
-                        ★
+                        &#9733;
                     </span>
                 );
             })}
@@ -25,35 +23,80 @@ const StarRating = ({ rating }) => {
     );
 };
 
-export function PluginReviewPage() {
+export default function PluginReviewPage() {
+
+    const { id } = useParams();
+    const navigate = useNavigate();
 
     const [loading, setLoading] = useState(true);
     const [plugin, setPlugin] = useState(null);
     const [error, setError] = useState(null);
     const [isFollowing, setIsFollowing] = React.useState(false);
 
+
+
     useEffect(() => {
         const fetchPluginData = async () => {
             try {
                 setLoading(true);
 
-                // PASTE YOUR COPIED ID HERE ↓↓↓
-                const testID = "695ffe135c71b8356374dc7f"; // <--- Replace with the ID from your browser
+                const response = await axios.get(`http://localhost:5000/api/plugins/${id}`);
 
-                const response = await axios.get(`http://localhost:5000/api/plugins/${testID}`);
-
-                console.log("Data fetched:", response.data); // Check console to be sure
                 setPlugin(response.data);
                 setLoading(false);
+
+                // const dummyPlugin = {
+                //     _id: "123456789",
+                //     plugin_name: "Ultimate Interior Shader Pack",
+                //     plugin_description: "A comprehensive collection of high-quality shaders for interior design rendering. Includes realistic wood, fabric, and glass materials optimized for fast rendering.",
+                //     plugin_author: {
+                //         _id: "user_001",
+                //         user_name: "CreativeStudio_99",
+                //         email: "studio@example.com"
+                //     },
+                //     plugin_rating: 4.5,
+                //     number_of_downloads: 1250,
+                //     plugin_price: 25, 
+                //     what_is_included: [
+                //         "20+ High-res Textures",
+                //         "Drag & Drop Presets",
+                //         "PDF User Guide",
+                //         "1 Year Support"
+                //     ],
+                //     plugin_reviews: [
+                //         {
+                //             user_name: "Sarah Jenkins",
+                //             rating: 5,
+                //             comment: "Absolutely amazing! Saved me hours of work on my final project."
+                //         },
+                //         {
+                //             user_name: "Mike T.",
+                //             rating: 3,
+                //             comment: "Good quality, but a bit expensive for what you get."
+                //         },
+                //         {
+                //             user_name: "DesignerPro",
+                //             rating: 5,
+                //             comment: "The fabric textures are the best I have seen. Highly recommended."
+                //         }
+                //     ]
+                // };
+                // setTimeout(() => {
+                //     setPlugin(dummyPlugin);
+                //     setLoading(false);
+                // }, 800);
             } catch (err) {
                 console.error(err);
-                setError("Failed to connect to backend.");
+                setError("Failed to load plugin details.");
                 setLoading(false);
             }
         };
 
-        fetchPluginData();
-    }, []);
+        if (id) {
+            fetchPluginData();
+        }
+        // fetchPluginData();
+    }, [id]);
 
 
     useEffect(() => {
@@ -67,26 +110,31 @@ export function PluginReviewPage() {
 
 
 
+
     return (
 
         <div className='main-container'>
             <div className="review-page-container">
 
-                {/* --- LEFT HALF: Visual/Plugin Display --- */}
+
                 <div className="visual-side">
+
                     <div className="plugin-placeholder">
-                        {/* This is where your actual Plugin or Image will go later */}
                         <h3>Plugin Preview Area</h3>
                     </div>
                 </div>
 
-                {/* --- RIGHT HALF: Information --- */}
                 <div className="info-side">
+                    <button className="back-to-marketplace-btn" onClick={() => navigate(-1)}>
+                        <span>&#8592;</span> Back to Marketplace
+                    </button>
                     <div className="info-content">
                         <h2>{plugin.plugin_name}</h2>
                         <div>
                             <div className='follow-row'>
-                                <h4 className='owner-name'>by {plugin.plugin_author}</h4>
+                                <h4 className='owner-name'>
+                                    by {plugin.plugin_author?.user_name || "Unknown Author"}
+                                </h4>
                                 <button className=
                                     {`follow-btn ${isFollowing ? 'following' : ''}`}
                                     onClick={() => setIsFollowing(!isFollowing)}>
@@ -126,24 +174,26 @@ export function PluginReviewPage() {
                         <hr className="divider" />
 
                         <div className='users-reviews'>
-                            <h3>Reviews({plugin.plugin_reviews.length})</h3>
+                            <h3>Reviews ({plugin.plugin_reviews.length})</h3>
                             <div>
-                                <div className='user-name-and-review'>
-                                    <h4>yousef</h4>
-                                    <div >
-                                        <StarRating rating={4} />
-                                    </div>
-                                </div>
-                                <p>very good features, helps me alot</p>
-                            </div>
-                            <div>
-                                <div className='user-name-and-review'>
-                                    <h4>Mohammed</h4>
-                                    <div >
-                                        <StarRating rating={2} />
-                                    </div>
-                                </div>
-                                <p>not as good as expected</p>
+                                {plugin.plugin_reviews && plugin.plugin_reviews.length > 0 ? (
+                                    plugin.plugin_reviews.map((review, index) => (
+                                        <div key={index} style={{ marginBottom: '20px' }}>
+                                            <div className='user-name-and-review'>
+                                                <h4>{review.user_name || "User"}</h4>
+                                                <div>
+                                                    <StarRating rating={review.rating || 5} />
+                                                </div>
+                                            </div>
+                                            <p>{review.comment || review.review_text || "No comment provided"}</p>
+                                            <hr className="divider" style={{ opacity: 0.3 }} />
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p style={{ color: '#666', fontStyle: 'italic' }}>
+                                        No reviews yet.
+                                    </p>
+                                )}
                             </div>
                         </div>
                     </div>

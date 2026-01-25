@@ -1,4 +1,4 @@
-{
+export default {
   "1": {
     "inputs": {
       "upscale_by": 2,

@@ -1,4 +1,4 @@
-{
+export default {
   "2": {
     "inputs": {
       "model": "microsoft/Florence-2-base-ft",

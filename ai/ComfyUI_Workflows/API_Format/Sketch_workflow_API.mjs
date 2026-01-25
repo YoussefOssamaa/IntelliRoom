@@ -1,4 +1,7 @@
-export default {
+import express from 'express';
+
+export function buildComfyWorkflow_sketch(inputImageFilename, inputPrompt) {
+        return {
   "128": {
     "inputs": {
       "seed": 450921362064296,
@@ -31,7 +34,7 @@ export default {
   },
   "129": {
     "inputs": {
-      "text": "modern house with a garden",
+      "text":  inputPrompt,
       "clip": [
         "157",
         1
@@ -103,7 +106,7 @@ export default {
   },
   "138": {
     "inputs": {
-      "image": "pasted/image (1).png"
+      "image": inputImageFilename
     },
     "class_type": "LoadImage",
     "_meta": {
@@ -275,3 +278,7 @@ export default {
     }
   }
 }
+};
+
+
+export const COMFYUI_OUTPUT_NODE_WF_SKETCH = "132";

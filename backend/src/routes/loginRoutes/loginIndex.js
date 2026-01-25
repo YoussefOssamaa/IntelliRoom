@@ -1,6 +1,6 @@
 import express from 'express';
-import { loginHandler, registerHandler } from '../../controllers/login/loginController.js';
-
+import { loginHandler, logoutController, refreshTokenHandler, registerHandler } from '../../controllers/login/loginController.js';
+import protect from '../../middleware/protect.middleware.js';
 import { rateLimit } from 'express-rate-limit'
 
 const limiter = rateLimit({
@@ -14,8 +14,11 @@ const limiter = rateLimit({
 
 const router = express.Router();
 
+router.get('/me', protect ,(req, res) =>{
+	res.status(200).json({success : true , message : "user authenticated"});
+})
+router.post('/login', limiter , loginHandler )
 
-/*router.post('/login', limiter , loginHandler )
 router.post('/signup', limiter , registerHandler )
 router.post('/refreshToken', limiter , refreshTokenHandler )
 router.post('/logout', limiter , logoutController )

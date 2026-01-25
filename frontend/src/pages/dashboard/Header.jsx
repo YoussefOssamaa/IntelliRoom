@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import logoImage from '../../../public/assets/site-logo-white.png';
 
 const Header = ({ user }) => {
@@ -7,6 +7,7 @@ const Header = ({ user }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   
   const location = useLocation();
+  const navigate = useNavigate();
 
   const getLinkClass = (path) => {
     const isActive = location.pathname === path;
@@ -57,7 +58,7 @@ const Header = ({ user }) => {
               {openSubmenu === 'features' && (
                 <ul className="absolute top-full left-0 mt-0 w-48 bg-white border border-[#e0e0e0] rounded-md shadow-lg z-50">
                   <li><button className="w-full px-4 py-3 text-left text-sm text-[#333333] hover:bg-[#f0fdf4] transition-colors bg-transparent border-0 cursor-pointer">Style Transfer</button></li>
-                  <li><button className="w-full px-4 py-3 text-left text-sm text-[#333333] hover:bg-[#f0fdf4] transition-colors bg-transparent border-0 cursor-pointer">AI Generation</button></li>
+                  <li><button onClick={()=>{navigate("/upload"); setOpenSubmenu(null);  }}  className="w-full px-4 py-3 text-left text-sm text-[#333333] hover:bg-[#f0fdf4] transition-colors bg-transparent border-0 cursor-pointer">AI Generation</button></li>
                   <li><button className="w-full px-4 py-3 text-left text-sm text-[#333333] hover:bg-[#f0fdf4] transition-colors bg-transparent border-0 cursor-pointer">Custom Configs</button></li>
                 </ul>
               )}
@@ -71,7 +72,7 @@ const Header = ({ user }) => {
               Marketplace
             </Link>
 
-            <Link to="/pricing" className={getLinkClass('/pricing')}>
+            <Link to="/pricingPlans" className={getLinkClass('/pricingPlans')}>
               Pricing
             </Link>
             

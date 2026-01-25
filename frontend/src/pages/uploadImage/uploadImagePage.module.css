@@ -78,13 +78,17 @@
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
+
 .imagePreview {
+  width: 100%;
+  max-width: 800px; /* or remove max-width */
   margin-top: 20px;
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   animation: fadeIn 0.5s ease-out;
 }
+
 
 @keyframes fadeIn {
   from {
@@ -98,7 +102,7 @@
 }
 
 .previewImage {
-  max-width: 100%;
+  width: 100%;
   height: auto;
   display: block;
   border-radius: 16px;

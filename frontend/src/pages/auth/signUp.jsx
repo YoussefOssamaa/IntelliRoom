@@ -50,7 +50,7 @@ const SignUpModal = () => {
             }
 
         } catch (e) {
-            // console.log("badr",e)
+            console.log("badr",e)
             setIsSuccessFullLogin((p) => false);
             setIsMessageVisible((p) => true);
             setLoginMessage((p) => e?.response?.data?.message || "internal server error");

@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
 //import { useAuth } from '../../context/AuthContext'; until implement auth
 
 const Header = () => {
@@ -6,6 +8,8 @@ const Header = () => {
   const [openSubmenu, setOpenSubmenu] = useState(null);
   //const [showProfileMenu, setShowProfileMenu] = useState(false);
   //const { user, isSignedIn, logout } = useAuth();
+
+  const navigate = useNavigate();
 
   const toggleSubmenu = (menuItem) => {
     setOpenSubmenu(openSubmenu === menuItem ? null : menuItem);
@@ -62,7 +66,9 @@ const Header = () => {
                     </button>
                   </li>
                   <li role="menuitem">
-                    <button className="w-full px-4 py-2 text-left text-sm text-text-primary hover:bg-secondary-light transition-colors">
+                    <button 
+                    onClick={()=>{navigate("/upload"); setOpenSubmenu(null);  }}
+                    className="w-full px-4 py-2 text-left text-sm text-text-primary hover:bg-secondary-light transition-colors">
                       AI Generation
                     </button>
                   </li>

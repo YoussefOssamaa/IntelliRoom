@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import logoImage from '../assets/site-logo-white.png';
+import logoImage from '../../../public/assets/site-logo-white.png';
 
 const Header = ({ user }) => {
   const [openSubmenu, setOpenSubmenu] = useState(null);

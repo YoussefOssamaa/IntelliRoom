@@ -3,10 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
 import './PluginReviewPage.css';
 
-
-
-
-
 const StarRating = ({ rating }) => {
     return (
         <div className="star-row">
@@ -33,8 +29,6 @@ export default function PluginReviewPage() {
     const [error, setError] = useState(null);
     const [isFollowing, setIsFollowing] = React.useState(false);
 
-
-
     useEffect(() => {
         const fetchPluginData = async () => {
             try {
@@ -45,46 +39,6 @@ export default function PluginReviewPage() {
                 setPlugin(response.data);
                 setLoading(false);
 
-                // const dummyPlugin = {
-                //     _id: "123456789",
-                //     plugin_name: "Ultimate Interior Shader Pack",
-                //     plugin_description: "A comprehensive collection of high-quality shaders for interior design rendering. Includes realistic wood, fabric, and glass materials optimized for fast rendering.",
-                //     plugin_author: {
-                //         _id: "user_001",
-                //         user_name: "CreativeStudio_99",
-                //         email: "studio@example.com"
-                //     },
-                //     plugin_rating: 4.5,
-                //     number_of_downloads: 1250,
-                //     plugin_price: 25, 
-                //     what_is_included: [
-                //         "20+ High-res Textures",
-                //         "Drag & Drop Presets",
-                //         "PDF User Guide",
-                //         "1 Year Support"
-                //     ],
-                //     plugin_reviews: [
-                //         {
-                //             user_name: "Sarah Jenkins",
-                //             rating: 5,
-                //             comment: "Absolutely amazing! Saved me hours of work on my final project."
-                //         },
-                //         {
-                //             user_name: "Mike T.",
-                //             rating: 3,
-                //             comment: "Good quality, but a bit expensive for what you get."
-                //         },
-                //         {
-                //             user_name: "DesignerPro",
-                //             rating: 5,
-                //             comment: "The fabric textures are the best I have seen. Highly recommended."
-                //         }
-                //     ]
-                // };
-                // setTimeout(() => {
-                //     setPlugin(dummyPlugin);
-                //     setLoading(false);
-                // }, 800);
             } catch (err) {
                 console.error(err);
                 setError("Failed to load plugin details.");
@@ -95,7 +49,6 @@ export default function PluginReviewPage() {
         if (id) {
             fetchPluginData();
         }
-        // fetchPluginData();
     }, [id]);
 
 
@@ -107,25 +60,19 @@ export default function PluginReviewPage() {
     if (error) return <div>Error: {error}</div>;
     if (!plugin) return null;
 
-
-
-
-
     return (
 
         <div className='main-container'>
             <div className="review-page-container">
 
-
                 <div className="visual-side">
-
                     <div className="plugin-placeholder">
                         <h3>Plugin Preview Area</h3>
                     </div>
                 </div>
 
                 <div className="info-side">
-                    <button className="back-to-marketplace-btn" onClick={() => navigate(-1)}>
+                    <button className="back-btn" onClick={() => navigate(-1)}>
                         <span>&#8592;</span> Back to Marketplace
                     </button>
                     <div className="info-content">
@@ -135,10 +82,9 @@ export default function PluginReviewPage() {
                                 <h4 className='owner-name'>
                                     by {plugin.plugin_author?.user_name || "Unknown Author"}
                                 </h4>
-                                <button className=
-                                    {`follow-btn ${isFollowing ? 'following' : ''}`}
+                                
+                                <button className={`follow-btn ${isFollowing ? 'following' : ''}`}
                                     onClick={() => setIsFollowing(!isFollowing)}>
-
                                     {isFollowing ? 'Following' : 'Follow'}
                                 </button>
                             </div>

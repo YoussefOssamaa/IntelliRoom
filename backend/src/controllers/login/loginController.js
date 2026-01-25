@@ -20,10 +20,14 @@ export const registerHandler = async (req, res) => {
     const genericError = "Invalid credentials or user already exists"
     try {
         await normalizeResponseTime()
-        
-        const validation = newUserSchema.safeParse(req.body);
-        console.log(validation);
 
+        const validation = newUserSchema.safeParse(req.body);
+        // console.log(validation);
+
+        if (!req.body.email || !req.body.firstName || !req.body.lastName || !req.body.user_name || !req.body.password) {
+            return res.status(400).json({ success: false, message: "please fill all the fields." })
+
+        }
         if (!validation.success) {
             return res.status(400).json({ success: false, message: genericError })
         }
@@ -53,7 +57,7 @@ export const loginHandler = async (req, res) => {
     const genericMessage = "invalid username or password"
     try {
         const { data, success } = userSchema.safeParse(req.body);
-        
+
         if (!success) {
             return res.status(401).json({ success: false, message: genericMessage });
         }
@@ -136,7 +140,7 @@ export const refreshTokenHandler = async (req, res) => {
         if (!validation.success) {
             return res.status(401).json({ success: false, message: genericError })
         }
-        
+
         const token = validation?.data?.Refresh;
         const user = await Refresh.findOne({ refreshToken: token });
         if (!user) {

@@ -5,6 +5,7 @@ import { PricingPlansPage } from './pages/pricingPlans/PricingPlansPage';
 import { PluginReviewPage } from './pages/plugins-review/PluginReviewPage';
 import UploadImagePage from './screens/uploadImage';
 import LoginModal from './pages/auth/login';
+import SignUpModal from './pages/auth/signUp';
 import ProtectedRoute from './components/protectedRoute';
 
 const AppRoutes = () => {
@@ -12,10 +13,12 @@ const AppRoutes = () => {
     <Router>
       <Routes>
         <Route path="/login" element={<LoginModal />} />
+        <Route path="/signUp" element={<SignUpModal />} />
         <Route path="/test" element={
           <ProtectedRoute>
             <h1>Protected Route</h1>
-        </ProtectedRoute>} />
+          </ProtectedRoute>} 
+        />
         
         <Route path="/" element={<MarketplacePage />} />
         <Route path="/marketplace" element={<MarketplacePage />} />

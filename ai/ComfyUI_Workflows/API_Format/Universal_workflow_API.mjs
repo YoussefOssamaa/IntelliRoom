@@ -1,4 +1,4 @@
-{
+export default {
   "1": {
     "inputs": {
       "ckpt_name": "RealisticVisionV6.safetensors"

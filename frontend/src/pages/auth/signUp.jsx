@@ -163,7 +163,12 @@ const SignUpModal = () => {
                     </div>
 
                     <button type="submit" className="sign-in-btn">Sign up</button>
-                </form>
+             </form>
+                                 <br></br>
+
+                            <p className="signup-text">
+                    Already have an account? <a href="/login">Login</a>
+                </p>    
             </div>
         </div>
     );

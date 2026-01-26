@@ -10,11 +10,11 @@ import contactIndex from './routes/contactRoutes/contactIndex.js'
 import uploadIndex from './routes/uploadRoutes/uploadIndex.js';
 import pluginIndex from './routes/pluginRoutes/pluginIndex.js'
 import { CORSMiddleware } from './middleware/CORS.js';
-import {ComfyUIService} from './services/ComfyUIService.js';
+import { ComfyUIService } from './services/ComfyUIService.js';
 import path from 'path';
 import cookieParser from 'cookie-parser'
 
-const __dirname = path.resolve(); 
+const __dirname = path.resolve();
 
 export const PORT = process.env.PORT || 5000;
 const COMFYUI_HOST = process.env.COMFYUI_HOST || 'localhost:8188';
@@ -26,8 +26,8 @@ await connectDB();
 app.use(express.json());
 app.use(CORSMiddleware)
 app.use(cookieParser())
-app.use('/uploads', express.static(path.join(__dirname, '../uploads'))); 
-app.use('/comfyOutputs', express.static(path.join(__dirname, '../uploads/comfyOutputs'))); 
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/api/comfyOutputs', express.static(path.join(__dirname, '../uploads/comfyOutputs')));
 
 
 export const comfyUIServiceInstance = new ComfyUIService(COMFYUI_HOST);
@@ -43,7 +43,7 @@ app.use('/api/contact', contactIndex)
 
 
 app.listen(PORT, () => {
-console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`Server is running on http://localhost:${PORT}`);
 });
 
 

@@ -1,5 +1,9 @@
 {
   "name": "AI Dev Environment",
+  	"runArgs" : [
+		"--dns=8.8.8.8" , 
+		"--dns=1.1.1.1"
+	], 
   "dockerComposeFile": [
     "../../docker-compose.yml",
     "../../docker-compose.ai.yml"

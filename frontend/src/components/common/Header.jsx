@@ -22,20 +22,25 @@ const Header = () => {
 
   return (
     <header className="w-full bg-header-background shadow-[0px_1px_2px_#0000000c] relative">
-      <div className="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-12 py-3">
+      <div className="max-w-360 mx-auto px-3 sm:px-6 lg:px-12 py-3">
         <div className="flex justify-between items-center w-full">
           
-          <div className="flex-shrink-0 flex items-center">
+          <div className="flex-shrink-0 flex items-center gap-3 cursor-pointer">
             <img 
               src="../public/assets/site-logo-white.png" 
               alt="IntelliRoom AI Logo" 
               className="w-auto h-10 sm:h-12 lg:h-14"
             />
+
+              <span className="text-xl sm:text-2xl font-bold text-text-primary tracking-wide">
+              IntelliRoom <span className="text-text-accent">AI</span>
+            </span>
           </div>
 
           {/* desktop navigation */}
           <nav className="hidden lg:flex items-center space-x-7">
             <button 
+              onClick={()=> navigate("/")}
               className="text-base font-medium text-text-primary hover:text-text-accent transition-colors"
               role="menuitem"
             >
@@ -43,7 +48,9 @@ const Header = () => {
             </button>
             
             <div className="relative">
-              <button 
+            
+             {/* 
+                <button 
                 className="flex items-center text-base font-medium text-text-primary hover:text-text-accent transition-colors"
                 role="menuitem"
                 aria-haspopup="true"
@@ -57,7 +64,7 @@ const Header = () => {
                   className="w-3 h-4 ml-2"
                 />
               </button>
-              
+
               {openSubmenu === 'features' && (
                 <ul className="absolute top-full left-0 mt-2 w-48 bg-background-card border border-border-light rounded-md shadow-lg z-50" role="menu">
                   <li role="menuitem">
@@ -79,23 +86,37 @@ const Header = () => {
                   </li>
                 </ul>
               )}
+                */}
+
+
             </div>
 
+              <button 
+              onClick={()=> navigate("/upload")}
+              className="text-base font-medium text-text-primary hover:text-text-accent transition-colors"
+              role="menuitem"
+              >
+              AI Generation
+            </button>
+{/*
             <button 
+              onClick={()=> navigate("/gallery")}
               className="text-base font-medium text-text-primary hover:text-text-accent transition-colors"
               role="menuitem"
             >
               Gallery
             </button>
-
-            <button 
-              className="text-base font-medium text-text-accent"
+*/}
+            <button
+              onClick={()=> navigate("/marketplace")}
+              className="text-base font-medium text-text-primary hover:text-text-accent transition-colors"
               role="menuitem"
             >
               Marketplace
             </button>
 
             <button 
+              onClick={()=> navigate("/pricingPlans")}
               className="text-base font-medium text-text-primary hover:text-text-accent transition-colors"
               role="menuitem"
             >
@@ -103,6 +124,7 @@ const Header = () => {
             </button>
 
             <button 
+              onClick={()=> navigate("/dashboard")}
               className="text-base font-medium text-text-primary hover:text-text-accent transition-colors"
               role="menuitem"
             >
@@ -179,10 +201,14 @@ const Header = () => {
           ) : */}
            
             <div className="hidden lg:flex items-center space-x-4">
-              <button className="btn-secondary" style={{ padding: '10px 26px' }}>
+              <button 
+              onClick={()=> navigate("/login")}
+              className="btn-secondary" style={{ padding: '10px 26px' }}>
                 Sign In
               </button>
-              <button className="btn-primary" style={{ padding: '10px 24px' }}>
+              <button 
+              onClick={()=> navigate("/signup")}
+              className="btn-primary" style={{ padding: '10px 24px' }}>
                 Sign Up Free
               </button>
             </div>

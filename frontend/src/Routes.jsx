@@ -8,6 +8,7 @@ import DashboardPage from './pages/dashboard/DashboardPage';
 import LoginModal from './pages/auth/login';
 import SignUpModal from './pages/auth/signUp';
 import ProtectedRoute from './components/protectedRoute';
+import LandingPage from './pages/landingPage/landingPage';
 
 const AppRoutes = () => {
   return (
@@ -21,7 +22,7 @@ const AppRoutes = () => {
           </ProtectedRoute>} 
         />
         
-        <Route path="/" element={<MarketplacePage />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/marketplace" element={<MarketplacePage />} />
         <Route path="/pricingPlans" element={<PricingPlansPage />} />
         <Route path="/pluginReview" element={<PluginReviewPage />} />

@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 import './PricingPlansPage.css';
+import Header from '../../pages/dashboard/Header';
+import Footer from '../../components/common/Footer';
+
+
 
 export function PricingPlansPage() {
   const [isAnnual, setIsAnnual] = useState(false);
@@ -56,6 +60,8 @@ export function PricingPlansPage() {
   ];
 
   return (
+    <>
+    <Header />
     <div className='main-wrapper'>
 
       <div 
@@ -140,5 +146,7 @@ export function PricingPlansPage() {
         ))}
       </div>
     </div>
+    <Footer />
+    </>
   );
 }

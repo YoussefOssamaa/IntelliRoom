@@ -10,10 +10,13 @@ const Header = ({ user }) => {
   const navigate = useNavigate();
 
   const getLinkClass = (path) => {
-    const isActive = location.pathname === path;
+   /* const isActive = location.pathname === path;
     return isActive 
       ? "text-base font-medium text-[#00e676] bg-transparent border-0 cursor-pointer"
-      : "text-base font-medium text-[#333333] hover:text-[#00e676] transition-colors bg-transparent border-0 cursor-pointer";
+      : "text-base font-medium text-text-primary hover:text-text-accent transition-colors";*/
+
+    const isActive = location.pathname === path;
+  return "text-base font-medium text-text-primary hover:text-text-accent transition-colors";
   };
 
   const handleLogout = () => {
@@ -24,15 +27,22 @@ const Header = ({ user }) => {
   return (
     <header className="sticky top-0 z-50 w-full bg-white shadow-[0px_1px_2px_#0000000c] border-b border-[#e0e0e0]">
       <div className="max-w-360 mx-auto px-3 sm:px-6 lg:px-12 py-3">
+        
         <div className="flex justify-between items-center w-full">
           
-          <Link to="/" className="shrink-0 flex items-center cursor-pointer">
-            <img 
-              src={logoImage} 
-              alt="IntelliRoom AI Logo" 
-              className="w-auto h-10 sm:h-12 lg:h-14"
+
+          <Link to="/" className="flex items-center gap-3 cursor-pointer">
+            <img
+              src={logoImage}
+              alt="IntelliRoom AI Logo"
+              className="h-10 sm:h-12 lg:h-14 w-auto object-contain"
             />
+
+            <span className="text-xl sm:text-2xl font-bold text-text-primary tracking-wide leading-none">
+              IntelliRoom <span className="text-text-accent">AI</span>
+            </span>
           </Link>
+
 
           <nav className="flex items-center space-x-7">
             
@@ -45,7 +55,8 @@ const Header = ({ user }) => {
               onMouseEnter={() => setOpenSubmenu('features')} 
               onMouseLeave={() => setOpenSubmenu(null)}
             >
-              <button className="flex items-center text-base font-medium text-[#333333] hover:text-[#00e676] transition-colors focus:outline-none bg-transparent border-0 cursor-pointer py-2">
+            {/*
+              <button className="text-base font-medium text-text-primary hover:text-text-accent transition-colors">
                 Features
                 <img 
                    src="/images/img_.png" 
@@ -62,12 +73,18 @@ const Header = ({ user }) => {
                   <li><button className="w-full px-4 py-3 text-left text-sm text-[#333333] hover:bg-[#f0fdf4] transition-colors bg-transparent border-0 cursor-pointer">Custom Configs</button></li>
                 </ul>
               )}
+            */}
             </div>
 
-            <Link to="/gallery" className={getLinkClass('/gallery')}>
+
+            <Link to="/upload" className={getLinkClass('/upload')}>
+              AI Generation
+            </Link>
+{/*
+            <Link to="/marketplace" className={getLinkClass('/gallery')}>
               Gallery
             </Link>
-
+*/}
             <Link to="/marketplace" className={getLinkClass('/marketplace')}>
               Marketplace
             </Link>

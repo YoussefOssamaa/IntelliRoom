@@ -3,6 +3,9 @@ import React, { useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { BACKEND_URL } from '../../services/uploadImageService';
 import styles from './uploadImagePage.module.css'; 
+import Header from '../../pages/dashboard/Header';
+import Footer from '../../components/common/Footer';
+
 
 function UploadImagePage() {
     const [imageFile, setImageFile] = useState(null);
@@ -54,6 +57,8 @@ function UploadImagePage() {
     };
 
     return (
+        <>
+        <Header />
         <div className={styles.pageWrapper}>
             <div className={styles.container}>
                 <h1 className={styles.heading}>Upload Image Page</h1>
@@ -113,6 +118,10 @@ function UploadImagePage() {
                 </button>
             </div>
         </div>
+        
+        <Footer />
+
+        </>
     );
 }
 

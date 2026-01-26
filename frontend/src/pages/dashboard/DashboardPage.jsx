@@ -21,6 +21,7 @@ import {
 
 import './DashboardPage.css';
 import Header from './Header';
+import Bohemian from './Bohemian.jpg'
 
 const drawerWidth = 240;
 
@@ -44,7 +45,7 @@ export default function DashboardPage() {
     const [designStyles] = useState([
         { id: 1, name: "Minimalist Zen", desc: "Clean lines and calming neutrals.", img: "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?auto=format&fit=crop&w=600&q=80" },
         { id: 2, name: "Industrial Loft", desc: "Raw brick, metal, and wood.", img: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=600&q=80" },
-        { id: 3, name: "Bohemian Chic", desc: "Vibrant colors and organic textures.", img: "https://images.unsplash.com/photo-1616486338812-3dadae4b4f9d?auto=format&fit=crop&w=600&q=80" },
+        { id: 3, name: "Bohemian Chic", desc: "Vibrant colors and organic textures.", img: Bohemian },
         { id: 4, name: "Scandinavian", desc: "Functional, simple, and bright.", img: "https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?auto=format&fit=crop&w=600&q=80" },
         { id: 5, name: "Modern Luxury", desc: "Sleek finishes and bold accents.", img: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=600&q=80" },
     ]);

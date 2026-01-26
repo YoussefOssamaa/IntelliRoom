@@ -17,7 +17,7 @@ const resetPrivateKey = fs.readFileSync(path.join("src", "keys", "ResetPrivate.p
 const resetPublicKey = fs.readFileSync(path.join("src", "keys", "ResetPublic.pem"), 'utf8');*/
 
 export const registerHandler = async (req, res) => {
-  /*  const genericError = "Invalid credentials or user already exists"
+    const genericError = "Invalid credentials or user already exists"
     try {
         await normalizeResponseTime()
 
@@ -49,7 +49,7 @@ export const registerHandler = async (req, res) => {
     } catch (e) {
         console.log(e.message);
         return res.status(400).json({ success: false, message: genericError })
-    }*/
+    }
 }
 
 export const loginHandler = async (req, res) => {
@@ -126,7 +126,7 @@ export const loginHandler = async (req, res) => {
         console.log(error);
         res.status(500).json({ message: error.message });
 
-    }*/
+    }
 
 }
 

@@ -7,10 +7,10 @@ import design2DIndex from './routes/design2DRoutes/design2DIndex.js';
 import loginIndex from './routes/loginRoutes/loginIndex.js';
 import signupIndex from './routes/signupRoutes/signupIndex.js';
 import contactIndex from './routes/contactRoutes/contactIndex.js'
-// import uploadIndex from './routes/uploadRoutes/uploadIndex.js';
+import uploadIndex from './routes/uploadRoutes/uploadIndex.js';
 import pluginIndex from './routes/pluginRoutes/pluginIndex.js'
 import { CORSMiddleware } from './middleware/CORS.js';
-// import {ComfyUIService} from './services/ComfyUIService.js';
+import {ComfyUIService} from './services/ComfyUIService.js';
 import path from 'path';
 import cookieParser from 'cookie-parser'
 
@@ -30,12 +30,12 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.use('/comfyOutputs', express.static(path.join(__dirname, '../uploads/comfyOutputs'))); 
 
 
-// export const comfyUIServiceInstance = new ComfyUIService(COMFYUI_HOST);
+export const comfyUIServiceInstance = new ComfyUIService(COMFYUI_HOST);
 
 
 app.use('/api/ecommerce', ecommerceIndex);
 app.use('/api/design2D', design2DIndex);
-// app.use('/api/uploadImage', uploadIndex);
+app.use('/api/uploadImage', uploadIndex);
 app.use('/api/plugins', pluginIndex);
 app.use('/api/auth', loginIndex)
 app.use('/api/signup', signupIndex)

@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { authCookieSchema } from '../validations/login.validator.js';
 // const authPrivateKey = fs.readFileSync(path.join("src", "keys", "AuthPrivate.pem"), 'utf8');
-const authPublicKey = fs.readFileSync(path.join("src", "keys", "AuthPublic.pem"), 'utf8');
+ const authPublicKey = fs.readFileSync(path.join("src", "utils","src", "keys", "AuthPublic.pem"), 'utf8');
 // const refreshPrivateKey = fs.readFileSync(path.join("src", "keys", "RefreshPrivate.pem"), 'utf8');
 // const refreshPublicKey = fs.readFileSync(path.join("src", "keys", "RefreshPublic.pem"), 'utf8');
 

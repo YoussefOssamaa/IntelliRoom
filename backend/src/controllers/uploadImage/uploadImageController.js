@@ -1,4 +1,3 @@
-
 import express from 'express';
 import multer from 'multer';
 import fs from 'fs';
@@ -14,24 +13,22 @@ import { buildComfyWorkflow_objectReplaceWithST, COMFYUI_OUTPUT_NODE_WF_OBJECTRE
 
 
 
-
-// export const postImageController = async (req, res) => {
-//     try {
-//         if (!req.file) {
-//             return res.status(400).json({ error: 'No file uploaded' });
-//         }
-
+export const postImageController = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
 
         const workflowNumber = Number(req.body.workflowNumber || 1);
         const inputPrompt = req.body.inputPrompt || ''
         const replacementPrompt = req.body.replacementPrompt || '';
 
-//         console.log('Uploaded file:', req.file);
+        console.log('Uploaded file:', req.file);
 
 
-//         console.log('Uploading image to ComfyUI...');
-//         const comfyImageFilename = await comfyUIServiceInstance.uploadImage(req.file.path);
-//         console.log('Image uploaded to ComfyUI as:', comfyImageFilename);
+        console.log('Uploading image to ComfyUI...');
+        const comfyImageFilename = await comfyUIServiceInstance.uploadImage(req.file.path);
+        console.log('Image uploaded to ComfyUI as:', comfyImageFilename);
 
         
     
@@ -63,13 +60,10 @@ import { buildComfyWorkflow_objectReplaceWithST, COMFYUI_OUTPUT_NODE_WF_OBJECTRE
 
 
 
-
         console.log('Running ComfyUI workflow...');
 
-
-//         const result = await comfyUIServiceInstance.runComfyWorkflow(workflow);
-//         console.log('Workflow result:', result);
-
+        const result = await comfyUIServiceInstance.runComfyWorkflow(workflow);
+        console.log('Workflow result:', result);
 
 
         const outputNode = result.outputs[comfyOutputNode];
@@ -79,40 +73,37 @@ import { buildComfyWorkflow_objectReplaceWithST, COMFYUI_OUTPUT_NODE_WF_OBJECTRE
                 error: 'Failed to process image - no output received',
             });
         }
-
         
-//         const outputImageInfo = outputNode.images[0];  
-//         const outputFilename = outputImageInfo.filename;
-//         const outputSubfolder = outputImageInfo.subfolder || '';
-//         const outputType = outputImageInfo.type || 'output';
+        const outputImageInfo = outputNode.images[0];  
+        const outputFilename = outputImageInfo.filename;
+        const outputSubfolder = outputImageInfo.subfolder || '';
+        const outputType = outputImageInfo.type || 'output';
 
-//         console.log('Output image info:', outputImageInfo);
+        console.log('Output image info:', outputImageInfo);
 
 
-//         console.log('Downloading processed image from ComfyUI...');
-//         const localFilename = await comfyUIServiceInstance.downloadImage(
-//             outputFilename,
-//             outputSubfolder,
-//             outputType
-//         );
+        console.log('Downloading processed image from ComfyUI...');
+        const localFilename = await comfyUIServiceInstance.downloadImage(
+            outputFilename,
+            outputSubfolder,
+            outputType
+        );
 
         await setTimeout(1000);
         
-//          return res.status(200).json({
-//             message: 'Image uploaded and processed successfully',
-//             originalImage: `/uploads/uploadedImages/${req.file.filename}`,
-//             enhancedImageUrl: `/comfyOutputs/${localFilename}`
-//         });
+         return res.status(200).json({
+            message: 'Image uploaded and processed successfully',
+            originalImage: `/uploads/uploadedImages/${req.file.filename}`,
+            enhancedImageUrl: `/comfyOutputs/${localFilename}`
+        });
 
 
 
-//     } catch (error) {
-//         console.error('Error in postImageController:', error);
-//         return res.status(500).json({ 
-//             error: error.message,
-//             stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-//         });
-//     }
-// }
-
-
+    } catch (error) {
+        console.error('Error in postImageController:', error);
+        return res.status(500).json({ 
+            error: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
+    }
+}

@@ -10,29 +10,18 @@
 *.lot
 *.out
 *.run.xml
-*.synctex.gz
 *.toc
-*.nav
-*.snm
-*.vrb
-
-# Backup files
-*.bak
+*.synctex.gz
 *.bbl-SAVE-ERROR
-*-SAVE-ERROR
 
 # Temporary pdflatex files
 pdflatex*.fls
 
-# OS generated files
+# Editor backup files
+*~
+*.bak
+*.swp
+
+# OS files
 .DS_Store
 Thumbs.db
-desktop.ini
-
-# Editor files
-*.swp
-*.swo
-*~
-
-# Build output (keep PDF if you want to include compiled version)
-# *.pdf

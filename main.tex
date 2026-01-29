@@ -1,0 +1,166 @@
+% ============================================================================
+% IntelliRoom AI - Graduation Project Documentation
+% Ain Shams University, Faculty of Engineering
+% Department of Computer and Systems Engineering
+% January 2026
+% ============================================================================
+
+\documentclass[12pt,a4paper,oneside]{report}
+
+% ============ PACKAGES ============
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{times}                    % Times New Roman font
+\usepackage{setspace}                 % Line spacing
+\usepackage{geometry}                 % Margins
+\usepackage[hidelinks]{hyperref}      % Clickable TOC
+\usepackage{titlesec}                 % Chapter formatting
+\usepackage{caption}                  % Figure captions
+\usepackage{subcaption}               % Subfigures
+\usepackage{float}                    % Figure placement
+\usepackage{booktabs}                 % Professional tables
+\usepackage{longtable}                % Multi-page tables
+\usepackage{tabularx}                 % Flexible tables
+\usepackage{array}                    % Table formatting
+\usepackage{enumerate}                % Custom lists
+\usepackage{enumitem}                 % List customization
+\usepackage{amsmath,amssymb}          % Math symbols
+\usepackage[style=ieee]{biblatex}     % IEEE citations
+\usepackage{xcolor}                   % Colors
+\usepackage{tikz}                     % Diagrams
+\usetikzlibrary{shapes.geometric, arrows, positioning, calc}
+\usepackage{pgfplots}                 % Charts and plots
+\pgfplotsset{compat=1.18}
+\usepackage{pgf-pie}                  % Pie charts
+\usepackage{fancyhdr}                 % Headers/footers
+\setlength{\headheight}{14.5pt}       % Fix warning: \headheight is too small
+\usepackage{tocloft}                  % TOC formatting
+\usepackage{appendix}                 % Appendix formatting
+\usepackage{pdfpages}                 % Include PDF pages
+\usepackage{listings}                 % Code listings
+
+% ============ CODE LISTING SETUP ============
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny,
+    tabsize=2,
+    showstringspaces=false,
+    keywordstyle=\color{blue},
+    commentstyle=\color{green!50!black},
+    stringstyle=\color{red!60!black}
+}
+\lstdefinelanguage{JavaScript}{
+    keywords={const, let, var, function, return, if, else, for, while, class, export, import, from, async, await, new, this, try, catch, throw},
+    sensitive=true,
+    comment=[l]{//},
+    morecomment=[s]{/*}{*/},
+    string=[b]',
+    morestring=[b]"
+}
+
+% ============ PAGE SETUP ============
+\geometry{
+    left=1in,
+    right=1in,
+    top=1in,
+    bottom=1in
+}
+\onehalfspacing                       % 1.5 line spacing
+
+% ============ BIBLIOGRAPHY ============
+\addbibresource{references.bib}
+
+% ============ GRAPHICS PATH ============
+\graphicspath{{figures/}}
+
+% ============ CHAPTER FORMATTING ============
+\titleformat{\chapter}[display]
+    {\normalfont\huge\bfseries}{\chaptertitlename\ \thechapter}{20pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{-20pt}{40pt}
+
+% ============ SECTION FORMATTING ============
+\titleformat{\section}
+    {\normalfont\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}
+    {\normalfont\large\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+    {\normalfont\normalsize\bfseries}{\thesubsubsection}{1em}{}
+
+% ============ HEADER/FOOTER ============
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[R]{\thepage}
+\fancyhead[L]{\leftmark}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ============ CAPTION FORMATTING ============
+\captionsetup{
+    font=small,
+    labelfont=bf,
+    format=hang,
+    justification=centering
+}
+
+% ============ TABLE OF CONTENTS FORMATTING ============
+\renewcommand{\contentsname}{Table of Contents}
+\renewcommand{\listfigurename}{List of Figures}
+\renewcommand{\listtablename}{List of Tables}
+
+% ============ CUSTOM COMMANDS ============
+\newcommand{\intelliroom}{\textsc{IntelliRoom}}
+\newcommand{\projecttitle}{IntelliRoom: AI-Powered Interior Design Platform with Cultural Intelligence for MENA Markets}
+
+% ============ BEGIN DOCUMENT ============
+\begin{document}
+
+% ============ FRONT MATTER (Roman numerals) ============
+\pagenumbering{roman}
+\input{frontmatter/cover}
+
+\input{frontmatter/declaration}
+\addcontentsline{toc}{chapter}{Declaration}
+
+\input{frontmatter/abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+% Table of Contents
+\tableofcontents
+\cleardoublepage
+
+% List of Figures
+\listoffigures
+\addcontentsline{toc}{chapter}{List of Figures}
+\cleardoublepage
+
+% List of Tables
+\listoftables
+\addcontentsline{toc}{chapter}{List of Tables}
+\cleardoublepage
+
+% ============ MAIN CHAPTERS (Arabic numerals) ============
+\pagenumbering{arabic}
+
+\input{chapters/chapter1_introduction}
+\input{chapters/chapter2_literature}
+\input{chapters/chapter3_requirements}
+\input{chapters/chapter4_design}
+\input{chapters/chapter5_conclusion}
+
+% ============ REFERENCES ============
+\cleardoublepage
+\printbibliography[heading=bibintoc,title={References}]
+
+% ============ APPENDICES ============
+\cleardoublepage
+\begin{appendices}
+\input{appendices/appendixA_market_analysis}
+\input{appendices/appendixB_use_cases}
+\input{appendices/appendixC_business_model}
+\input{appendices/appendixD_ui_mockups}
+\end{appendices}
+
+\end{document}

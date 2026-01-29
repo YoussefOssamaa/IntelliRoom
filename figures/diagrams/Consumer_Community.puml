@@ -1,0 +1,36 @@
+@startuml
+title Consumer - Community & Engagement
+
+left to right direction
+skinparam actorStyle awesome
+skinparam usecase {
+  BackgroundColor #E6F2F7
+  BorderColor #2E86AB
+}
+
+actor "User" as User
+actor "Guest" as Guest
+actor "Registered User" as RegUser
+
+Guest --|> User
+RegUser --|> User
+
+rectangle "IntelliRoom AI" {
+  usecase "Browse Community Gallery" as UC1
+  usecase "Vote During Generation\n(RLHF-style)" as UC2
+  usecase "Rate Design Authenticity" as UC3
+  usecase "Share to Social Media" as UC4
+  usecase "Earn Credits\n(votes/shares/streaks)" as UC5
+  usecase "Redeem Credits" as UC6
+}
+
+Guest --> UC1
+
+RegUser --> UC1
+RegUser --> UC2
+RegUser --> UC3
+RegUser --> UC4
+RegUser --> UC5
+RegUser --> UC6
+
+@enduml

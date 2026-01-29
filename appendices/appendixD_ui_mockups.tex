@@ -1,0 +1,135 @@
+% ============================================================================
+% Appendix D: Additional UI Mockups
+% ============================================================================
+
+\chapter{Additional User Interface Mockups}
+\label{app:ui_mockups}
+
+This appendix provides additional user interface mockups beyond the core screens presented in Chapter~\ref{chap:design}. These designs cover authentication flows and subscription management.
+
+% ============================================================================
+\section{Authentication Screens}
+\label{sec:app_ui_auth}
+
+\subsection{Login Screen}
+
+The login screen (Figure~\ref{fig:app_ui_login}) provides returning users with secure access to their accounts. The interface emphasizes ease of use with social authentication options and traditional email/password login.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/ui/auth_login.png}
+    \caption{Login Interface: Secure user authentication with social login integration (Google, Facebook).}
+    \label{fig:app_ui_login}
+\end{figure}
+
+Design considerations for the login screen:
+\begin{itemize}
+    \item Clean, minimalist design with centered modal layout
+    \item Social login buttons prominently displayed above traditional form
+    \item Clear visual hierarchy with ``Welcome Back'' header
+    \item Direct link to registration for new users
+    \item Mobile-responsive layout with touch-friendly input fields
+\end{itemize}
+
+\subsection{Registration Screen}
+
+The registration screen (Figure~\ref{fig:app_ui_register}) guides new users through account creation with comprehensive input validation and social registration options.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/ui/auth_signup.png}
+    \caption{Registration Interface: Comprehensive sign-up form collecting user profile data with social registration alternatives.}
+    \label{fig:app_ui_register}
+\end{figure}
+
+Key features of the registration screen:
+\begin{itemize}
+    \item Structured form collecting first name, last name, email, username, and password
+    \item Password confirmation field with visual feedback
+    \item Social registration options (Google, Facebook) for streamlined onboarding
+    \item ``Become an artist!'' value proposition encouraging content creation
+    \item Direct link to login page for returning users
+    \item Mobile-responsive centered modal layout
+\end{itemize}
+
+% ============================================================================
+\section{Pricing and Subscription}
+\label{sec:app_ui_payment}
+
+\subsection{Pricing Plans Screen}
+
+The pricing page (Figure~\ref{fig:app_ui_pricing}) displays available subscription tiers with clear feature comparison, guiding users in selecting the appropriate plan for their needs.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1.0\textwidth]{figures/ui/pricing_plans.png}
+    \caption{Pricing \& Plans Interface: Comparison of subscription tiers (Free, Pro, Business) with feature breakdowns and monthly/annual toggle.}
+    \label{fig:app_ui_pricing}
+\end{figure}
+
+Key features of the pricing interface:
+\begin{itemize}
+    \item Three-tier pricing structure: Free, Pro (\$29/month), Business (\$99/month)
+    \item Monthly/Annual billing toggle with 17\% savings indicator
+    \item Feature comparison highlighting limitations and capabilities
+    \item ``Most Popular'' badge on the Pro tier guiding user selection
+    \item Clear call-to-action buttons for each tier
+    \item Transparent feature listing including design limits, resolution options, style library access, and support levels
+\end{itemize}
+
+This interface satisfies requirements FR-30 (subscription management) and NFR-06 (transparent pricing).
+
+% ============================================================================
+\section{Responsive Design Considerations}
+\label{sec:app_ui_responsive}
+
+All interface screens are designed to be responsive across device sizes:
+
+\begin{table}[htbp]
+    \centering
+    \caption{Responsive Breakpoints}
+    \label{tab:app_breakpoints}
+    \begin{tabular}{|l|l|l|}
+        \hline
+        \textbf{Device} & \textbf{Breakpoint} & \textbf{Layout Adaptation} \\
+        \hline
+        Mobile (Portrait) & 320px -- 480px & Single column, bottom navigation \\
+        \hline
+        Mobile (Landscape) & 481px -- 767px & Single column, expanded controls \\
+        \hline
+        Tablet & 768px -- 1024px & Two column, sidebar navigation \\
+        \hline
+        Desktop & 1025px -- 1440px & Full layout, sidebar + content \\
+        \hline
+        Large Desktop & 1441px+ & Full layout with max-width container \\
+        \hline
+    \end{tabular}
+\end{table}
+
+Key responsive design principles:
+\begin{itemize}
+    \item Touch-friendly targets (minimum 44px × 44px)
+    \item Mobile-first CSS approach
+    \item Progressive enhancement for larger screens
+    \item Lazy loading for gallery images
+    \item Optimized image delivery based on viewport
+\end{itemize}
+
+% ============================================================================
+\section{Accessibility Considerations}
+\label{sec:app_ui_a11y}
+
+All interfaces adhere to WCAG 2.1 AA standards (NFR-11):
+
+\begin{itemize}
+    \item Color contrast ratios minimum 4.5:1 for text
+    \item Keyboard navigation support throughout
+    \item ARIA labels for interactive elements
+    \item Focus indicators for all interactive elements
+    \item Screen reader compatible structure
+    \item Reduced motion options for animations
+\end{itemize}
+
+\vspace{1cm}
+\textit{This appendix provides additional UI mockups. For core interface designs including Dashboard, Design Workspace, Marketplace, and Floor Planner, see Chapter~\ref{chap:design}.}
+

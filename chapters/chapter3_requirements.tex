@@ -1,0 +1,466 @@
+% ============================================================================
+% Chapter 3: System Requirements
+% ============================================================================
+
+\chapter{System Requirements}
+\label{chap:requirements}
+
+This chapter presents the comprehensive requirements specification for the IntelliRoom platform, documenting the functional and non-functional requirements, use cases, and user stories that guide the implementation phase. The requirements have been gathered through stakeholder interviews, competitive analysis, and user research targeting Egyptian and MENA market users. Implementation status is noted for each requirement.
+
+% ============================================================================
+\section{Functional Requirements}
+\label{sec:functional_requirements}
+
+The functional requirements define the specific behaviors and capabilities that the IntelliRoom system provides. Table~\ref{tab:functional_requirements} presents the categorized functional requirements with implementation status.
+
+\begin{longtable}{|p{1.2cm}|p{2.8cm}|p{5.4cm}|p{1.5cm}|p{1.8cm}|}
+    \caption{Functional Requirements Specification} \label{tab:functional_requirements} \\
+    \hline
+    \textbf{ID} & \textbf{Category} & \textbf{Requirement Description} & \textbf{Priority} & \textbf{Status} \\
+    \hline
+    \endfirsthead
+    \hline
+    \textbf{ID} & \textbf{Category} & \textbf{Requirement Description} & \textbf{Priority} & \textbf{Status} \\
+    \hline
+    \endhead
+    \hline
+    \endfoot
+    
+    FR-01 & Authentication & The system shall allow users to register accounts using email and password & High & Complete \\
+    \hline
+    FR-02 & Authentication & The system shall support social login via Google and Facebook & Medium & Planned \\
+    \hline
+    FR-03 & Authentication & The system shall implement secure password recovery via email & High & Planned \\
+    \hline
+    FR-04 & Profile & The system shall allow users to update profile information including name, photo, and bio & Medium & Complete \\
+    \hline
+    FR-05 & Profile & The system shall display user design history and saved projects & High & Complete \\
+    \hline
+    FR-06 & Room Upload & The system shall accept room photographs in JPEG and PNG formats & High & Complete \\
+    \hline
+    FR-07 & Room Upload & The system shall validate image quality and provide feedback on unsuitable uploads & High & Partial \\
+    \hline
+    FR-08 & Room Upload & The system shall support direct camera capture from mobile devices & Medium & Planned \\
+    \hline
+    FR-09 & Room Analysis & The system shall automatically detect room type (bedroom, living room, kitchen, etc.) & High & Planned \\
+    \hline
+    FR-10 & Room Analysis & The system shall identify existing furniture items in uploaded photographs & High & Planned \\
+    \hline
+    FR-11 & Room Analysis & The system shall analyze current room style and provide style classification & Medium & Planned \\
+    \hline
+    FR-12 & Style Selection & The system shall offer predefined style presets including Arabic Traditional, Modern Egyptian, Mediterranean, and Contemporary & High & Partial \\
+    \hline
+    FR-13 & Style Selection & The system shall allow mood-based design preferences (cozy, minimalist, luxurious) & Medium & Planned \\
+    \hline
+    FR-14 & AI Generation & The system shall generate 3-5 design variations for each request & High & In Progress \\
+    \hline
+    FR-15 & AI Generation & The system shall preserve room structure (walls, windows, doors) during transformation & High & Complete \\
+    \hline
+    FR-16 & AI Generation & The system shall enable selective furniture replacement while maintaining room context & High & Complete \\
+    \hline
+    FR-17 & Visualization & The system shall provide before/after comparison with interactive slider & High & Planned \\
+    \hline
+    FR-18 & Visualization & The system shall support zoom and detail inspection of generated designs & Medium & Planned \\
+    \hline
+    FR-19 & 2D Planning & The system shall provide a 2D floor planner for room layout design & Medium & Complete \\
+    \hline
+    FR-20 & 2D Planning & The system shall support drag-and-drop furniture placement in 2D view & Medium & Complete \\
+    \hline
+    FR-21 & 3D Visualization & The system shall convert 2D layouts to 3D visualization & Low & Partial \\
+    \hline
+    FR-22 & Marketplace & The system shall display furniture product recommendations based on generated designs & High & Complete \\
+    \hline
+    FR-23 & Marketplace & The system shall link to Egyptian furniture retailers and manufacturers & High & Complete \\
+    \hline
+    FR-24 & Marketplace & The system shall display prices in Egyptian Pounds (EGP) & High & Complete \\
+    \hline
+    FR-25 & Credits & The system shall implement a credit-based usage system & High & Complete \\
+    \hline
+    FR-26 & Credits & The system shall display remaining credit balance in user dashboard & High & Complete \\
+    \hline
+    FR-27 & Credits & The system shall support credit purchase via InstaPay, Fawry, and card payments & Medium & Planned \\
+    \hline
+    FR-28 & Community & The system shall allow users to share designs to a public gallery & Medium & Complete \\
+    \hline
+    FR-29 & Community & The system shall support design likes and comments & Low & Complete \\
+    \hline
+    FR-30 & Export & The system shall enable high-resolution download of generated designs & High & Partial \\
+    \hline
+    FR-31 & Export & The system shall generate PDF reports with furniture specifications & Medium & Planned \\
+    \hline
+    FR-32 & Tutorial & The system shall provide onboarding tutorials for new users & Medium & Planned \\
+    \hline
+    FR-33 & E-commerce & The system shall provide shopping cart functionality & High & Complete \\
+    \hline
+    FR-34 & E-commerce & The system shall support order management and tracking & High & Complete \\
+    \hline
+    FR-35 & E-commerce & The system shall implement product wishlist functionality & Medium & Complete \\
+    \hline
+    FR-36 & E-commerce & The system shall support product search and filtering by category & High & Complete \\
+    \hline
+    FR-37 & Projects & The system shall allow users to save and manage multiple design projects & High & Complete \\
+    \hline
+    FR-38 & Projects & The system shall store 2D/3D scene data for each project & High & Complete \\
+    \hline
+    FR-39 & Plugin Market & The system shall provide a community plugin marketplace for custom styles and presets & High & Complete \\
+    \hline
+    FR-40 & Plugin Market & The system shall allow plugin creators to publish plugins with pricing in credits & Medium & Complete \\
+    \hline
+    FR-41 & Plugin Market & The system shall support plugin search, filtering, and category browsing & High & Complete \\
+    \hline
+    FR-42 & Plugin Market & The system shall display plugin ratings, reviews, and download counts & Medium & Complete \\
+    \hline
+    FR-43 & Contact & The system shall provide a contact form for user inquiries and support requests & Low & Complete \\
+    \hline
+\end{longtable}
+
+% ============================================================================
+\section{Non-Functional Requirements}
+\label{sec:nonfunctional_requirements}
+
+Non-functional requirements define the quality attributes and constraints that the system must satisfy. Table~\ref{tab:nonfunctional_requirements} presents these requirements.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Non-Functional Requirements Specification}
+    \label{tab:nonfunctional_requirements}
+    \begin{tabularx}{\textwidth}{|p{1.5cm}|p{3.0cm}|X|}
+        \hline
+        \textbf{ID} & \textbf{Category} & \textbf{Requirement Description} \\
+        \hline
+        NFR-01 & Performance & The system shall generate initial design variations within 60 seconds of request submission \\
+        \hline
+        NFR-02 & Performance & The system shall support concurrent design requests from at least 100 simultaneous users \\
+        \hline
+        NFR-03 & Performance & Page load times shall not exceed 3 seconds on standard broadband connections \\
+        \hline
+        NFR-04 & Scalability & The system architecture shall support horizontal scaling to accommodate user growth \\
+        \hline
+        NFR-05 & Availability & The system shall maintain 99\% uptime during standard operating hours \\
+        \hline
+        NFR-06 & Security & User passwords shall be stored using bcrypt hashing with salt \\
+        \hline
+        NFR-07 & Security & All API communications shall use HTTPS encryption \\
+        \hline
+        NFR-08 & Security & The system shall implement rate limiting to prevent abuse \\
+        \hline
+        NFR-09 & Usability & The interface shall be responsive and functional on devices with screen widths from 320px to 2560px \\
+        \hline
+        NFR-10 & Usability & The system shall support both English and Arabic languages \\
+        \hline
+        NFR-11 & Usability & Color contrast ratios shall meet WCAG 2.1 AA accessibility standards \\
+        \hline
+        NFR-12 & Reliability & The system shall implement automatic retry mechanisms for failed AI generation requests \\
+        \hline
+        NFR-13 & Maintainability & The codebase shall follow documented coding standards and include thorough unit tests \\
+        \hline
+        NFR-14 & Compatibility & The system shall function correctly on Chrome, Firefox, Safari, and Edge browsers (latest two versions) \\
+        \hline
+    \end{tabularx}
+\end{table}
+
+% ============================================================================
+\section{User Engagement and Attention Design}
+\label{sec:user_engagement}
+
+Modern digital users face unprecedented challenges with attention and focus. Studies indicate that average attention spans have decreased significantly, with users expecting immediate gratification and frequent engagement signals. IntelliRoom addresses this reality by transforming potential friction points into engagement opportunities.
+
+\subsection{The Attention Economy Challenge}
+
+AI-powered design generation requires 30-60 seconds of processing time, a duration that risks user abandonment in an era of instant gratification. Rather than viewing this latency as a limitation, IntelliRoom leverages it as an engagement opportunity through carefully designed interactive experiences.
+
+\subsection{Gamification During Generation}
+
+During AI processing, users participate in meaningful micro-activities:
+
+\begin{itemize}
+    \item \textbf{Style Preference Voting:} Users vote on design element pairs (warm vs. cool tones, minimalist vs. detailed), simultaneously personalizing their experience while contributing to community preference data
+    \item \textbf{Design Trivia:} Quick interior design tips and cultural insights keep users engaged while subtly educating them about design principles
+    \item \textbf{Progress Visualization:} Animated progress indicators with meaningful stage descriptions (``Analyzing room structure...'', ``Applying style transformation...'') maintain user connection to the ongoing process
+    \item \textbf{Preview Teasers:} Partial glimpses of the generating design create anticipation and dopamine-driven excitement
+\end{itemize}
+
+\subsection{Dopamine-Driven Positive Engagement}
+
+IntelliRoom channels the neurological drive for reward signals toward constructive outcomes:
+
+\begin{itemize}
+    \item \textbf{Achievement Unlocks:} Users earn badges for exploring different styles, completing rooms, and sharing designs
+    \item \textbf{Streak Rewards:} Daily engagement streaks provide bonus credits, encouraging consistent platform usage
+    \item \textbf{Community Recognition:} Featured designs and trending tags provide social validation
+    \item \textbf{Progressive Reveals:} Design variations are revealed sequentially rather than simultaneously, creating multiple reward moments from a single generation
+\end{itemize}
+
+\subsection{Reducing Cognitive Load}
+
+The platform minimizes decision fatigue through:
+
+\begin{itemize}
+    \item \textbf{Smart Defaults:} AI-recommended starting points based on room type and detected preferences
+    \item \textbf{One-Click Actions:} Common operations accessible without navigation complexity
+    \item \textbf{Visual-First Interface:} Imagery over text reduces processing effort
+    \item \textbf{Contextual Guidance:} Just-in-time tips appear exactly when relevant
+\end{itemize}
+
+This engagement-first design philosophy transforms IntelliRoom from a passive tool into an active, rewarding experience that respects modern attention patterns while guiding users toward successful interior design outcomes.
+
+% ============================================================================
+\section{Use Case Diagrams}
+\label{sec:use_cases}
+
+This section presents the primary use cases that define user interactions with the IntelliRoom system. The following diagrams illustrate the five most critical use cases; complete use case documentation is provided in Appendix~\ref{app:use_cases}.
+
+\subsection{Use Case 1: User Registration and Authentication}
+
+Figure~\ref{fig:uc_auth} illustrates the authentication use case, encompassing user registration, login, and password recovery flows.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/UC_Account.png}
+    \caption{Use Case Diagram: User Authentication System}
+    \label{fig:uc_auth}
+\end{figure}
+
+\textbf{Use Case Description:}
+\begin{itemize}
+    \item \textbf{Actor:} Unregistered User, Registered User
+    \item \textbf{Preconditions:} User has access to a web browser
+    \item \textbf{Main Flow:} User navigates to registration page → Enters email and password → System validates input → Account created → Confirmation email sent
+    \item \textbf{Postconditions:} User account exists in database with initial credit allocation
+\end{itemize}
+
+\subsection{Use Case 2: Room Photo Upload and Analysis}
+
+Figure~\ref{fig:uc_upload} presents the room upload use case, showing the flow from image capture to AI analysis.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/UC_Generation.png}
+    \caption{Use Case Diagram: Room Photo Upload and Analysis}
+    \label{fig:uc_upload}
+\end{figure}
+
+\textbf{Use Case Description:}
+\begin{itemize}
+    \item \textbf{Actor:} Registered User, AI System
+    \item \textbf{Preconditions:} User is logged in; user has available credits
+    \item \textbf{Main Flow:} User selects upload option → Chooses image from device or captures with camera → System validates image quality → Florence-2 analyzes room type → SAM2 segments furniture items → Results displayed to user
+    \item \textbf{Postconditions:} Room image stored; furniture inventory generated; room ready for design transformation
+\end{itemize}
+
+\subsection{Use Case 3: AI Design Generation}
+
+Figure~\ref{fig:uc_generate} illustrates the core design generation workflow.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/UC_Generation.png}
+    \caption{Use Case Diagram: AI Design Generation Process}
+    \label{fig:uc_generate}
+\end{figure}
+
+\textbf{Use Case Description:}
+\begin{itemize}
+    \item \textbf{Actor:} Registered User, ComfyUI Engine
+    \item \textbf{Preconditions:} Room photo uploaded and analyzed; style preferences selected; sufficient credits available
+    \item \textbf{Main Flow:} User selects style preset (e.g., Arabic Traditional) → Optionally specifies mood → Confirms furniture replacement preferences → System queues generation request → ComfyUI processes multi-stage pipeline → 3-5 design variations generated → Results displayed with before/after comparison
+    \item \textbf{Postconditions:} Design variations saved to user history; credits deducted; furniture recommendations generated
+\end{itemize}
+
+\subsection{Use Case 4: Furniture Marketplace Interaction}
+
+Figure~\ref{fig:uc_marketplace} shows the marketplace integration use case.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/UC_Marketplace.png}
+    \caption{Use Case Diagram: Furniture Marketplace Interaction}
+    \label{fig:uc_marketplace}
+\end{figure}
+
+\newpage
+\subsection{Use Case 5: Community Design Sharing}
+
+Figure~\ref{fig:uc_community} presents the community gallery use case.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.7\textwidth]{figures/UC_Community.png}
+    \caption{Use Case Diagram: Community Design Sharing}
+    \label{fig:uc_community}
+\end{figure}
+
+\vspace{0.5cm}
+\textit{Complete use case diagrams with detailed alternate flows and exception handling are provided in Appendix~\ref{app:use_cases}.}
+
+% ============================================================================
+\newpage
+\section{User Stories}
+\label{sec:user_stories}
+
+User stories capture requirements from the end-user perspective, following the format: ``As a [role], I want [feature], so that [benefit].'' Table~\ref{tab:user_stories} presents prioritized user stories.
+
+\begin{longtable}{|p{1cm}|p{2cm}|p{4cm}|p{4.5cm}|p{1.5cm}|}
+    \caption{User Stories Specification} \label{tab:user_stories} \\
+    \hline
+    \textbf{ID} & \textbf{Role} & \textbf{I want to...} & \textbf{So that...} & \textbf{Priority} \\
+    \hline
+    \endfirsthead
+    \hline
+    \textbf{ID} & \textbf{Role} & \textbf{I want to...} & \textbf{So that...} & \textbf{Priority} \\
+    \hline
+    \endhead
+    \hline
+    \endfoot
+    
+    US-01 & Guest & Try the platform without registering & I can evaluate before committing & High \\
+    \hline
+    US-02 & User & Upload a photo of my room & I can receive AI-generated redesign suggestions & High \\
+    \hline
+    US-03 & User & Select an Arabic Traditional style & My redesign respects my cultural preferences & High \\
+    \hline
+    US-04 & User & See before/after comparisons & I can evaluate the transformation quality & High \\
+    \hline
+    US-05 & User & Replace specific furniture items & I can keep pieces I like while changing others & High \\
+    \hline
+    US-06 & User & Find Egyptian furniture matching my design & I can purchase items locally & High \\
+    \hline
+    US-07 & User & See prices in Egyptian Pounds & I can budget appropriately & High \\
+    \hline
+    US-08 & User & Pay with InstaPay or Fawry & I can use familiar payment methods & Medium \\
+    \hline
+    US-09 & User & Share my design to the community & I can inspire others and receive feedback & Medium \\
+    \hline
+    US-10 & User & Download high-resolution images & I can share or print my designs & High \\
+    \hline
+    US-11 & User & Create a 2D floor plan & I can plan furniture arrangement before generation & Medium \\
+    \hline
+    US-12 & User & Receive a furniture shopping list & I can efficiently purchase recommended items & Medium \\
+    \hline
+    US-13 & User & Earn credits through engagement & I can access more generations without paying & Low \\
+    \hline
+    US-14 & Designer & Showcase my portfolio & I can attract potential clients & Low \\
+    \hline
+    US-15 & Admin & Monitor generation queue & I can ensure system performance & High \\
+    \hline
+\end{longtable}
+
+% ============================================================================
+\section{Requirements Traceability}
+\label{sec:traceability}
+
+Requirements traceability ensures that each user story maps to functional requirements and use cases. Table~\ref{tab:traceability} provides this mapping for key requirements.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Requirements Traceability Matrix (Partial)}
+    \label{tab:traceability}
+    \begin{tabular}{|l|l|l|}
+        \hline
+        \textbf{User Story} & \textbf{Functional Requirements} & \textbf{Use Case} \\
+        \hline
+        US-02 & FR-06, FR-07, FR-08 & UC-2 \\
+        \hline
+        US-03 & FR-12, FR-13 & UC-3 \\
+        \hline
+        US-04 & FR-17, FR-18 & UC-3 \\
+        \hline
+        US-05 & FR-16 & UC-3 \\
+        \hline
+        US-06 & FR-22, FR-23 & UC-4 \\
+        \hline
+        US-07 & FR-24 & UC-4 \\
+        \hline
+        US-09 & FR-28, FR-29 & UC-5 \\
+        \hline
+        US-10 & FR-30 & UC-3 \\
+        \hline
+    \end{tabular}
+\end{table}
+
+% ============================================================================
+\section{Implementation Status Summary}
+\label{sec:impl_status}
+
+This section provides an overview of the current implementation progress against the defined requirements.
+
+\subsection{Requirements Completion Overview}
+
+Table~\ref{tab:req_completion} summarizes the implementation status across requirement categories.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Requirements Completion by Category}
+    \label{tab:req_completion}
+    \begin{tabularx}{\textwidth}{|p{3.5cm}|p{1.5cm}|p{1.8cm}|p{1.8cm}|p{1.5cm}|X|}
+        \hline
+        \textbf{Category} & \textbf{Total} & \textbf{Complete} & \textbf{Partial} & \textbf{Planned} & \textbf{Progress} \\
+        \hline
+        Authentication & 3 & 1 & 0 & 2 & 33\% \\
+        \hline
+        Profile \& Projects & 4 & 4 & 0 & 0 & 100\% \\
+        \hline
+        Room Upload & 3 & 1 & 1 & 1 & 50\% \\
+        \hline
+        Room Analysis & 3 & 0 & 0 & 3 & 0\% \\
+        \hline
+        Style Selection & 2 & 0 & 1 & 1 & 25\% \\
+        \hline
+        AI Generation & 3 & 2 & 1 & 0 & 83\% \\
+        \hline
+        Visualization & 2 & 0 & 0 & 2 & 0\% \\
+        \hline
+        2D/3D Planning & 3 & 2 & 1 & 0 & 83\% \\
+        \hline
+        E-commerce/\\ Marketplace & 8 & 8 & 0 & 0 & 100\% \\
+        \hline
+        Credits & 3 & 2 & 0 & 1 & 67\% \\
+        \hline
+        Community & 2 & 2 & 0 & 0 & 100\% \\
+        \hline
+        Export & 2 & 0 & 1 & 1 & 25\% \\
+        \hline
+        Tutorial & 1 & 0 & 0 & 1 & 0\% \\
+        \hline
+        \textbf{Overall} & \textbf{38} & \textbf{22} & \textbf{5} & \textbf{11} & \textbf{58\%} \\
+        \hline
+    \end{tabularx}
+\end{table}
+
+\subsection{Completed Components}
+
+The following major components have been fully implemented:
+
+\begin{itemize}
+    \item \textbf{Backend API Infrastructure:} Complete REST API with Express.js, organized into modular routes, controllers, and services
+    \item \textbf{Database Layer:} MongoDB schemas for all data entities including Users, Projects, Products, Cart, Orders, and Gallery Posts
+    \item \textbf{E-commerce Module:} Full CRUD operations for products, categories, shopping cart, orders, and wishlists with search, pagination, and filtering
+    \item \textbf{Design Project Management:} Project creation, retrieval, update, and deletion with flexible sceneData storage for 2D/3D scenes
+    \item \textbf{ComfyUI Integration:} REST API-based service for AI workflow execution, image upload, and result retrieval
+    \item \textbf{Community Features:} Gallery post schema with likes, comments, and tags support
+    \item \textbf{Credit System:} User credits, transaction tracking, and subscription plan support (free, monthly, yearly)
+    \item \textbf{Docker Configuration:} Development containers for frontend, backend, and MongoDB services
+\end{itemize}
+
+\subsection{In-Progress Components}
+
+The following components are actively being developed:
+
+\begin{itemize}
+    \item \textbf{User Authentication:} User schema defined with password hash support; JWT implementation pending
+    \item \textbf{Frontend UI:} React.js structure established; component implementation ongoing
+    \item \textbf{Cultural LoRA Models:} Training for Arabic/Egyptian aesthetics in progress
+\end{itemize}
+
+\subsection{Planned Components}
+
+The following components are planned for future implementation:
+
+\begin{itemize}
+    \item Cultural style LoRA models for Arabic/Egyptian aesthetics
+    \item Payment integration (InstaPay, Fawry, cards)
+    \item Before/after comparison visualization
+    \item PDF export functionality
+    \item Mobile camera capture
+    \item Onboarding tutorials
+\end{itemize}

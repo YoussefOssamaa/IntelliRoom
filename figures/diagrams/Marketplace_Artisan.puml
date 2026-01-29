@@ -1,0 +1,39 @@
+@startuml
+title Marketplace - Artisan & Custom Work
+
+left to right direction
+skinparam actorStyle awesome
+skinparam usecase {
+  BackgroundColor #E6F2F7
+  BorderColor #2E86AB
+}
+
+actor "Consumer" as Consumer
+actor "Local Artisan" as Artisan
+actor "Verified Artisan" as Verified
+
+Verified --|> Artisan
+
+rectangle "IntelliRoom Marketplace" {
+  usecase "Browse Artisan Portfolio" as UC1
+  usecase "View Traditional Works" as UC2
+  usecase "Request Custom Quote\n(mashrabiya, woodwork)" as UC3
+  usecase "Message Artisan Directly" as UC4
+  usecase "Commission Handcrafted Item" as UC5
+  usecase "Upload Portfolio" as UC6
+  usecase "Manage Custom Orders" as UC7
+  usecase "Receive Client Inquiries" as UC8
+}
+
+Consumer --> UC1
+Consumer --> UC2
+Consumer --> UC3
+Consumer --> UC4
+Consumer --> UC5
+
+Artisan --> UC6
+
+Verified --> UC7
+Verified --> UC8
+
+@enduml

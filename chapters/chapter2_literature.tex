@@ -1,0 +1,117 @@
+% ============================================================================
+% Chapter 2: Literature Review
+% ============================================================================
+
+\chapter{Literature Review}
+\label{chap:literature}
+
+This chapter presents a comprehensive review of the technological foundations, relevant academic research, and the research gap that informs the IntelliRoom platform development. The focus is on AI technologies for interior design, computer vision techniques, and related academic contributions. Complete market analysis is provided in Appendix~\ref{app:market_analysis}.
+
+% ============================================================================
+\section{Technology Review}
+\label{sec:technology_review}
+
+The IntelliRoom platform leverages state-of-the-art AI technologies that have matured significantly in recent years. This section reviews the key technological foundations.
+
+\subsection{Generative Diffusion Models}
+
+Diffusion models represent the current state-of-the-art in image generation, operating through a process of iteratively denoising random noise into coherent images guided by conditioning signals \cite{ho2020denoising}. Key developments include:
+
+\begin{itemize}
+    \item \textbf{Stable Diffusion:} Open-source latent diffusion model enabling high-quality image generation with reasonable computational requirements \cite{rombach2022highresolution}
+    
+    \item \textbf{ControlNet:} Architecture for adding spatial conditioning to diffusion models, enabling structure-preserving transformations essential for interior design \cite{zhang2023adding}
+    
+    \item \textbf{LoRA (Low-Rank Adaptation):} Efficient fine-tuning technique allowing model customization for specific styles, furniture types, or cultural aesthetics without full retraining \cite{hu2021lora}
+\end{itemize}
+
+\subsection{Computer Vision for Interior Design}
+
+Modern computer vision enables precise understanding and manipulation of room images:
+
+\begin{itemize}
+    \item \textbf{SAM2 (Segment Anything Model 2):} Meta's foundation model for zero-shot image segmentation, providing surgical precision in isolating furniture, walls, and architectural elements \cite{kirillov2023segment}
+    
+    \item \textbf{Florence-2:} Microsoft's vision foundation model for object detection, captioning, and visual grounding, enabling automatic room analysis \cite{yuan2024florence}
+    
+    \item \textbf{Depth Estimation:} Monocular depth prediction models enable 3D understanding from 2D photographs, essential for realistic furniture placement
+\end{itemize}
+
+\subsection{ComfyUI Workflow Architecture}
+
+ComfyUI provides the foundational infrastructure for IntelliRoom's AI pipeline, offering:
+
+\begin{itemize}
+    \item Node-based visual programming for complex AI workflows
+    \item Modular pipeline construction enabling detection → segmentation → generation → compositing sequences
+    \item Custom node ecosystem for specialized operations
+    \item API accessibility for backend integration
+\end{itemize}
+
+% ============================================================================
+\section{Related Academic Work}
+\label{sec:related_work}
+
+Several academic contributions inform the IntelliRoom approach to AI-powered interior design.
+
+\subsection{Furniture Set Retrieval}
+
+The work ``Furnishing Your Room by What You See: An End-to-End Furniture Set Retrieval Framework with Rich Annotated Benchmark Dataset'' \cite{chen2023furnishing} presents a comprehensive approach to furniture retrieval from room photographs. Key contributions include:
+
+\begin{itemize}
+    \item End-to-end framework for detecting existing furniture and retrieving visually similar items
+    \item Annotated dataset for training furniture recognition models
+    \item Evaluation metrics for retrieval quality assessment
+\end{itemize}
+
+IntelliRoom adapts this framework specifically for Egyptian and MENA furniture styles, training custom models on regional furniture datasets to enable local marketplace integration.
+
+\subsection{Style Transfer in Interior Design}
+
+Research in neural style transfer has evolved from artistic applications to practical interior design scenarios \cite{gatys2016image}. Recent advances enable:
+
+\begin{itemize}
+    \item Content-aware style application that respects spatial relationships
+    \item Multi-style blending for hybrid aesthetic creation
+    \item Semantic-guided transfer that distinguishes furniture, walls, and decorative elements
+\end{itemize}
+
+\subsection{Cultural Computing and Design}
+
+Emerging research in cultural computing addresses the need for AI systems that respect and incorporate cultural contexts \cite{rauterberg2006culture}. IntelliRoom contributes to this field by demonstrating practical implementation of cultural intelligence in design AI.
+
+% ============================================================================
+\section{Research Gap and Contribution}
+\label{sec:research_gap}
+
+The literature review reveals a clear research and market gap: while AI interior design technology has achieved remarkable capabilities, the application of these technologies to culturally-specific contexts remains largely unexplored. IntelliRoom addresses this gap through:
+
+\begin{enumerate}
+    \item \textbf{Cultural AI Training:} LoRA models fine-tuned on Egyptian and Arabic interior design datasets
+    
+    \item \textbf{Local Furniture Retrieval:} Adapted furniture detection and retrieval specifically for regional manufacturers
+    
+    \item \textbf{Context-Aware Generation:} AI systems that recognize and respect regional design conventions
+    
+    \item \textbf{Integrated Marketplace:} Direct connections between AI-generated designs and purchasable local products
+\end{enumerate}
+
+% ============================================================================
+\section{Market Context}
+\label{sec:market_context}
+
+The Egyptian interior design market provides a compelling context for IntelliRoom's development. Key market indicators include:
+
+\begin{itemize}
+    \item Egyptian interior design market: USD 940M (2024) growing to USD 1.51B (2033) at 6\% CAGR
+    \item Population of 113.5 million with 75\% internet penetration
+    \item Furniture e-commerce growing at 27.5\% CAGR---the fastest-growing sector
+    \item 78\% of furniture buyers require AR/3D visualization tools
+    \item 90.75\% cart abandonment rate indicating unmet visualization needs
+\end{itemize}
+
+Analysis of competitors including COOHOM, Interior AI, RoomGPT, and Spacely AI revealed universal absence of Middle Eastern aesthetic support, presenting a clear market opportunity for IntelliRoom.
+
+\vspace{0.5cm}
+\noindent\textit{Note: For the comprehensive market research including detailed competitive analysis with feature comparisons, Egyptian market size and growth projections with visualizations, user segmentation and demographic profiles, business strategy and revenue model, and risk assessment with mitigation strategies, see Appendix~\ref{app:market_analysis}.}
+

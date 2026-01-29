@@ -1,0 +1,119 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows.meta,positioning,fit,backgrounds,shadows,calc}
+
+\begin{document}
+
+\definecolor{ClientBlue}{RGB}{100,149,237}      % CornflowerBlue
+\definecolor{BackendBlue}{RGB}{65,105,225}      % RoyalBlue
+\definecolor{AIGreen}{RGB}{34,139,34}           % ForestGreen
+\definecolor{StorageGray}{RGB}{105,105,105}     % DimGray
+\definecolor{LightGreen}{RGB}{240,255,240}      % Honeydew
+
+% Node Styles with align=center for line wrapping
+\tikzstyle{clientnode} = [rectangle, rounded corners, minimum width=3.5cm, minimum height=1.5cm, 
+                          align=center, draw=white, fill=ClientBlue, 
+                          drop shadow, text=white, font=\bfseries]
+                          
+\tikzstyle{backendnode} = [rectangle, rounded corners, minimum width=5cm, minimum height=2.0cm, 
+                           align=center, draw=white, fill=BackendBlue, 
+                           drop shadow, text=white, font=\bfseries]
+                           
+\tikzstyle{ainode} = [rectangle, rounded corners, minimum width=3.5cm, minimum height=1.2cm, 
+                      align=center, draw=white, fill=AIGreen, 
+                      drop shadow, text=white, font=\bfseries]
+                      
+\tikzstyle{storagenode} = [cylinder, cylinder uses custom fill, cylinder body fill=StorageGray!80, 
+                           cylinder end fill=StorageGray, shape border rotate=90,
+                           minimum width=2.5cm, minimum height=1.2cm, 
+                           align=center, draw=white, text=white, font=\bfseries, drop shadow]
+                           
+\tikzstyle{filenode} = [rectangle, rounded corners, minimum width=2.5cm, minimum height=1.2cm, 
+                        align=center, draw=white, fill=StorageGray, 
+                        text=white, font=\bfseries, drop shadow]
+
+\tikzstyle{container} = [rectangle, rounded corners=8pt, draw=black!50, thick, dashed, 
+                         fill=LightGreen, inner sep=10pt]
+
+\tikzstyle{solidarrow} = [-{Stealth[length=3mm]}, thick, draw=black!70, rounded corners]
+\tikzstyle{dashedarrow} = [-{Stealth[length=3mm]}, thick, dashed, draw=blue!70, rounded corners]
+\tikzstyle{dottedarrow} = [-{Stealth[length=3mm]}, thick, dotted, draw=gray!70, rounded corners]
+
+\begin{tikzpicture}[node distance=1.8cm and 3cm]
+
+% ============================================================================
+% CLIENT LAYER
+% ============================================================================
+\node (client) [clientnode] {Web Browser \\ \small{React.js Frontend}};
+
+% ============================================================================
+% BACKEND LAYER
+% ============================================================================
+% Integrated Auth inside the node (Payment removed as not implemented)
+\node (backend) [backendnode, below=2cm of client] {API Gateway \\ \small{Node.js + Express} \\ \vspace{0.3em} \scriptsize{[Business Logic]}};
+
+% ============================================================================
+% DATA PERSISTENCE LAYER (LEFT)
+% ============================================================================
+\node (mongodb) [storagenode, below left=1.0cm and 3.5cm of backend] {MongoDB};
+\node (filestorage) [filenode, below=1.0cm of mongodb] {File Storage \\ \small{(Local/Cloud)}};
+
+% ============================================================================
+% AI INFERENCE LAYER (RIGHT)
+% ============================================================================
+% Direct ComfyUI Integration (FastAPI scaffolded but not in active path)
+\node (comfyui) [ainode, below right=1.0cm and 3.5cm of backend] {ComfyUI Engine};
+\node (models) [ainode, below=0.8cm of comfyui, minimum height=1.8cm] 
+    {Stable Diffusion \\ \small{ControlNet} \\ \small{LoRA Models}};
+
+% AI Container Box
+\begin{pgfonlayer}{background}
+    \node [container, fit=(comfyui) (models), 
+           label={[font=\bfseries\large, text=AIGreen]above:AI Service Container}] (aibox) {};
+\end{pgfonlayer}
+
+% ============================================================================
+% CONNECTIONS
+% ============================================================================
+
+% Client <-> Backend
+\draw [solidarrow] ([xshift=10mm]client.south) -- node[right, font=\small] {REST API} ([xshift=10mm]backend.north);
+\draw [dashedarrow] ([xshift=-10mm]backend.north) -- node[left, font=\small] {HTTP Polling} ([xshift=-10mm]client.south);
+
+% Backend -> MongoDB (Smoother Curve)
+\draw [solidarrow] (backend.west) to[out=180, in=90] 
+    node[pos=0.4, above left, font=\small] {CRUD Ops} (mongodb.north);
+
+% Backend -> File Storage
+\draw [dottedarrow] ([yshift=-5mm]backend.west) -- ++(-2.0,0) |- (filestorage.east)
+    node[pos=0.7, below right, font=\scriptsize, text=black!60] {Upload/Retrieve};
+
+% Backend -> ComfyUI (Direct Integration)
+\draw [solidarrow] (backend.east) to[out=0, in=90]
+    node[pos=0.4, above right, font=\small] {HTTP POST} (comfyui.north);
+
+% ComfyUI -> Backend (WS Progress - conceptual return)
+\draw [dashedarrow] (comfyui.west) -- ++(-1.0,0) |- ([yshift=-10mm]backend.east);
+% Refined Label
+\node [font=\small\bfseries, fill=white, text=blue!80!black, inner sep=2pt] at ($(backend.east)+(2.8,-1)$) {Generation Status};
+
+% AI Internal Flow (ComfyUI uses the models)
+\draw [solidarrow] (comfyui.south) -- (models.north);
+
+% File Storage -> AI (Image Assets)
+\draw [dottedarrow] (filestorage.east) to[out=0, in=180] 
+    node[pos=0.5, above, font=\small, sloped, fill=white, inner sep=2pt] {Read Assets} (models.west);
+
+% ============================================================================
+% LABELS AND LAYERS
+% ============================================================================
+\node[above=0.3cm of client, font=\Large\bfseries] {IntelliRoom System Architecture};
+
+% Legends / Layer Labels
+\node[left=0.8cm of client, font=\small\itshape, text=ClientBlue] {Client Layer};
+\node[left=0.8cm of backend, font=\small\itshape, text=BackendBlue] {Backend Layer};
+\node[left=0.8cm of mongodb, font=\small\itshape, text=StorageGray] {Data Layer};
+
+\end{tikzpicture}
+
+\end{document}

@@ -1,0 +1,38 @@
+@startuml
+title Professional - Design & Project Management
+
+left to right direction
+skinparam actorStyle awesome
+skinparam usecase {
+  BackgroundColor #E6F2F7
+  BorderColor #2E86AB
+}
+
+actor "Professional" as Pro
+actor "Designer" as Designer
+actor "Architect" as Architect
+
+Designer --|> Pro
+Architect --|> Pro
+
+rectangle "IntelliRoom Professional" {
+  usecase "Create Client Project" as UC1
+  usecase "Batch Upload Multiple Rooms" as UC2
+  usecase "Apply Cultural Styles\n(Full Egyptian/Islamic library)" as UC3
+  usecase "Generate with Priority Queue" as UC4
+  usecase "Create Unlimited Variations" as UC5
+  usecase "Save Design Revisions" as UC6
+  usecase "Manage Project Portfolio" as UC7
+  usecase "Track Project Status" as UC8
+}
+
+Pro --> UC1
+Pro --> UC2
+Pro --> UC3
+Pro --> UC4
+Pro --> UC5
+Pro --> UC6
+Pro --> UC7
+Pro --> UC8
+
+@enduml

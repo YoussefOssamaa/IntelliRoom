@@ -1,0 +1,166 @@
+% ============================================================================
+% Chapter 1: Introduction
+% ============================================================================
+
+\chapter{Introduction}
+\label{chap:introduction}
+
+The interior design industry stands at a pivotal transformation point, driven by advances in artificial intelligence and computer vision technologies. While AI-powered design tools have proliferated globally, a significant gap exists in serving the Middle Eastern and North African (MENA) markets, where cultural aesthetics, traditional furniture preferences, and regional design sensibilities remain largely overlooked by mainstream solutions. This chapter introduces IntelliRoom, an AI-powered interior design platform specifically developed to address this underserved market through culturally-aware design intelligence.
+
+% ============================================================================
+\section{Problem Statement}
+\label{sec:problem_statement}
+
+The global interior design market has witnessed remarkable growth, expanding from \$18.32 billion in 2024 toward projected valuations exceeding \$184 billion \cite{marketresearch2024}. Despite this growth, existing AI interior design platforms predominantly cater to Western aesthetic preferences, leaving MENA region users with solutions that fail to understand or respect their cultural design heritage.
+
+Current market leaders such as COOHOM, Interior AI, RoomGPT, and Spacely AI offer powerful generative capabilities but lack the cultural intelligence necessary for meaningful adoption in Egyptian and broader Middle Eastern contexts \cite{competitor_analysis2025}. These platforms cannot recognize or generate designs featuring:
+
+\begin{itemize}
+    \item Islamic geometric patterns and traditional arabesque motifs
+    \item Traditional Arabic calligraphy integration
+    \item Region-specific furniture styles and material preferences
+    \item Local spatial organization patterns, such as sinks positioned near windows common in Egyptian homes
+\end{itemize}
+
+This cultural disconnect creates a substantial barrier to AI adoption in interior design for the MENA region's growing middle class, who seek modern technology solutions that respect and enhance their cultural identity rather than replace it with Western-centric aesthetics.
+
+% ============================================================================
+\section{Project Objectives}
+\label{sec:objectives}
+
+The IntelliRoom platform aims to bridge the gap between cutting-edge AI capabilities and cultural design intelligence through the following objectives:
+
+\subsection{Primary Objectives}
+
+\begin{enumerate}
+    \item \textbf{Develop a culturally-aware AI redesign system} that recognizes and generates interior designs aligned with Egyptian and MENA aesthetic preferences, including traditional patterns, furniture styles, and spatial arrangements.
+    
+    \item \textbf{Implement advanced computer vision pipelines} utilizing SAM2 for precision segmentation, Florence-2 for object detection, and ControlNet for style-preserving transformations.
+    
+    \item \textbf{Create an Egyptian furniture retrieval framework} that connects users with local manufacturers and craftsmen, enabling seamless transition from AI-generated designs to purchasable products.
+    
+    \item \textbf{Build a community-driven design platform} where users can share designs, discover inspiration, and collaborate on culturally-relevant interior solutions.
+    
+    \item \textbf{Establish a sustainable business model} through credit-based access tiers, marketplace integration, and premium feature offerings.
+\end{enumerate}
+
+\subsection{Secondary Objectives}
+
+\begin{enumerate}
+    \item Develop comprehensive UI/UX designs that accommodate Arabic language support and right-to-left interfaces
+    \item Integrate Egyptian payment methods including InstaPay and Fawry
+    \item Create educational content and tutorials for users unfamiliar with AI-powered design tools
+    \item Implement gamification features to enhance user engagement and platform retention
+\end{enumerate}
+
+% ============================================================================
+\section{Project Scope}
+\label{sec:scope}
+
+The IntelliRoom project scope has been carefully defined to ensure deliverable completion within the graduation project timeline while maintaining ambitious technical and market objectives. Table~\ref{tab:scope} presents the scope boundaries.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Project Scope Definition}
+    \label{tab:scope}
+    \begin{tabularx}{\textwidth}{|l|X|}
+        \hline
+        \textbf{Category} & \textbf{Items} \\
+        \hline
+        \textbf{In Scope} & 
+        \begin{itemize}[nosep,leftmargin=*]
+            \item Room photo upload and AI-powered preprocessing
+            \item Style transformation engine with cultural presets
+            \item Furniture detection and selective replacement
+            \item Egyptian furniture catalog integration
+            \item User authentication and profile management
+            \item Credit-based usage system
+            \item Community gallery for design sharing
+            \item 2D floor planner interface
+            \item Basic 3D visualization capabilities
+        \end{itemize} \\
+        \hline
+        \textbf{Out of Scope} & 
+        \begin{itemize}[nosep,leftmargin=*]
+            \item Full e-commerce transaction processing
+            \item Real-time video generation for walkthroughs
+            \item Mobile native applications (iOS/Android)
+            \item Physical furniture delivery logistics
+            \item Multi-language support beyond English and Arabic
+        \end{itemize} \\
+        \hline
+        \textbf{Future Enhancements} & 
+        \begin{itemize}[nosep,leftmargin=*]
+            \item Augmented reality furniture placement preview
+            \item Video generation for virtual room walkthroughs
+            \item Multi-room consistency for whole-home redesigns
+            \item Reinforcement learning from user preferences
+            \item Voice-controlled AI design assistant
+        \end{itemize} \\
+        \hline
+    \end{tabularx}
+\end{table}
+
+\textit{Note: Project scope is subject to refinement based on stakeholder feedback and technical feasibility assessment during the implementation phase.}
+
+% ============================================================================
+\section{Project Timeline}
+\label{sec:timeline}
+
+The IntelliRoom project follows a structured development methodology spanning two academic semesters, from August 2025 through July 2026. The project timeline is organized into six major phases as illustrated in Figure~\ref{fig:timeline}.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1.0\textwidth]{figures/gantt_chart.jpeg}
+    \caption{Project Timeline and Development Phases}
+    \label{fig:timeline}
+\end{figure}
+
+\begin{enumerate}
+    \item \textbf{Project Analysis (August--September 2025):} Initial problem identification, market research, and feasibility assessment
+    
+    \item \textbf{Planning (September--October 2025):} Requirements gathering, technical architecture design, and resource allocation
+    
+    \item \textbf{Design (October--December 2025):} System design, database schema, UI/UX mockups, and workflow documentation (completed)
+    
+    \item \textbf{Implementation (January--April 2026):} Backend API development, frontend implementation, AI pipeline integration (current phase)
+    
+    \item \textbf{Testing and Quality Assurance (April--May 2026):} Unit testing, integration testing, user acceptance testing
+    
+    \item \textbf{Deployment and Documentation (May--July 2026):} Production deployment, final documentation, project presentation
+\end{enumerate}
+
+% ============================================================================
+\section{Methodology}
+\label{sec:methodology}
+
+The IntelliRoom project adopts an \textbf{Agile development methodology} with iterative sprint cycles, enabling continuous refinement based on emerging AI breakthroughs and technical discoveries. This approach is particularly suited for AI-intensive projects where model performance and user experience require iterative optimization, especially as new models and techniques are released by the research community.
+
+Key methodological elements include:
+
+\begin{itemize}
+    \item \textbf{Sprint-based development:} Two-week sprint cycles with defined deliverables
+    \item \textbf{Continuous integration:} Automated testing and deployment pipelines
+    \item \textbf{User-centered design:} Regular feedback collection from target Egyptian users
+    \item \textbf{Documentation-driven development:} Comprehensive technical documentation maintained throughout the project lifecycle
+\end{itemize}
+
+% ============================================================================
+\section{Document Organization}
+\label{sec:organization}
+
+This graduation project document is organized into five chapters, structured to present the complete design phase deliverables:
+
+\begin{itemize}
+    \item \textbf{Chapter~\ref{chap:introduction} (Introduction):} Presents the problem statement, objectives, scope,\\ and project timeline
+    
+    \item \textbf{Chapter~\ref{chap:literature} (Literature Review):} Reviews market analysis, competitive positioning, and related academic work in AI-powered interior design
+    
+    \item \textbf{Chapter~\ref{chap:requirements} (System Requirements):} Documents functional and non-functional requirements, use cases, and user stories
+    
+    \item \textbf{Chapter~\ref{chap:design} (System Design and Architecture):} Presents technical architecture, database design, UI mockups, and system workflows
+    
+    \item \textbf{Chapter~\ref{chap:conclusion} (Conclusion and Future Work):} Summarizes achievements, expected outcomes, and implementation roadmap
+\end{itemize}
+
+Supporting materials including the complete market analysis, detailed use case diagrams, business model canvas, and additional UI mockups are provided in the appendices.

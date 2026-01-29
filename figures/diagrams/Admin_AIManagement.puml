@@ -1,0 +1,37 @@
+@startuml
+title Admin - AI Model Management
+
+left to right direction
+skinparam actorStyle awesome
+skinparam usecase {
+  BackgroundColor #E6F2F7
+  BorderColor #2E86AB
+}
+
+actor "AI Team Member" as AITeam
+actor "Data Scientist" as DataScientist
+actor "ML Engineer" as MLEngineer
+
+DataScientist --|> AITeam
+MLEngineer --|> AITeam
+
+rectangle "IntelliRoom Admin" {
+  usecase "Curate Training Data\n(cultural authenticity)" as UC1
+  usecase "Train Custom LoRA Models\n(Egyptian/Islamic styles)" as UC2
+  usecase "A/B Test Model Variants" as UC3
+  usecase "Deploy Model Updates" as UC4
+  usecase "Monitor AI Quality" as UC5
+  usecase "Analyze User Voting Data\n(RLHF-inspired)" as UC6
+  usecase "Monitor Cultural Feedback" as UC7
+}
+
+DataScientist --> UC1
+DataScientist --> UC2
+DataScientist --> UC6
+DataScientist --> UC7
+
+MLEngineer --> UC3
+MLEngineer --> UC4
+MLEngineer --> UC5
+
+@enduml

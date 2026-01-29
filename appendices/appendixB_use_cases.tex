@@ -1,0 +1,262 @@
+% ============================================================================
+% Appendix B: Use Case Documentation
+% ============================================================================
+
+\chapter{Use Case Documentation}
+\label{app:use_cases}
+
+This appendix documents the core use cases for the IntelliRoom AI platform, focusing on the three primary user workflows that define the platform's value proposition: AI-powered design generation, intelligent room analysis, and integrated furniture shopping.
+
+% ============================================================================
+\section{Overview}
+\label{sec:app_uc_overview}
+
+IntelliRoom serves three primary user groups: homeowners seeking affordable design solutions, professionals requiring efficient client presentation tools, and furniture retailers connecting with motivated buyers. The platform's core functionality revolves around AI-powered room transformation with integrated marketplace features.
+
+% ============================================================================
+\section{Use Case Diagram}
+\label{sec:app_uc_diagram}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1.0\textwidth]{figures/UC_Professional.png}
+    \caption{Professional Designer Workflows}
+    \label{fig:uc_professional}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1.0\textwidth]{figures/UC_Admin.png}
+    \caption{Administrator and System Management Workflows}
+    \label{fig:uc_admin}
+\end{figure}
+
+% ============================================================================
+\section{Core Use Case Specifications}
+\label{sec:app_core_uc}
+
+This section provides detailed specifications for the three most critical use cases that define IntelliRoom's core value proposition.
+
+% ----------------------------------------------------------------------------
+\subsection{UC-C04: Upload \& Analyze Room}
+\label{sec:uc_upload_analyze}
+
+\begin{table}[h]
+\centering
+\caption{UC-C04: Upload \& Analyze Room Photo - Detailed Specification}
+\label{tab:uc_upload_detail}
+\begin{tabular}{p{3cm}p{11cm}}
+\toprule
+\textbf{Attribute} & \textbf{Description} \\
+\midrule
+Use Case ID & UC-C04 \\
+\midrule
+Name & Upload \& Analyze Room Photo \\
+\midrule
+Actors & Consumer/Professional User, AI Analysis System (Florence-2, SAM2) \\
+\midrule
+Preconditions & User authenticated, navigated to design workflow, AI pipeline operational \\
+\midrule
+Basic Flow &
+\begin{enumerate}[leftmargin=*,noitemsep,topsep=0pt]
+    \item User uploads image or captures photo
+    \item System validates and uploads to backend storage
+    \item \textbf{Florence-2} analyzes: room type, furniture items, architectural features, lighting
+    \item \textbf{SAM2} generates: pixel-level masks (walls/floors/furniture), depth map, replacement regions
+    \item System stores metadata in MongoDB and displays preview
+    \item User confirms or requests re-analysis, then proceeds to style selection
+\end{enumerate} \\
+\midrule
+Alternative Flows &
+\begin{itemize}[leftmargin=*,noitemsep,topsep=0pt]
+    \item A1: Invalid format/low quality - System prompts correction
+    \item A2: Detection failure - Manual room type selection offered
+    \item A3: Timeout (>30s) - Retry or manual selection
+\end{itemize} \\
+\midrule
+Postconditions & Image and Florence-2 metadata stored; SAM2 masks saved for ControlNet; style selection enabled \\
+\midrule
+Includes & None \\
+\midrule
+Extends & UC-C05 (Choose Style), UC-C06 (Generate AI Design) \\
+\midrule
+Technical Notes & 
+Florence-2 runs on ComfyUI backend or via Replicate API. SAM2 segmentation provides structural guidance for ControlNet to preserve room geometry during style transfer. Analysis typically completes in 5-10 seconds. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\clearpage
+
+% ----------------------------------------------------------------------------
+\subsection{UC-C06: Generate AI Design}
+\label{sec:uc_generate_design}
+
+\begin{table}[h]
+\centering
+\caption{UC-C06: Generate AI Design - Detailed Specification}
+\label{tab:uc_generate_detail}
+\begin{tabular}{p{3cm}p{11cm}}
+\toprule
+\textbf{Attribute} & \textbf{Description} \\
+\midrule
+Use Case ID & UC-C06 \\
+\midrule
+Name & Generate AI Design \\
+\midrule
+Actors & Consumer/Professional User, AI Generation System (ComfyUI, ControlNet, LoRA Models) \\
+\midrule
+Preconditions & User authenticated, room analyzed (UC-C04), style selected (UC-C05), generation quota available, ComfyUI operational \\
+\midrule
+Basic Flow &
+\begin{enumerate}[leftmargin=*,noitemsep,topsep=0pt]
+    \item User confirms parameters; system validates quota
+    \item ComfyUI pipeline executes 4 stages:
+    \begin{itemize}[noitemsep,topsep=0pt]
+        \item \textbf{ControlNet:} Preserves structure using SAM2 masks
+        \item \textbf{LoRA:} Applies Egyptian/Islamic/Modern styles
+        \item \textbf{Stable Diffusion:} Refines textures and lighting
+        \item \textbf{Post-processing:} Validates cultural authenticity
+    \end{itemize}
+    \item During processing, user votes on design pairs, earns credits
+    \item System stores design with metadata, presents before/after comparison
+    \item User can view variations, save, download, or regenerate
+\end{enumerate} \\
+\midrule
+Alternative Flows &
+\begin{itemize}[leftmargin=*,noitemsep,topsep=0pt]
+    \item A1: Quota exhausted - Upgrade prompt
+    \item A2: Timeout (>120s) - Retry or email notification
+    \item A3: Low quality - Auto-regeneration
+\end{itemize} \\
+\midrule
+Postconditions & Design stored with unique ID, quota decremented (free tier), added to gallery, voting data sent for training \\
+\midrule
+Includes & UC-C10 (Gamified Voting During Generation), UC-C14 (View Free Tier Limits) \\
+\midrule
+Extends & UC-C15 (Purchase Premium) for 4K resolution, UC-C07 (View Variations) for unlimited options \\
+\midrule
+Technical Notes & 
+ControlNet ensures structural fidelity by using depth/edge maps from SAM2. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\clearpage
+
+% ----------------------------------------------------------------------------
+\subsection{UC-M02: Shop This Look}
+\label{sec:uc_shop_this_look}
+
+\begin{table}[h]
+\centering
+\caption{UC-M02: Shop This Look - Detailed Specification}
+\label{tab:uc_shop_detail}
+\begin{tabular}{p{3cm}p{11cm}}
+\toprule
+\textbf{Attribute} & \textbf{Description} \\
+\midrule
+Use Case ID & UC-M02 \\
+\midrule
+Name & Shop This Look (AI-Powered Furniture Matching) \\
+\midrule
+Actors & Consumer User, Product Matching System (Florence-2, CLIP), Egyptian Furniture Retailers \\
+\midrule
+Preconditions & User has generated design (UC-C06), clicks "Shop This Look", retailer catalog populated \\
+\midrule
+Basic Flow &
+\begin{enumerate}[leftmargin=*,noitemsep,topsep=0pt]
+    \item \textbf{Florence-2} detects furniture items and extracts visual features
+    \item \textbf{CLIP} matches items to Egyptian retailer products
+    \item System displays interactive overlay with clickable hotspots
+    \item Side panel shows 3-5 products per item: name, price (EGP), retailer, similarity, stock
+    \item User clicks hotspot to view full details: specs, images, reviews, alternatives
+    \item User adds items to cart (UC-M08); system tracks conversion for analytics
+\end{enumerate} \\
+\midrule
+Alternative Flows &
+\begin{itemize}[leftmargin=*,noitemsep,topsep=0pt]
+    \item A1: No matches or low confidence (<0.6) - Manual browsing or category suggestions
+    \item A2: Out of stock - Notify option and alternatives
+    \item A3: User filters - Re-run matching with constraints
+\end{itemize} \\
+\midrule
+Postconditions & Products linked to design, cart updated, analytics logged, affiliate tracking attached \\
+\midrule
+Includes & UC-M01 (Browse Egyptian Furniture Catalog) for product data access \\
+\midrule
+Extends & UC-M05 (Compare Prices), UC-M08 (Add to Cart), UC-M10 (Place Order) \\
+\midrule
+Technical Notes & 
+Florence-2 provides object detection, while CLIP enables semantic similarity matching. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\clearpage
+
+% ============================================================================
+\section{Supporting Use Case Summary}
+\label{sec:app_supporting_uc}
+
+The following table summarizes additional use cases that support the platform's complete functionality. Detailed specifications are available in the requirements documentation.
+
+\begin{longtable}{p{3.5cm}p{10cm}}
+\caption{Supporting Use Cases Summary} \label{tab:supporting_uc} \\
+\toprule
+\textbf{Use Case ID} & \textbf{Description} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Use Case ID} & \textbf{Description} \\
+\midrule
+\endhead
+\midrule
+\endfoot
+\bottomrule
+\endlastfoot
+
+\multicolumn{2}{c}{\textbf{Consumer Account \& Access}} \\
+\midrule
+UC-C01: Register Account & User creates account with email, password, profile information. Email verification required. \\
+UC-C02: Log In / Log Out & User authenticates with credentials to access personalized features. Session management. \\
+UC-C03: Manage Profile & User updates personal information, design preferences, notification settings. \\
+\midrule
+
+\multicolumn{2}{c}{\textbf{Consumer Design Workflow}} \\
+\midrule
+UC-C05: Choose Style/Theme & User selects cultural design style (Egyptian, Islamic, Modern, Mediterranean) before generation. \\
+UC-C07: View Design Variations & User reviews multiple design options with before/after comparison slider. \\
+UC-C08: Save/Favorite Design & User saves generated designs to personal gallery for later access. \\
+UC-C09: Download Design Image & User downloads design in available resolution (1080p free, 4K premium). Watermark on free tier. \\
+\midrule
+
+\multicolumn{2}{c}{\textbf{Consumer Engagement}} \\
+\midrule
+UC-C10: Gamified Voting & User ranks design pairs during AI generation (30-60s), contributes to model improvement. \\
+UC-C11: Earn Credits & User earns credits through voting, sharing, daily streaks. Credits unlock premium features. \\
+UC-C12: Browse Community Gallery & User explores designs shared by other users, filtered by style and room type. \\
+UC-C13: Share to Social Media & User shares designs to Facebook, Instagram, WhatsApp with customizable templates. \\
+\midrule
+
+\multicolumn{2}{c}{\textbf{Marketplace Shopping}} \\
+\midrule
+UC-M01: Browse Furniture Catalog & User explores curated Egyptian furniture catalog organized by category and style. \\
+UC-M03: Filter by Style/Culture & User filters products by Egyptian, Islamic, Modern themes matching design generation styles. \\
+UC-M05: Compare Prices & User compares pricing for similar items across multiple Egyptian retailers side-by-side. \\
+UC-M08: Add to Cart & User adds products to shopping cart. Cart persists across sessions. \\
+UC-M09: Select Payment Method & User selects credit card, Fawry, or InstaPay mobile payment. \\
+UC-M10: Place Order & User confirms order. Order routed to retailer for fulfillment with tracking. \\
+\midrule
+
+\multicolumn{2}{c}{\textbf{Professional Designer Tools}} \\
+\midrule
+UC-P01: Register Professional Account & Designer creates professional account with portfolio, credentials, business information. \\
+UC-P04: Create Client Project & Designer creates project with client information, requirements, timeline. Multi-room support. \\
+UC-P08: Priority Queue Generation & Professional users get priority AI processing for faster client turnaround. \\
+UC-P10: Batch Process Rooms & Designer processes multiple rooms simultaneously for commercial projects (cafes, offices). \\
+UC-P17: Share Client Preview Link & Designer generates read-only link for client to view designs without account. \\
+UC-P20: Export PDF Report & Designer generates branded PDF with before/after comparisons and shopping lists. \\
+
+\end{longtable}
+

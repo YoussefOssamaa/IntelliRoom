@@ -1,0 +1,44 @@
+@startuml
+title Consumer - Basic Design Generation
+
+left to right direction
+skinparam actorStyle awesome
+skinparam usecase {
+  BackgroundColor #E6F2F7
+  BorderColor #2E86AB
+}
+
+actor "User" as User
+actor "Guest" as Guest
+actor "Registered User" as RegUser
+actor "Premium User" as Premium
+
+Guest --|> User
+RegUser --|> User
+Premium --|> RegUser
+
+rectangle "IntelliRoom AI" {
+  usecase "Browse Templates" as UC1
+  usecase "Register Account" as UC2
+  usecase "Upload Room Photo" as UC3
+  usecase "Select Cultural Style\n(Egyptian/Islamic/Modern)" as UC4
+  usecase "Generate AI Design\n(Free: 3/month)" as UC5
+  usecase "View Design Variations" as UC6
+  usecase "Save Design" as UC7
+  usecase "Download 1080p" as UC8
+  usecase "Download 4K" as UC9
+}
+
+Guest --> UC1
+Guest --> UC2
+
+RegUser --> UC3
+RegUser --> UC4
+RegUser --> UC5
+RegUser --> UC6
+RegUser --> UC7
+RegUser --> UC8
+
+Premium --> UC9
+
+@enduml

@@ -1,7 +1,6 @@
 import express from 'express';
 import Plugin from '../../models/pluginModels/plugins.js';
 import User from '../../models/user.js';
-const TEST_USER_ID = "64f3a5e6a3c9b7f1a1234567"; // this is a test user ID for development purposes
 
 
 export const getPluginsController = async (req, res) => {
@@ -21,6 +20,8 @@ export const getPluginsController = async (req, res) => {
 
 export const getPluginByIdController = async (req, res) => {
     try {
+
+
         const plugin = await Plugin.findById(req.params.id).populate('plugin_author' , 'user_name email');
         console.log(plugin);
         if (!plugin) {
@@ -48,11 +49,14 @@ export const getPluginByIdController = async (req, res) => {
 export const postPluginController = async (req, res) => { 
     try {
 
-        req.user = {}; ////////////////to be removed in production (test user assignment)
-        req.user.id = TEST_USER_ID ////////////////to be removed in production (test user assignment) 
+        const user_id = req.userId;
 
+        //Security check 1
+        if (!user_id) {
+            return res.status(401).json({ message: "Not authenticated" });
+        }
 
-        const plugin_author = await User.findById(req.user.id)
+        const plugin_author = await User.findById(user_id);
         if (!plugin_author) {
             return res.status(404).json({ message: 'Plugin author not found' });
         }
@@ -72,9 +76,14 @@ export const postPluginController = async (req, res) => {
 
 export const putPluginController = async (req, res) => {
     try {
-        req.user = {}; ////////////////to be removed in production (test user assignment)
-        req.user.id = TEST_USER_ID ////////////////to be removed in production (test user assignment)
-        
+
+        const user_id = req.userId;
+
+        //Security check 1
+        if (!user_id) {
+        return res.status(401).json({ message: "Not authenticated" });
+        }
+
         const {id} = req.params;
         let plugin = await Plugin.findById(id);
 
@@ -82,8 +91,8 @@ export const putPluginController = async (req, res) => {
             return res.status(404).json({ error: "Plugin not found" });
         }
 
-        //Security check
-        if (plugin.plugin_author.toString() !== req.user.id   ) {
+        //Security check 2
+        if (plugin.plugin_author.toString() !== user_id   ) {
             return  res.status(403).json({ error: "Unauthorized action" });
           }
         
@@ -102,9 +111,13 @@ export const putPluginController = async (req, res) => {
 export const deletePluginController = async (req, res) => {
     try {
 
-        req.user = {}; ////////////////to be removed in production (test user assignment)
-        req.user.id = TEST_USER_ID ////////////////to be removed in production (test user assignment)
-        
+        const user_id = req.userId;
+
+        //Security check 1
+        if (!user_id) {
+        return res.status(401).json({ message: "Not authenticated" });
+        }
+
         const {id} = req.params;
 
 
@@ -113,8 +126,8 @@ export const deletePluginController = async (req, res) => {
         if (!plugin) {
             return res.status(404).json({ error: "Plugin not found" });
         }
-        //Security check
-        if (plugin.plugin_author.toString() !== req.user.id   ) {
+        //Security check 2
+        if (plugin.plugin_author.toString() !== user_id  ) {
             return  res.status(403).json({ error: "Unauthorized action" });
           }
 

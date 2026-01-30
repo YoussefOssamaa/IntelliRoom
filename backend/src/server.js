@@ -13,6 +13,7 @@ import { CORSMiddleware } from './middleware/CORS.js';
 import { ComfyUIService } from './services/ComfyUIService.js';
 import path from 'path';
 import cookieParser from 'cookie-parser'
+import dashboardIndex from './routes/dashboard/dashboardIndex.js';
 
 const __dirname = path.resolve();
 
@@ -40,6 +41,8 @@ app.use('/api/plugins', pluginIndex);
 app.use('/api/auth', loginIndex)
 app.use('/api/signup', signupIndex)
 app.use('/api/contact', contactIndex)
+app.use('/api/dashboard', dashboardIndex); 
+
 
 
 app.listen(PORT, () => {

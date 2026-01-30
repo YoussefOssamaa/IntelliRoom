@@ -8,13 +8,19 @@ import path from 'path';
 import Refresh from '../../models/refreshToken.js';
 import { sendEmail } from '../../utils/sendEmail.util.js';
 import ForgetPassword from '../../models/forgetPassword.js';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const authPrivateKey = fs.readFileSync(path.join(__dirname, "..", "..","utils", "src" ,"keys", "AuthPrivate.pem"), 'utf8');
+const authPublicKey = fs.readFileSync(path.join(__dirname, "..", "..","utils", "src" ,"keys", "AuthPublic.pem"), 'utf8');
+const refreshPrivateKey = fs.readFileSync(path.join(__dirname, "..", "..","utils", "src" ,"keys", "RefreshPrivate.pem"), 'utf8');
+const refreshPublicKey = fs.readFileSync(path.join(__dirname, "..", "..","utils", "src" ,"keys", "RefreshPublic.pem"), 'utf8');
 /*
-const authPrivateKey = fs.readFileSync(path.join("src", "keys", "AuthPrivate.pem"), 'utf8');
-const authPublicKey = fs.readFileSync(path.join("src", "keys", "AuthPublic.pem"), 'utf8');
-const refreshPrivateKey = fs.readFileSync(path.join("src", "keys", "RefreshPrivate.pem"), 'utf8');
-const refreshPublicKey = fs.readFileSync(path.join("src", "keys", "RefreshPublic.pem"), 'utf8');
 const resetPrivateKey = fs.readFileSync(path.join("src", "keys", "ResetPrivate.pem"), 'utf8');
-const resetPublicKey = fs.readFileSync(path.join("src", "keys", "ResetPublic.pem"), 'utf8');*/
+const resetPublicKey = fs.readFileSync(path.join("src", "keys", "ResetPublic.pem"), 'utf8');
+*/
 
 export const registerHandler = async (req, res) => {
     const genericError = "Invalid credentials or user already exists"
@@ -131,7 +137,7 @@ export const loginHandler = async (req, res) => {
 }
 
 export const refreshTokenHandler = async (req, res) => {
-  /*  const genericError = "not authenticated"
+    const genericError = "not authenticated"
 
     try {
         await normalizeResponseTime();
@@ -179,7 +185,7 @@ export const refreshTokenHandler = async (req, res) => {
             .clearCookie("Authentication")
             .clearCookie("Refresh")
             .json({ success: false, message: genericError });
-    }*/
+    }
 }
 
 export const forgetPasswordHandler = async (req, res) => {

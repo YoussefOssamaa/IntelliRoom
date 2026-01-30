@@ -21,7 +21,7 @@ router.post('/login', limiter , loginHandler )
 
 router.post('/signup', limiter , registerHandler )
 router.post('/refreshToken', limiter , refreshTokenHandler )
-router.post('/logout', limiter , logoutController )
+router.post('/logout', protect , logoutController )  /// using prtotect instead of limiter (we want auth only here, not brute force limiter)
 
 
 // router.post('/forgetPassword', limiter , forgetPasswordHandler )

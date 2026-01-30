@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { postImageController } from '../../controllers/uploadImage/uploadImageController.js';
+import protect from '../../middleware/protect.middleware.js';
 
 const router = express.Router();
 
@@ -47,7 +48,7 @@ const upload = multer({
 
 
 
-router.post('/', upload.single('image'), postImageController);
+router.post('/',protect ,  upload.single('image'), postImageController);
 
 
 

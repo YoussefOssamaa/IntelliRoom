@@ -3,10 +3,16 @@ import jwt from 'jsonwebtoken';
 import fs from 'fs';
 import path from 'path';
 import { authCookieSchema } from '../validations/login.validator.js';
-// const authPrivateKey = fs.readFileSync(path.join("src", "keys", "AuthPrivate.pem"), 'utf8');
- const authPublicKey = fs.readFileSync(path.join("src", "utils","src", "keys", "AuthPublic.pem"), 'utf8');
-// const refreshPrivateKey = fs.readFileSync(path.join("src", "keys", "RefreshPrivate.pem"), 'utf8');
-// const refreshPublicKey = fs.readFileSync(path.join("src", "keys", "RefreshPublic.pem"), 'utf8');
+import { fileURLToPath } from 'url';
+
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const authPrivateKey = fs.readFileSync(path.join(__dirname, "..", "..", "src", "utils", "src", "keys", "AuthPrivate.pem"), 'utf8');
+const authPublicKey = fs.readFileSync(path.join(__dirname, "..", "..", "src", "utils", "src", "keys", "AuthPublic.pem"), 'utf8');
+const refreshPrivateKey = fs.readFileSync(path.join(__dirname, "..", "..", "src", "utils", "src", "keys", "RefreshPrivate.pem"), 'utf8');
+const refreshPublicKey = fs.readFileSync(path.join(__dirname, "..", "..", "src", "utils", "src", "keys", "RefreshPublic.pem"), 'utf8');
 
 const protect = (req, res, next) => {
     const validation = authCookieSchema.safeParse(req.cookies);

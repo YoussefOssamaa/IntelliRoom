@@ -1,18 +1,20 @@
 import express from 'express';
 import Cart from '../../models/ecommerceModels/cart.js';
 
-const TEST_USER_ID = "64f3a5e6a3c9b7f1a1234567"; // this is a test user ID for development purposes
 
 
 export const getCartController =  async (req, res) => {
   
   try {
     
-          req.user = {}; ////////////////to be removed in production (test user assignment)
-          req.user.id = TEST_USER_ID ////////////////to be removed in production (test user assignment)
-          
 
-  const cart = await Cart.findOne({user : req.user.id}).populate('items.product');
+        const userId = req.userId;
+        /// authentication check
+        if (!userId) {
+            return res.status(401).json({ success: false, message: "not authenticated" });
+        }
+
+  const cart = await Cart.findOne({user : userId}).populate('items.product');
   if (!cart){
     return res.status(404).json({ message: 'Cart not found' });
   }
@@ -28,12 +30,13 @@ export const postCartController =  async (req, res) => {
 
     try{
           
-      
-          req.user = {}; ////////////////to be removed in production (test user assignment)
-          req.user.id = TEST_USER_ID ////////////////to be removed in production (test user assignment)
+        const userId = req.userId;
+        /// authentication check
+        if (!userId) {
+            return res.status(401).json({ success: false, message: "not authenticated" });
+        }
 
-
-    const existingCart = await Cart.findOne({user : req.user.id});
+    const existingCart = await Cart.findOne({user : userId});
     if (existingCart) {
     return res.status(400).json({ error: "Cart already exists" });
     }
@@ -41,7 +44,7 @@ export const postCartController =  async (req, res) => {
 
     const new_cart = new Cart(
       {
-        user : req.user.id,
+        user : userId,
         items : req.body.items || []
       }
     );
@@ -61,9 +64,11 @@ export const putCartController =  async (req, res) => {
     try{
 
 
-          req.user = {}; ////////////////to be removed in production (test user assignment)
-          req.user.id = TEST_USER_ID ////////////////to be removed in production (test user assignment)
-
+        const userId = req.userId;
+        /// authentication check
+        if (!userId) {
+            return res.status(401).json({ success: false, message: "not authenticated" });
+        }
 
     const {id} = req.params;
     const cart = await Cart.findById(id);
@@ -74,8 +79,8 @@ export const putCartController =  async (req, res) => {
       }
 
 
-        //Security check
-      if (cart.user.toString() !== req.user.id   ) {
+        //authorization check
+      if (cart.user.toString() !== userId  ) {
         return  res.status(403).json({ error: "Unauthorized action" });
       }
 
@@ -100,9 +105,11 @@ export const deleteCartController =  async (req, res) => {
   try{
 
 
-          req.user = {}; ////////////////to be removed in production (test user assignment)
-          req.user.id = TEST_USER_ID ////////////////to be removed in production (test user assignment)
-
+        const userId = req.userId;
+        /// authentication check
+        if (!userId) {
+            return res.status(401).json({ success: false, message: "not authenticated" });
+        }
 
     const {id} = req.params;
 
@@ -113,7 +120,7 @@ export const deleteCartController =  async (req, res) => {
       }
 
         //Security check
-      if (cart.user.toString() !== req.user.id   ) {
+      if (cart.user.toString() !== userId) {
         return  res.status(403).json({ error: "Unauthorized action" });
       }
     

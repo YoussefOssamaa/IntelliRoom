@@ -12,6 +12,9 @@ import { buildComfyWorkflow_objectReplaceWithST, COMFYUI_OUTPUT_NODE_WF_OBJECTRE
 
 
 
+const TEST_USER_ID = "64f3a5e6a3c9b7f1a1234567"; /// should be replaced with req.user.id after authentication is implemented
+
+
 
 export const postImageController = async (req, res) => {
     try {

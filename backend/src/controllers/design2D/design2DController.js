@@ -2,7 +2,6 @@ import express from 'express';
 import Project from '../../models/design2D-3DModels/project.js';
 import mongoose from 'mongoose';
 
-const TEST_USER_ID = "64f3a5e6a3c9b7f1a1234567"; /// should be replaced with req.user.id after authentication is implemented
 
 
 
@@ -10,8 +9,13 @@ export const postProjectController = async (req, res) => {
 
     try {
 
+        const userId = req.userId;
+        
+        /// authentication check
+        if (!userId) {
+            return res.status(401).json({ success: false, message: "not authenticated" });
+        }
 
-        const owner = TEST_USER_ID; // should be replaced with req.user.id after authentication is implemented
 
         const {  title, sceneData, area, coverImageUrl, thumbnailUrl } = req.body;
 
@@ -44,6 +48,14 @@ export const getProjectByIDController = async (req, res) => {
    
    try {
    
+
+        const userId = req.userId;
+        
+        /// authentication check
+        if (!userId) {
+            return res.status(401).json({ success: false, message: "not authenticated" });
+        }
+
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).json({ message: "Invalid project ID" });
@@ -84,7 +96,17 @@ export const getProjectsController = async (req, res) => {
    
    try {
 
-    const owner = TEST_USER_ID; // should be replaced with req.user.id after authentication is implemented
+
+   
+
+
+    const owner = req.userId;
+     
+        /// authentication check
+        if (!userId) {
+            return res.status(401).json({ success: false, message: "not authenticated" });
+        }
+
 
     const projects = await Project.find({ owner : owner }).populate('owner').sort({ createdAt: -1 });
     if (!projects || projects.length === 0) {
@@ -110,11 +132,19 @@ export const updateProjectController = async (req, res) => {
 
     try {
    
+
+        const owner = req.userId;
+        /// authentication check
+        if (!owner) {
+            return res.status(401).json({ success: false, message: "not authenticated" });
+        }
+
+
         const { id } = req.params;
         if (!mongoose.Types.ObjectId.isValid(id)) {
         return res.status(400).json({ message: "Invalid project ID" });
         }
-        const owner = TEST_USER_ID; // should be replaced with req.user.id after authentication is implemented
+
         const { title, sceneData, area, coverImageUrl, thumbnailUrl } = req.body;
         
         //VALIDATION FOR SCENE DATA
@@ -160,12 +190,19 @@ export const updateProjectController = async (req, res) => {
 export const deleteProjectController = async (req, res) => {
 
     try {
+
+
+        const owner = req.userId;
+        /// authentication check
+        if (!owner) {
+            return res.status(401).json({ success: false, message: "not authenticated" });
+        }
+
    
         const { id } = req.params;
         if (!mongoose.Types.ObjectId.isValid(id)) {
         return res.status(400).json({ message: "Invalid project ID" });
         }
-        const owner = TEST_USER_ID; // should be replaced with req.user.id after authentication is implemented
 
         const project = await Project.findById(id);
         if (!project) {

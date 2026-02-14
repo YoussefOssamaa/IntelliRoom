@@ -11,7 +11,7 @@
 
  
 	
-	"postCreateCommand": "cd backend && pnpm install && cd ../frontend && pnpm install",
+	"postCreateCommand": "cd backend && pnpm install && cd ../frontend && pnpm install && cd .. && pnpm install",
 
  
 

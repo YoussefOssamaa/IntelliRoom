@@ -30,13 +30,16 @@ services:
       MONGO_INITDB_ROOT_USERNAME: devuser
       MONGO_INITDB_ROOT_PASSWORD: devpass
     ports:
-      - "27018:27017"    # For local GUI tools (Compass)
+      - "27018:27017"   
     volumes:
       - mongo-data:/data/db
     networks:
       - dev-network
       
- ### THE CONNECTION WITH THE DB through mongosh:   "mongodb://devuser:devpass@localhost:27018/intelliroomdb?authSource=admin"
+ ### THE CONNECTION WITH THE DB through mongosh: 
+     ### the string to connect inside the devcontainer: "mongosh "mongodb://devuser:devpass@mongo:27017/intelliroomdb?authSource=admin" 
+     ### the string to connect on your host pc:  "mongodb://devuser:devpass@localhost:27018/intelliroomdb?authSource=admin"
+
 # THE CONNECTION WITH THE DB IN THE CODE WILL BE:
 # Hostname = mongo
 # Port = 27017 (IMPORTANT , The internal port 27017 of the container is used, and mapped to 27018 of the local machine to avoid conflicts) 

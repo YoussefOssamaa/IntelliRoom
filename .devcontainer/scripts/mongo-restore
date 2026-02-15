@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Default backup directory
+BACKUP_DIR="./database/backup"
+
+# Check if custom path provided
+if [ -n "$1" ]; then
+    BACKUP_DIR="$1"
+fi
+
+# Verify backup directory exists
+if [ ! -d "$BACKUP_DIR" ]; then
+    echo "❌ Error: Backup directory not found: $BACKUP_DIR"
+    echo "Usage: ir-mongo-restore [path/to/backup]"
+    echo ""
+    echo "Default path: ./database/backup"
+    exit 1
+fi
+
+echo "🔄 Restoring to: $MONGO_URI"
+echo "📂 From backup: $BACKUP_DIR"
+
+mongorestore --uri="$MONGO_URI" "$BACKUP_DIR"
+
+if [ $? -eq 0 ]; then
+    echo "✅ Restore completed successfully"
+else
+    echo "❌ Restore failed"
+    exit 1
+fi

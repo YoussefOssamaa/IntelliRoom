@@ -18,8 +18,7 @@
     ],
 
 	"postStartCommand": "sudo sed -i 's/\\r$//' /usr/local/bin/scripts/* && sudo chmod +x /usr/local/bin/scripts/*",
-	"postCreateCommand": "chmod +x /usr/local/bin/scripts/* && echo 'export PATH=\"/usr/local/bin/scripts:$PATH\"' >> ~/.bashrc && cd backend && pnpm install && cd ../frontend && pnpm install && cd .. && pnpm install",
-
+	"postCreateCommand": "echo 'export PATH=\"/usr/local/bin/scripts:$PATH\"' >> ~/.bashrc && cd backend && pnpm install && cd ../frontend && pnpm install && cd .. && pnpm install",
  
 
 	"updateContentCommand": "cd backend && pnpm install --frozen-lockfile --prefer-offline --strict-peer-dependencies && cd ../frontend && pnpm install --frozen-lockfile --prefer-offline --strict-peer-dependencies",

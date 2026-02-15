@@ -1,0 +1,3 @@
+#!/bin/bash
+mkdir -p ./database/backup
+mongodump --uri="$MONGO_URI" --out=./database/backup/

@@ -15,7 +15,9 @@
 
 	"mounts": [
         "source=${localWorkspaceFolder}/.devcontainer/scripts,target=/usr/local/bin/scripts,type=bind,consistency=cached"
-    ],	 
+    ],
+
+	"postStartCommand": "sudo sed -i 's/\\r$//' /usr/local/bin/scripts/* && sudo chmod +x /usr/local/bin/scripts/*",
 	"postCreateCommand": "chmod +x /usr/local/bin/scripts/* && echo 'export PATH=\"/usr/local/bin/scripts:$PATH\"' >> ~/.bashrc && cd backend && pnpm install && cd ../frontend && pnpm install && cd .. && pnpm install",
 
  

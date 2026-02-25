@@ -14,6 +14,8 @@ import { ComfyUIService } from './services/ComfyUIService.js';
 import path from 'path';
 import cookieParser from 'cookie-parser'
 import dashboardIndex from './routes/dashboard/dashboardIndex.js';
+import updateProfileIndex from './routes/updateProfileRoutes/updateProfileIndex.js'
+
 
 const __dirname = path.resolve();
 
@@ -42,7 +44,10 @@ app.use('/api/auth', loginIndex)
 app.use('/api/signup', signupIndex)
 app.use('/api/contact', contactIndex)
 app.use('/api/dashboard', dashboardIndex); 
+//app.use('/api/pricingPlans' , pricingIndex )
 
+
+app.use('/api/updateProfile' , updateProfileIndex)
 
 
 app.listen(PORT, () => {

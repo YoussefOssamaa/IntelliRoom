@@ -1,191 +1,190 @@
-.dashboard-root {
-    display: flex;
+/* DashboardPage.css */
+
+.dashboard-layout {
+    @apply flex flex-col min-h-screen font-sans text-slate-800;
 }
 
-.dashboard-appbar {
-    z-index: 1201 !important;
-    background-color: #1a1a1a !important;
+.header-wrapper {
+    @apply sticky top-0 z-[1300] bg-white border-b border-slate-200 shadow-sm;
 }
 
-.dashboard-title {
-    flex-grow: 1;
-    font-weight: bold !important;
-    color: #fff;
+.content-wrapper {
+    @apply flex grow;
 }
 
-.dashboard-drawer {
-    width: 240px;
-    flex-shrink: 0;
+/* Sidebar Navigation - Added a subtle slate tint and vibrant active states */
+.sidebar {
+    @apply w-[240px] shrink-0 border-r border-slate-200 bg-slate-50 h-full relative;
 }
 
-.dashboard-drawer .MuiDrawer-paper {
-    width: 240px;
-    box-sizing: border-box;
+.nav-list {
+    @apply flex flex-col py-4 overflow-y-auto h-full m-0 p-0 list-none;
 }
 
-.dashboard-main {
-    flex-grow: 1;
-    padding: 32px;
-    background-color: #f4f6f8;
-    min-height: 100vh;
-    min-width: 0;
-    overflow-x: hidden;
+.nav-item {
+    @apply flex items-center gap-4 px-6 py-3 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 cursor-pointer transition-colors font-medium;
+}
+
+.nav-item.active {
+    @apply bg-indigo-100 text-indigo-700 border-r-4 border-indigo-600;
+}
+
+.nav-divider {
+    @apply h-px bg-slate-200 my-4 mx-4;
+}
+
+/* Main Area - Warmer, softer background */
+.main-area {
+    @apply grow p-8 bg-[#f8fafc] min-h-screen min-w-0 overflow-x-hidden;
 }
 
 .welcome-section {
-    margin-bottom: 32px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    @apply mb-8 flex justify-between items-center;
 }
 
-.new-project-btn {
-    background-color: #000 !important;
+.welcome-title {
+    @apply text-3xl font-extrabold mb-1 text-slate-900 tracking-tight;
 }
 
-.new-project-btn:hover {
-    background-color: #333 !important;
+.welcome-subtitle {
+    @apply text-slate-500 text-lg;
 }
 
-.section-margin {
-    margin-bottom: 48px;
+/* Buttons - Upgraded to a sleek gradient */
+.btn-primary {
+    @apply bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-6 py-3 rounded-xl hover:from-indigo-700 hover:to-violet-700 transition-all shadow-md hover:shadow-lg flex items-center gap-2 font-medium border-0;
+}
+
+.btn-secondary {
+    @apply border-2 border-indigo-100 text-indigo-700 bg-indigo-50 px-4 py-2 rounded-lg hover:bg-indigo-100 transition-colors w-full font-bold mt-auto;
+}
+
+.btn-text {
+    @apply text-indigo-600 font-bold hover:bg-indigo-50 px-4 py-2 rounded-lg transition-colors flex items-center gap-2;
+}
+
+/* Stats Cards - Added subtle top borders and hover lifts */
+.stats-grid {
+    @apply grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12;
 }
 
 .stat-card {
-    height: 100%;
-    border-radius: 12px !important;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+    @apply bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col h-full transition-all hover:shadow-md hover:-translate-y-1;
 }
 
-.stat-card-content {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
+.stat-label {
+    @apply text-slate-500 text-sm font-bold tracking-wide uppercase mb-2;
 }
 
-.progress-container {
-    width: 100%;
-    margin-top: 16px;
+.stat-value {
+    @apply text-4xl font-extrabold text-slate-800;
 }
 
-.credit-balance {
-    color: #2e7d32 !important;
+/* Progress Bar - Upgraded to a vibrant gradient */
+.progress-track {
+    @apply w-full bg-slate-100 rounded-full h-2.5 mt-4 mb-2 overflow-hidden;
 }
 
-.marketplace-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+.progress-fill {
+    @apply bg-gradient-to-r from-indigo-500 to-violet-500 h-full rounded-full transition-all duration-500;
 }
 
-.marketplace-icon {
-    background-color: #e3f2fd !important;
-    color: #1976d2 !important;
+/* Icons */
+.marketplace-icon-wrapper {
+    @apply bg-violet-100 text-violet-600 p-3 rounded-2xl flex items-center justify-center shadow-inner;
 }
 
-.browse-btn {
-    margin-top: auto !important;
+/* Section Headers */
+.section-wrapper {
+    @apply mb-12;
 }
 
 .section-header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 16px;
+    @apply flex items-center justify-between mb-6; /* Changed to space them out */
 }
 
-.view-all-link {
-    text-transform: none !important;
-    font-weight: bold !important;
-    color: #1976d2 !important;
-    min-width: auto !important;
+.section-title {
+    @apply text-2xl font-extrabold text-slate-800;
+}
+
+/* Projects Grid */
+.projects-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6;
 }
 
 .project-card {
-    border-radius: 8px !important;
-    cursor: pointer;
-    transition: 0.3s;
+    @apply bg-white rounded-2xl shadow-sm border border-slate-100 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-xl overflow-hidden;
 }
 
-.project-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15) !important;
+/* Project Image - Replaced dull gray with a soft tinted background */
+.project-image-placeholder {
+    @apply h-[160px] bg-gradient-to-br from-indigo-50 to-violet-50 flex items-center justify-center text-indigo-200 transition-colors group-hover:text-indigo-300;
 }
 
-.card-placeholder-image {
-    height: 160px;
-    background-color: #e0e0e0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.project-info {
+    @apply p-5;
 }
 
-.placeholder-icon {
-    font-size: 60px !important;
-    color: #bdbdbd !important;
+.project-title {
+    @apply text-lg font-bold mb-2 text-slate-800 group-hover:text-indigo-600 transition-colors;
 }
 
 .project-meta {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 8px;
+    @apply flex justify-between items-center mt-3;
 }
 
-.scroll-container {
-    display: flex;
-    gap: 24px;
-    overflow-x: auto;
-    padding-bottom: 16px;
-    width: 100%;
+/* Status Badges - Made the colors richer and more distinct */
+.status-badge {
+    @apply px-3 py-1 rounded-full text-xs font-bold tracking-wide;
 }
 
-.scroll-container::-webkit-scrollbar {
-    height: 8px;
+.status-completed {
+    @apply bg-emerald-100 text-emerald-700 border border-emerald-200;
 }
 
-.scroll-container::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
+.status-draft {
+    @apply bg-amber-100 text-amber-700 border border-amber-200;
 }
 
-.scroll-container::-webkit-scrollbar-thumb {
-    background: #bdbdbd;
-    border-radius: 4px;
+.status-rendering {
+    @apply bg-indigo-100 text-indigo-700 border border-indigo-200;
 }
 
-.scroll-container::-webkit-scrollbar-thumb:hover {
-    background: #9e9e9e;
+/* Styles Scroll Area */
+.styles-scroll-container {
+    @apply flex gap-6 overflow-x-auto pb-6 w-full pt-2;
+}
+
+.styles-scroll-container::-webkit-scrollbar {
+    @apply h-2.5;
+}
+.styles-scroll-container::-webkit-scrollbar-track {
+    @apply bg-slate-100 rounded-full;
+}
+.styles-scroll-container::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 rounded-full hover:bg-indigo-400 transition-colors;
 }
 
 .style-card {
-    min-width: 280px;
-    max-width: 280px;
-    border-radius: 12px !important;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
-    flex-shrink: 0;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.style-card:hover {
-    transform: scale(1.02);
+    @apply min-w-[280px] max-w-[280px] bg-white rounded-2xl shadow-sm border border-slate-100 shrink-0 cursor-pointer transition-all duration-300 hover:scale-[1.03] hover:shadow-xl overflow-hidden;
 }
 
 .style-image-wrapper {
-    position: relative;
-    height: 160px;
+    @apply relative h-48 w-full overflow-hidden;
 }
 
-.style-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+.style-image-wrapper img {
+    @apply transition-transform duration-700 group-hover:scale-110;
+}
+
+.style-info {
+    @apply p-5;
+}
+
+.style-title {
+    @apply text-xl font-bold mb-1 text-slate-800;
 }
 
 .style-desc {
-    display: -webkit-box;
-    overflow: hidden;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
+    @apply text-slate-500 text-sm line-clamp-2 overflow-hidden mb-4;
 }

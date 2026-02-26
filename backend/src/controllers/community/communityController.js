@@ -121,8 +121,13 @@ export const addReactionController = async (req, res) => {
         post.reactsNumber = post.reactsNumber + 1;
         await post.save();
         res.status(200).json({ message: "Reaction added successfully", data: post });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 }
+
+
+
 export const removeReactionController = async (req, res) => {
     // Implementation for removing a reaction from a post
     try {

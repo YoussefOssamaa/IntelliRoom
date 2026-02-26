@@ -8,7 +8,7 @@ export const putUpdateProfileController = async(req,res) =>{
         const {id} = req.params;
         const {firstName , lastName , user_name } = req.body
         const updatedUser = await User.findByIdAndUpdate(
-            id,
+            id,                          //ask 3m badr her we used mongodb id -is that correct or we should use the auth id 
             { firstName, lastName, user_name },
             { new: true, runValidators: true }
         );

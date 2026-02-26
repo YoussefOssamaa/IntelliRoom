@@ -12,7 +12,7 @@ services:
     networks:
       - dev-network
     ports:
-      - "3000:3000"   # React
+      - "3000:3000"   # React     
       - "5000:5000"   # Node backend
     depends_on:
       - mongo
@@ -24,7 +24,7 @@ services:
   ############## MongoDB Database
   mongo:
     image: mongo:7
-    container_name: mongodb
+    #container_name: mongodb
     restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: devuser

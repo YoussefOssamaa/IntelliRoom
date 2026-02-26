@@ -5,9 +5,9 @@ const commentSchema = new mongoose.Schema({
   user_id: { type: String, required: true },                  // Who wrote the comment
   post_id: { type: String, required: true },                  // Which post is commented on
   content: { type: String, required: true, maxLength: 300 },  // Comment text
-  createdAt: { type: Date, default: Date.now },               // Creation timestamp
-  updatedAt: { type: Date, default: Date.now }                // Last update timestamp
-});
+  //createdAt: { type: Date, default: Date.now },               // Creation timestamp
+  //updatedAt: { type: Date, default: Date.now }                // Last update timestamp
+},{ timestamps: true });
 
 const Comment = mongoose.model("Comment", commentSchema);
 

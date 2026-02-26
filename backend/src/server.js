@@ -48,6 +48,7 @@ app.use('/api/dashboard', dashboardIndex);
 
 
 app.use('/api/updateProfile' , updateProfileIndex)
+app.use('/api/community' , communityIndex)
 
 
 app.listen(PORT, () => {

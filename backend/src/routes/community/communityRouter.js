@@ -23,15 +23,15 @@ router.get("/:id", getPostByIdController);
 router.put("/:id", updatePostController);
 router.delete("/:id", deletePostController);
     
-router.post("/:id/reactions/", addReactionController);
-router.delete("/:id/reactions/", removeReactionController);
-router.get("/:id/reactions/", getReactionsController);
+router.post("/:post_id/reactions/", addReactionController);   //ask 3m badr about post method param 
+router.delete("/:post_id/reactions/", removeReactionController);
+router.get("/:post_id/reactions/", getReactionsController);
 
-router.post("/:id/comments/", addCommentController);
-router.get("/:id/comments/", getCommentsController);
-router.delete("/:id/comments/:commentId", deleteCommentController);
+router.post("/:post_id/comments/", addCommentController);
+router.get("/:post_id/comments/", getCommentsController);
+router.delete("/:post_id/comments/:commentId", deleteCommentController);
 
-router.get("/:id/download", downloadPostController);
+router.get("/:post_id/download", downloadPostController);
 router.post("/import", importPostController);
 
 export default router;

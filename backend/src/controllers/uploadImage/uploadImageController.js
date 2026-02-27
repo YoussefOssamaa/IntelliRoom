@@ -4,64 +4,48 @@ import fs from 'fs';
 import { comfyUIServiceInstance } from '../../server.js';
 import { setTimeout } from 'node:timers/promises';
 import { escape } from 'node:querystring';
-import { buildComfyWorkflow_emptyRoom, COMFYUI_OUTPUT_NODE_WF_EMPTYROOM } from '../../../../ai/ComfyUI_Workflows/API_Format/emptyroom_workflow_API.mjs';
-import { buildComfyWorkflow_ultimateUpScale, COMFYUI_OUTPUT_NODE_WF_ULTIMATEUPSCALE } from '../../../../ai/ComfyUI_Workflows/API_Format/UltimateUpScale_API.mjs';
-import { buildComfyWorkflow_sketch, COMFYUI_OUTPUT_NODE_WF_SKETCH } from '../../../../ai/ComfyUI_Workflows/API_Format/Sketch_workflow_API.mjs';
-import { buildComfyWorkflow_objectReplace, COMFYUI_OUTPUT_NODE_WF_OBJECTREPLACE } from '../../../../ai/ComfyUI_Workflows/API_Format/object_replace_API.mjs';
-import { buildComfyWorkflow_objectReplaceWithST, COMFYUI_OUTPUT_NODE_WF_OBJECTREPLACEWITHST } from '../../../../ai/ComfyUI_Workflows/API_Format/object_replace_with_ST_API.mjs';
+import { COMFYUI_OUTPUT_NODE } from '../../../../ai/ComfyUI_Workflows/API_Format/Final_workflow_API.mjs';
 
 
 
-const TEST_USER_ID = "64f3a5e6a3c9b7f1a1234567"; /// should be replaced with req.user.id after authentication is implemented
+//const TEST_USER_ID = "64f3a5e6a3c9b7f1a1234567"; /// should be replaced with req.user.id after authentication is implemented
 
 
 
 export const postImageController = async (req, res) => {
     try {
-        if (!req.file) {
-            return res.status(400).json({ error: 'No file uploaded' });
-        }
+            if (!req.files?.image?.[0]) {
+            return res.status(400).json({ error: 'Main image is required' });
+            }
 
-        const workflowNumber = Number(req.body.workflowNumber || 1);
-        const inputPrompt = req.body.inputPrompt || ''
-        const replacementPrompt = req.body.replacementPrompt || '';
-
+        const mainImage = req.files.image[0];
+        const referenceImage = req.files.referenceImage?.[0];  
+        const inputPrompt = req.body.inputPrompt || ''        
         console.log('Uploaded file:', req.file);
 
 
         console.log('Uploading image to ComfyUI...');
-        const comfyImageFilename = await comfyUIServiceInstance.uploadImage(req.file.path);
-        console.log('Image uploaded to ComfyUI as:', comfyImageFilename);
 
-        
-    
+
+        const comfyImageFilename = await comfyUIServiceInstance.uploadImage(mainImage.path);
+        console.log('Main image uploaded to ComfyUI as:', comfyImageFilename);
+
+
+        let inputReferenceImageFilename = null;
+
+        if (referenceImage) {
+        inputReferenceImageFilename = await comfyUIServiceInstance.uploadImage(referenceImage.path);
+       
+            console.log('Reference image uploaded to ComfyUI as:', inputReferenceImageFilename);
+
+        }
+
+
         let comfyOutputNode = "";
-        let workflow = null;
 
 
-      if (workflowNumber === 1) {
-        workflow = buildComfyWorkflow_emptyRoom(comfyImageFilename, inputPrompt);
-        comfyOutputNode = COMFYUI_OUTPUT_NODE_WF_EMPTYROOM;
-      }
-      else if (workflowNumber === 2) {
-        workflow = buildComfyWorkflow_ultimateUpScale(comfyImageFilename, inputPrompt);
-        comfyOutputNode = COMFYUI_OUTPUT_NODE_WF_ULTIMATEUPSCALE;
-      }
-      else if (workflowNumber === 3) {
-       workflow = buildComfyWorkflow_sketch(comfyImageFilename, inputPrompt);
-       comfyOutputNode = COMFYUI_OUTPUT_NODE_WF_SKETCH;
-      }
-      else if (workflowNumber === 4) {
-       workflow = buildComfyWorkflow_objectReplace(comfyImageFilename, inputPrompt, replacementPrompt);
-       comfyOutputNode = COMFYUI_OUTPUT_NODE_WF_OBJECTREPLACE;
-      }
-      else if (workflowNumber === 5) {
-       workflow = buildComfyWorkflow_objectReplaceWithST(comfyImageFilename, inputPrompt , replacementPrompt);
-       comfyOutputNode = COMFYUI_OUTPUT_NODE_WF_OBJECTREPLACEWITHST;
-      }
-
-
-
+        const workflow = buildComfyWorkflow(comfyImageFilename, inputReferenceImageFilename, inputPrompt );
+        comfyOutputNode = COMFYUI_OUTPUT_NODE;
 
         console.log('Running ComfyUI workflow...');
 

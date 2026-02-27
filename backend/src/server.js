@@ -16,6 +16,8 @@ import cookieParser from 'cookie-parser'
 import dashboardIndex from './routes/dashboard/dashboardIndex.js';
 import updateProfileIndex from './routes/updateProfileRoutes/updateProfileIndex.js'
 import communityIndex from './routes/community/communityIndex.js'
+import generatedImageIndex from './routes/generatedImageRoutes/generatedImageIndex.js'
+
 
 const __dirname = path.resolve();
 
@@ -47,6 +49,8 @@ app.use('/api/dashboard', dashboardIndex);
 //app.use('/api/pricingPlans' , pricingIndex )
 app.use('/api/updateProfile' , updateProfileIndex)
 app.use('/api/community' , communityIndex)
+app.use('/api/generatedImage' , generatedImageIndex)
+
 
 
 app.listen(PORT, () => {

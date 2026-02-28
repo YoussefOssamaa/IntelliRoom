@@ -16,7 +16,7 @@ export const postGeneratedImageController = async (req, res) => {
 
 
 
-        const {inputPrompt, originalImageUrl, referenceImageUrl, generatedImageUrl} = req.body;
+        const {inputPrompt, originalImageUrl, referenceImageUrl, generatedImageUrl, isFavorite} = req.body;
 
 
         const newPost = await GeneratedImage.create({
@@ -24,7 +24,8 @@ export const postGeneratedImageController = async (req, res) => {
             inputPrompt,
             originalImageUrl,
             referenceImageUrl,
-            generatedImageUrl
+            generatedImageUrl,
+            isFavorite
         })
 
 
@@ -123,8 +124,8 @@ export const putGeneratedImageController = async (req, res) => {
         }
 
         const {id} = req.params;
-        const {inputPrompt, originalImageUrl, referenceImageUrl, generatedImageUrl} = req.body;
-        const updatedGeneratedImage = await GeneratedImage.findByIdAndUpdate(id, {inputPrompt, originalImageUrl, referenceImageUrl, generatedImageUrl}, {new: true});
+        const {inputPrompt, originalImageUrl, referenceImageUrl, generatedImageUrl, isFavorite} = req.body;
+        const updatedGeneratedImage = await GeneratedImage.findByIdAndUpdate(id, {inputPrompt, originalImageUrl, referenceImageUrl, generatedImageUrl , isFavorite}, {new: true});
         if (!updatedGeneratedImage) {
             return res.status(404).json({ error: "Image not updated" });
         }

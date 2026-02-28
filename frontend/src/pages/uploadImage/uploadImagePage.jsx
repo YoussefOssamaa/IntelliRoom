@@ -187,9 +187,10 @@ function UploadImagePage() {
     formData.append("image", imageFile);
     formData.append("inputPrompt", inputPrompt.trim());
     if (referenceImageFile) {
-      formData.append("inputReferenceImage", referenceImageFile);
+      formData.append("referenceImage", referenceImageFile);
     }
 
+    
     try {
       const res = await axios.post(`${BACKEND_URL}/uploadImage`, formData, {
         headers: {
@@ -252,7 +253,7 @@ function UploadImagePage() {
                   <input
                     ref={mainFileInputRef}
                     type="file"
-                    accept="image/png, image/jpeg, image/webp, image/gif"
+                    accept="image/png, image/jpg, image/jpeg, image/webp"
                     onChange={handleImageChange}
                     className={styles.hiddenInput}
                     disabled={loading}
@@ -297,7 +298,7 @@ function UploadImagePage() {
                       </p>
 
                       <p className={styles.uploadHint}>
-                        PNG, JPEG, WebP up to 10MB
+                        PNG, JPG, JPEG, WebP up to 10MB
                       </p>
                     </div>
                   )}
@@ -322,7 +323,7 @@ function UploadImagePage() {
                     <input
                       ref={referenceFileInputRef}
                       type="file"
-                      accept="image/png, image/jpeg, image/webp, image/gif"
+                      accept="image/png, image/jpg, image/jpeg, image/webp"
                       onChange={handleReferenceImageChange}
                       className={styles.hiddenInput}
                       disabled={loading}
@@ -367,7 +368,7 @@ function UploadImagePage() {
                         </p>
 
                         <p className={styles.uploadHint}>
-                          PNG, JPEG, WebP up to 10MB
+                          PNG, JPG, JPEG, WebP up to 10MB
                         </p>
                       </div>
                     )}

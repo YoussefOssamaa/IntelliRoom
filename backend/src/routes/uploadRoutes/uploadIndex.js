@@ -26,8 +26,18 @@ const storage = multer.diskStorage({
 });
 
 const extensionFilter = (req, file, cb) => {
-      const allowedExtensions = /jpeg|jpg|png/; // regex for allowed extensions
-      const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+
+      const allowedExtensions = /jpeg|jpg|png|webp/;   // regex for allowed extensions
+      const allowedMimeTypes = [
+        'image/jpeg',
+        'image/jpg',
+        'image/png',
+        'image/webp'
+        ];
+
+
+
+
       const extension = allowedExtensions.test(file.originalname.toLowerCase());
       const mimetype = allowedMimeTypes.includes(file.mimetype);
       
@@ -48,8 +58,11 @@ const upload = multer({
 
 
 
-router.post('/',protect ,  upload.single('image'), postImageController);
-
+router.post('/',protect , upload.fields([
+    { name: 'image', maxCount: 1 },
+    { name: 'referenceImage', maxCount: 1 }
+  ]),
+   postImageController);
 
 
 

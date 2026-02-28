@@ -13,7 +13,8 @@ export const getDashboardController  = async (req, res) => {
 
     const dashboardData = await User.findById(userId)
     .select('user_name   email   credits   plan   firstName   lastName   profile_picture_url   ecommerce_wishlist')
-    .populate('ecommerce_wishlist');
+    .populate('ecommerce_wishlist')
+    .populate("totalImages");
 
 
     

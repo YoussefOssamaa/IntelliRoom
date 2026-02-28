@@ -52,4 +52,4 @@ GET     /community/posts/:id/comments
 DELETE  /community/posts/:id/comments/:commentId
 
 GET     /community/posts/:id/download
-POST    /community/posts/import
+POST    /community/posts/import*/

@@ -2,7 +2,6 @@ import axios from '../../config/axios.config';
 import { useParams, useNavigate } from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
 import './PluginReviewPage.css';
-import pluginImg from './robot.avif';
 
 const StarRating = ({ rating }) => {
     return (
@@ -36,7 +35,7 @@ export function PluginReviewPage() {
     useEffect(() => {
         const fetchPluginData = async () => {
             try {
-                // await new Promise(resolve => setTimeout(resolve, 1000)); artificial delay
+                // await new Promise(resolve => setTimeout(resolve, 1000)); 
                 const response = await axios.get(`/plugins/${id}`);
                 setPlugin(response.data);
             } catch (err) {
@@ -81,13 +80,6 @@ export function PluginReviewPage() {
     if (error) return <div className="text-center mt-20 text-red-500">{error}</div>;
     if (!plugin) return <div className="text-center mt-20">Plugin not found.</div>;
 
-    const mockReviews = [
-        { user_name: "Sarah Jenkins", rating: 5, comment: "Absolutely incredible! The AI lighting adjustments saved me hours of manual tweaking. A must-have for modern living room concepts." },
-        { user_name: "Marcus T.", rating: 4, comment: "Really solid texture pack. I just wish there were a few more options for hardwood floors, but otherwise it works seamlessly." },
-        { user_name: "Elena Rostova", rating: 5, comment: "The 3D rendering speed on this plugin is unmatched. My clients were blown away by the live preview feature." },
-        { user_name: "David Chen", rating: 5, comment: "Worth every single credit. Completely transformed my workflow." }
-    ];
-
     return (
 
         <div className='main-container'>
@@ -96,17 +88,14 @@ export function PluginReviewPage() {
                 <div className="visual-side relative" style={{ padding: 0, overflow: 'hidden' }}>
                     {plugin.image_url ? (
                         <>
-                            {/* 1. Full Bleed Background Image */}
                             <img
                                 src={plugin.image_url}
                                 alt={plugin.plugin_name}
                                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 hover:scale-105"
                             />
                             
-                            {/* 2. Soft Gradient Overlay (Ensures text is readable on bright images) */}
                             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
 
-                            {/* 3. The Glassmorphism Floating Panel */}
                             <div className="absolute bottom-8 left-8 right-8 z-10 p-6 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.2)] flex justify-between items-center">
                                 <div>
                                     <span className="px-3 py-1 bg-black/40 text-white/90 rounded-full text-xs font-bold uppercase tracking-widest backdrop-blur-sm border border-white/10 mb-2 inline-block">
@@ -117,7 +106,6 @@ export function PluginReviewPage() {
                                     </h3>
                                 </div>
                                 
-                                {/* Frosted Glass Button */}
                                 <button className="px-6 py-3 bg-white/20 hover:bg-white/30 text-white font-semibold rounded-xl backdrop-blur-lg border border-white/40 transition-all duration-300 shadow-lg flex items-center gap-2 group">
                                     <svg className="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                                     Live Preview
@@ -149,9 +137,9 @@ export function PluginReviewPage() {
                             </button>
                         </div>
 
-                        {/* bento box stats */}
+                        {/* box stats */}
                         <div className="grid grid-cols-2 gap-3 my-6">
-                            {/* Price Box (Spans both columns) */}
+                            {/* Price Box */}
                             <div className="col-span-2 bg-[#EEF2FF] p-5 rounded-2xl flex items-center justify-between border border-[#E0E7FF] shadow-sm">
                                 <span className="text-[#4F46E5] font-semibold text-lg">Price</span>
                                 <span className="text-[#4338CA] font-extrabold text-2xl">
@@ -190,9 +178,7 @@ export function PluginReviewPage() {
 
                         <hr className="divider" />
 
-                        {/* ==========================================
-                            2. THE PILL TAGS FOR FEATURES
-                            ========================================== */}
+                        {/* featrues  */}
                         <div className='plugin-info'>
                             <h3 style={{ marginBottom: '15px', marginTop: '10px', fontSize: '1.2rem' }}>What's Included:</h3>
                             
@@ -215,11 +201,7 @@ export function PluginReviewPage() {
 
                         <hr className="divider" />
 
-                        {/* ... (Keep your existing users-reviews section here) ... */}
-
-                        {/* ==========================================
-                            3. THE AIRBNB-STYLE REVIEW CARDS
-                            ========================================== */}
+                        {/* review box  */}
                         <div className="mt-8 pb-10">
                             <h3 className="text-xl font-bold text-[#111827] mb-6 flex items-center gap-2">
                                 Reviews 
@@ -228,7 +210,6 @@ export function PluginReviewPage() {
                                 </span>
                             </h3>
                             
-                            {/* The Grid: 1 column on small screens, 2 columns on larger screens */}
                             <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
                                 {plugin.plugin_reviews?.length > 0 ? (
                                     plugin.plugin_reviews.map((review, index) => {

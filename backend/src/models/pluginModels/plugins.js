@@ -14,6 +14,8 @@ const pluginSchema = new mongoose.Schema({
 
     plugin_price: {type: Number, required: true , default: 0},
 
+    image_url: {type: String, required: false},
+
 }, {timestamps: true});
 
 const Plugin = mongoose.model("Plugin", pluginSchema);

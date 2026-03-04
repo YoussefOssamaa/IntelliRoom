@@ -36,7 +36,8 @@ export const getPluginByIdController = async (req, res) => {
             plugin_reviews: plugin.plugin_reviews,
             what_is_included: plugin.what_is_included, 
             plugin_price: plugin.plugin_price,
-            number_of_downloads: plugin.number_of_downloads, 
+            number_of_downloads: plugin.number_of_downloads,
+            image_url: plugin.image_url, 
         }
 
         res.status(200).json(plugin_data);

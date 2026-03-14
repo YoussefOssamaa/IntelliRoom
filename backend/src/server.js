@@ -3,7 +3,6 @@ import dotenv from "dotenv";  //to import the variables declared in "/backend/.e
 dotenv.config(); // used here, only once to load the variables from .env file into process.env
 import connectDB from "./config/db.js";
 import ecommerceIndex from './routes/ecommerceRoutes/ecommerceIndex.js';
-import design2DIndex from './routes/design2DRoutes/design2DIndex.js';
 import loginIndex from './routes/loginRoutes/loginIndex.js';
 import signupIndex from './routes/signupRoutes/signupIndex.js';
 import contactIndex from './routes/contactRoutes/contactIndex.js'
@@ -17,7 +16,7 @@ import dashboardIndex from './routes/dashboard/dashboardIndex.js';
 import updateProfileIndex from './routes/updateProfileRoutes/updateProfileIndex.js'
 import communityIndex from './routes/community/communityIndex.js'
 import generatedImageIndex from './routes/generatedImageRoutes/generatedImageIndex.js'
-
+import design2D3Dndex from './routes/design2D-3DRoutes/design2D3DIndex.js'
 
 const __dirname = path.resolve();
 
@@ -39,7 +38,9 @@ export const comfyUIServiceInstance = new ComfyUIService(COMFYUI_HOST);
 
 
 app.use('/api/ecommerce', ecommerceIndex);
-app.use('/api/design2D', design2DIndex);
+//app.use('/api/design2D', design2DIndex);
+app.use('/api/design2D3D', design2D3Dndex);
+
 app.use('/api/uploadImage', uploadIndex);
 app.use('/api/plugins', pluginIndex);
 app.use('/api/auth', loginIndex)

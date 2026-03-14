@@ -27,7 +27,7 @@ const AppRoutes = () => {
         <Route path="/" element={<LandingPage />} />
         <Route path="/marketplace" element={<MarketplacePage />} />
         <Route path="/pricingPlans" element={<PricingPlansPage />} />
-        <Route path="/pluginReview" element={<PluginReviewPage />} />
+        <Route path="/marketplace/pluginReview/:id" element={<PluginReviewPage />} />
         <Route path="/upload" element={<UploadImagePage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/updateProfile" element={<UpdateProfile />} />

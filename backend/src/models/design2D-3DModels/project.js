@@ -5,7 +5,6 @@ const projectSchema = new mongoose.Schema(
     owner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      index: true,  
       required: true
     },
 
@@ -29,7 +28,11 @@ const projectSchema = new mongoose.Schema(
       default: {}
     },
 
-    
+    isArchived: {
+      type: Boolean,
+      default: false
+    },
+
     coverImageUrl:{
       type: String, 
       required: false,
@@ -40,48 +43,14 @@ const projectSchema = new mongoose.Schema(
       type: String, 
       required: false,
       default: null 
-    } ,
-    stats: {
-      layerCount: { type: Number, default: 0 },
-      wallCount: { type: Number, default: 0 },
-      itemCount: { type: Number, default: 0 },
-      areaSize: { type: Number, default: 0 } 
-    },
-
-
+    } 
 
   },
-  { timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true } }
+  { timestamps: true}
 );
 
-
-
-
-      projectSchema.virtual('layers').get(function() {
-      return this.data?.layers || {};  
-    });
-
-    projectSchema.virtual('layerCount').get(function() {
-      return Object.keys(this.data?.layers || {}).length;
-    });
-
-    projectSchema.virtual('elementCount').get(function() {
-      let count = 0;
-      const layers = this.data?.layers || {};
-      for (const layer of Object.values(layers)) {
-        count += Object.keys(layer.vertices || {}).length;
-        count += Object.keys(layer.lines || {}).length;
-        count += Object.keys(layer.items || {}).length;
-      }
-      return count;
-    });
-
-
-
-  projectSchema.index({ owner: 1, updatedAt: -1 });  // Find user's projects by date
-  projectSchema.index({ title: 'text' });             // Search by title
+projectSchema.index({ owner: 1, isArchived: 1, updatedAt: -1 });
 
 
 export default mongoose.model("Project", projectSchema);
+

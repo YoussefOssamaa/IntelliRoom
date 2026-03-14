@@ -9,6 +9,8 @@ import LoginModal from './pages/auth/login';
 import SignUpModal from './pages/auth/signUp';
 import ProtectedRoute from './components/protectedRoute';
 import LandingPage from './pages/landingPage/landingPage';
+import { UpdateProfile } from './pages/updateProfile/updateProfile';
+
 
 const AppRoutes = () => {
   return (
@@ -28,6 +30,8 @@ const AppRoutes = () => {
         <Route path="/pluginReview" element={<PluginReviewPage />} />
         <Route path="/upload" element={<UploadImagePage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/updateProfile" element={<UpdateProfile />} />
+      
 
       </Routes>
     </Router>

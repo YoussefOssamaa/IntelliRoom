@@ -22,16 +22,33 @@ const projectSchema = new mongoose.Schema(
 
     sceneData: {
       type: mongoose.Schema.Types.Mixed,
-      required: true
-    },      /// stores the entire 2D/3D scene data in JSON format
+      default: {}
+    },
 
-    coverImageUrl: String,
+    isArchived: {
+      type: Boolean,
+      default: false
+    },
 
-    thumbnailUrl: String,
+    coverImageUrl:{
+      type: String, 
+      required: false,
+      default: null
+    } ,
+
+    thumbnailUrl:{
+      type: String, 
+      required: false,
+      default: null 
+    } 
 
     area: Number 
   },
-  { timestamps: true }
+  { timestamps: true}
 );
 
+projectSchema.index({ owner: 1, isArchived: 1, updatedAt: -1 });
+
+
 export default mongoose.model("Project", projectSchema);
+

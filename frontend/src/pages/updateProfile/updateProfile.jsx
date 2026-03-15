@@ -78,7 +78,7 @@ export function UpdateProfile() {
 
 */}
 import React, { useState } from 'react';
-import './UpdateProfile.css';
+import './updateProfile.css';
 import Header from '../../pages/dashboard/Header';
 import Footer from '../../components/common/Footer';
 

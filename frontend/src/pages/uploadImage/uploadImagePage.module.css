@@ -1,14 +1,14 @@
 /* uploadImagePage.module.css */
 
 /* Page Layout */
-.pageLayout {
+.uploadImage_pageLayout {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
   background-color: #f8fafc;
 }
 
-.pageWrapper {
+.uploadImage_pageWrapper {
   flex: 1;
   display: flex;
   justify-content: center;
@@ -17,7 +17,7 @@
 }
 
 /* Main Container */
-.container {
+.uploadImage_container {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
@@ -28,38 +28,41 @@
   animation: fadeIn 0.4s ease-out;
 }
 
-.controls {
+.uploadImage_controls {
   display: flex;
   flex-direction: column;
 }
 
-.previewSection {
+.uploadImage_previewSection {
   display: flex;
   align-items: flex-start;
   justify-content: center;
 }
 
-.largePreviewWrapper {
+.uploadImage_largePreviewWrapper {
   width: 100%;
   border-radius: 16px;
   overflow: hidden;
 }
 
-.largePreviewImage {
+.uploadImage_largePreviewImage {
   width: 100%;
   border-radius: 16px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
 }
-
-
-
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.heading {
+.uploadImage_heading {
   font-size: 1.75rem;
   font-weight: 700;
   color: #0f172a;
@@ -72,13 +75,13 @@
   gap: 0.5rem;
 }
 
-.headingIcon {
+.uploadImage_headingIcon {
   color: #6366f1;
 }
 
 /* Feedback Messages with Icons */
-.errorMessage,
-.successMessage {
+.uploadImage_errorMessage,
+.uploadImage_successMessage {
   padding: 1rem;
   border-radius: 8px;
   margin-bottom: 1.5rem;
@@ -89,34 +92,34 @@
   gap: 0.75rem;
 }
 
-.errorMessage {
+.uploadImage_errorMessage {
   background-color: #fef2f2;
   color: #b91c1c;
   border: 1px solid #fecaca;
 }
 
-.errorMessage svg {
+.uploadImage_errorMessage svg {
   flex-shrink: 0;
 }
 
-.successMessage {
+.uploadImage_successMessage {
   background-color: #f0fdf4;
   color: #15803d;
   border: 1px solid #bbf7d0;
 }
 
-.successMessage svg {
+.uploadImage_successMessage svg {
   flex-shrink: 0;
 }
 
 /* Form Groups */
-.inputGroup {
+.uploadImage_inputGroup {
   display: flex;
   flex-direction: column;
   margin-bottom: 1.5rem;
 }
 
-.label {
+.uploadImage_label {
   font-weight: 600;
   color: #334155;
   margin-bottom: 0.5rem;
@@ -124,7 +127,7 @@
 }
 
 /* Drag & Drop Upload Zone */
-.uploadZone {
+.uploadImage_uploadZone {
   border: 2px dashed #cbd5e1;
   border-radius: 4px;
   padding: 2.5rem 2rem;
@@ -136,18 +139,18 @@
   background-color: #f8fafc;
 }
 
-.uploadZone:hover:not(.hasImage) {
+.uploadImage_uploadZone:hover:not(.uploadImage_hasImage) {
   border-color: #6366f1;
   background-color: #eef2ff;
 }
 
-.dragActive {
+.uploadImage_dragActive {
   border-color: #6366f1;
   background-color: #eef2ff;
   transform: scale(1.01);
 }
 
-.hasImage {
+.uploadImage_hasImage {
   padding: 0;
   border-style: solid;
   border-color: #e2e8f0;
@@ -155,29 +158,29 @@
   background-color: transparent;
 }
 
-.hiddenInput {
+.uploadImage_hiddenInput {
   display: none;
 }
 
 /* Upload Placeholder */
-.uploadPlaceholder {
+.uploadImage_uploadPlaceholder {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;
 }
 
-.uploadIconWrapper {
+.uploadImage_uploadIconWrapper {
   position: relative;
   display: inline-flex;
 }
 
-.uploadIcon {
+.uploadImage_uploadIcon {
   color: #6366f1;
   opacity: 0.8;
 }
 
-.uploadIconBadge {
+.uploadImage_uploadIconBadge {
   position: absolute;
   bottom: -4px;
   right: -4px;
@@ -188,64 +191,49 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-.uploadText {
+.uploadImage_uploadText {
   color: #475569;
   font-size: 1rem;
   margin: 0;
 }
 
-.uploadTextPrimary {
+.uploadImage_uploadTextPrimary {
   color: #6366f1;
   font-weight: 600;
 }
 
-.uploadHint {
+.uploadImage_uploadHint {
   color: #94a3b8;
   font-size: 0.875rem;
   margin: 0;
 }
 
-
-
-
-
-
-
-
-
-
 /* Preview Wrapper - Returns to original simple style */
 
-
-
-.previewSection {
+.uploadImage_previewSection {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 400px;
 }
 
-.emptyState {
+.uploadImage_emptyState {
   text-align: center;
   opacity: 0.6;
 }
 
-.emptyState svg {
+.uploadImage_emptyState svg {
   margin-bottom: 1rem;
 }
 
-
-
-
-
-.previewWrapper {
+.uploadImage_previewWrapper {
   width: 100%;
 }
 
-.previewContainer {
+.uploadImage_previewContainer {
   position: relative;
   border-radius: 8px;
   overflow: hidden;
@@ -257,7 +245,7 @@
   min-height: 200px;
 }
 
-.previewImage {
+.uploadImage_previewImage {
   width: 100%;
   border-radius: 16px;
   overflow: hidden;
@@ -265,12 +253,7 @@
   animation: fadeIn 0.5s ease-out;
 }
 
-
-
-
-
-
-.clearButton {
+.uploadImage_clearButton {
   position: absolute;
   top: 12px;
   right: 12px;
@@ -285,17 +268,17 @@
   cursor: pointer;
   color: #475569;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   z-index: 10;
 }
 
-.clearButton:hover {
+.uploadImage_clearButton:hover {
   background: white;
   color: #ef4444;
   transform: scale(1.1);
 }
 
-.successOverlay {
+.uploadImage_successOverlay {
   position: absolute;
   inset: 0;
   background: rgba(16, 185, 129, 0.9);
@@ -311,12 +294,18 @@
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Textarea Styling */
-.textarea {
+.uploadImage_textarea {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid #cbd5e1;
@@ -327,28 +316,30 @@
   resize: vertical;
   min-height: 100px;
   font-family: inherit;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
   box-sizing: border-box;
 }
 
-.textarea:focus {
+.uploadImage_textarea:focus {
   outline: none;
   border-color: #6366f1;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
-.textarea:disabled {
+.uploadImage_textarea:disabled {
   background-color: #f1f5f9;
   cursor: not-allowed;
   opacity: 0.7;
 }
 
-.textarea::placeholder {
+.uploadImage_textarea::placeholder {
   color: #94a3b8;
 }
 
 /* Input Meta Info */
-.inputMeta {
+.uploadImage_inputMeta {
   display: flex;
   justify-content: space-between;
   margin-top: 0.5rem;
@@ -356,20 +347,20 @@
   color: #94a3b8;
 }
 
-.charCount {
+.uploadImage_charCount {
   font-variant-numeric: tabular-nums;
 }
 
 /* Professional Buttons */
-.buttonGroup {
+.uploadImage_buttonGroup {
   display: flex;
   gap: 1rem;
   justify-content: flex-end;
   margin-top: 2rem;
 }
 
-.primaryButton,
-.secondaryButton {
+.uploadImage_primaryButton,
+.uploadImage_secondaryButton {
   padding: 0.75rem 1.5rem;
   font-size: 1rem;
   font-weight: 600;
@@ -383,152 +374,154 @@
   gap: 0.5rem;
 }
 
-.primaryButton {
+.uploadImage_primaryButton {
   background-color: #2563eb;
   color: #ffffff;
   flex: 1;
 }
 
-.primaryButton:hover:not(:disabled) {
+.uploadImage_primaryButton:hover:not(:disabled) {
   background-color: #1d4ed8;
   transform: translateY(-1px);
   box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
 }
 
-.secondaryButton {
+.uploadImage_secondaryButton {
   background-color: #e2e8f0;
   color: #475569;
   padding: 0.75rem 1.25rem;
 }
 
-.secondaryButton:hover:not(:disabled) {
+.uploadImage_secondaryButton:hover:not(:disabled) {
   background-color: #cbd5e1;
   transform: translateY(-1px);
 }
 
-.primaryButton:disabled,
-.secondaryButton:disabled {
+.uploadImage_primaryButton:disabled,
+.uploadImage_secondaryButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
 }
 
 /* Loading Spinner */
-.spinner {
+.uploadImage_spinner {
   animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Mobile Responsiveness */
 
-  @media (max-width: 1024px) {
-  .container {
+@media (max-width: 1024px) {
+  .uploadImage_container {
     grid-template-columns: 1fr;
   }
 
-  .previewSection {
+  .uploadImage_previewSection {
     margin-top: 2rem;
   }
 
-
-  .pageWrapper {
+  .uploadImage_pageWrapper {
     padding: 0;
   }
-  
-  .heading {
+
+  .uploadImage_heading {
     font-size: 1.5rem;
   }
-  
-  .uploadZone {
+
+  .uploadImage_uploadZone {
     padding: 2rem 1rem;
   }
-  
-  .buttonGroup {
+
+  .uploadImage_buttonGroup {
     flex-direction: column-reverse;
   }
-  
-  .secondaryButton {
+
+  .uploadImage_secondaryButton {
     width: 100%;
   }
 }
 
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
-  .pageLayout {
+  .uploadImage_pageLayout {
     background-color: #0f172a;
   }
-  
-  .container {
+
+  .uploadImage_container {
     background-color: #1e293b;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
   }
-  
-  .heading {
+
+  .uploadImage_heading {
     color: #f8fafc;
   }
-  
-  .label {
+
+  .uploadImage_label {
     color: #cbd5e1;
   }
-  
-  .uploadZone {
+
+  .uploadImage_uploadZone {
     background-color: #1e293b;
     border-color: #334155;
   }
-  
-  .uploadZone:hover:not(.hasImage) {
+
+  .uploadImage_uploadZone:hover:not(.uploadImage_hasImage) {
     background-color: rgba(99, 102, 241, 0.1);
   }
-  
-  .hasImage {
+
+  .uploadImage_hasImage {
     background-color: transparent;
     border-color: #334155;
   }
-  
-  .previewContainer {
+
+  .uploadImage_previewContainer {
     background-color: #1e293b;
     border-color: #334155;
   }
-  
-  .uploadText {
+
+  .uploadImage_uploadText {
     color: #94a3b8;
   }
-  
-  .uploadHint {
+
+  .uploadImage_uploadHint {
     color: #64748b;
   }
-  
-  .textarea {
+
+  .uploadImage_textarea {
     background-color: #1e293b;
     border-color: #334155;
     color: #f8fafc;
   }
-  
-  .textarea:focus {
+
+  .uploadImage_textarea:focus {
     border-color: #6366f1;
   }
-  
-  .secondaryButton {
+
+  .uploadImage_secondaryButton {
     background-color: #334155;
     color: #cbd5e1;
   }
-  
-  .secondaryButton:hover:not(:disabled) {
+
+  .uploadImage_secondaryButton:hover:not(:disabled) {
     background-color: #475569;
   }
-  
-  .errorMessage {
+
+  .uploadImage_errorMessage {
     background-color: rgba(239, 68, 68, 0.1);
     border-color: rgba(239, 68, 68, 0.2);
   }
-  
-  .successMessage {
+
+  .uploadImage_successMessage {
     background-color: rgba(16, 185, 129, 0.1);
     border-color: rgba(16, 185, 129, 0.2);
   }
 }
-

@@ -17,22 +17,17 @@ export const postProjectController = async (req, res) => {
         }
 
 
-        const {  title, sceneData, area, coverImageUrl, thumbnailUrl } = req.body;
-
-        //VALIDATION FOR SCENE DATA
-            if (!sceneData || typeof sceneData !== "object") {
-            return res.status(400).json({ message: "sceneData must be an object" });
-            }
+        const {  title, data, coverImageUrl, thumbnailUrl } = req.body;
 
 
-        const newProject = new Project({owner, title: title || "Untitled Project", sceneData, area, coverImageUrl, thumbnailUrl , version: 1.0});
+        const newProject = new Project({owner: userId, title: title || "Untitled Project", data, coverImageUrl, thumbnailUrl , version: 1.0});
 
         await newProject.save();
         await newProject.populate('owner');
 
         console.log(newProject);
 
-        res.status(201).json(newProject);
+        res.status(201).json({ message: "Project created successfully" });
     }catch (error) {
     console.error(error);
     res.status(500).json({
@@ -60,7 +55,7 @@ export const getProjectByIDController = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).json({ message: "Invalid project ID" });
     }
-    const owner = TEST_USER_ID; // should be replaced with req.user.id after authentication is implemented
+    const owner = userId; 
 
 
     const project = await Project.findById(id);
@@ -71,8 +66,6 @@ export const getProjectByIDController = async (req, res) => {
     if (project.owner.toString() !== owner) {
         return res.status(403).json({ message: "Unauthorized access" });
     }
-
-    
 
 
     await project.populate('owner');
@@ -97,13 +90,11 @@ export const getProjectsController = async (req, res) => {
    try {
 
 
-   
-
 
     const owner = req.userId;
      
         /// authentication check
-        if (!userId) {
+        if (!owner) {
             return res.status(401).json({ success: false, message: "not authenticated" });
         }
 
@@ -145,13 +136,8 @@ export const updateProjectController = async (req, res) => {
         return res.status(400).json({ message: "Invalid project ID" });
         }
 
-        const { title, sceneData, area, coverImageUrl, thumbnailUrl } = req.body;
+        const { title, data, isArchived, coverImageUrl, thumbnailUrl } = req.body;
         
-        //VALIDATION FOR SCENE DATA
-         if (sceneData && typeof sceneData !== "object") {
-            return res.status(400).json({ message: "sceneData must be an object" });
-            }
-
         const project = await Project.findById(id);
         if (!project) {
         return res.status(404).json({ message: "Project not found" });
@@ -164,8 +150,8 @@ export const updateProjectController = async (req, res) => {
 
 
         project.title = title || project.title;
-        project.sceneData = (sceneData !== undefined) ? sceneData : project.sceneData;
-        project.area = (area !== undefined) ? area : project.area;
+        project.data = (data !== undefined) ? data : project.data;
+        project.isArchived = (isArchived !== undefined) ? isArchived : project.isArchived;
         project.coverImageUrl = (coverImageUrl !== undefined) ? coverImageUrl : project.coverImageUrl;
         project.thumbnailUrl = (thumbnailUrl !== undefined) ? thumbnailUrl : project.thumbnailUrl;
 
@@ -214,7 +200,7 @@ export const deleteProjectController = async (req, res) => {
         }
 
         await project.deleteOne();
-        res.status(204).send();
+        res.status(200).json({ message: "Project deleted successfully" });
 
     } catch (error) {
         console.error(error);

@@ -38,19 +38,20 @@ export const comfyUIServiceInstance = new ComfyUIService(COMFYUI_HOST);
 
 
 app.use('/api/ecommerce', ecommerceIndex);
-//app.use('/api/design2D', design2DIndex);
 app.use('/api/design2D3D', design2D3Dndex);
-
 app.use('/api/uploadImage', uploadIndex);
 app.use('/api/plugins', pluginIndex);
 app.use('/api/auth', loginIndex)
 app.use('/api/signup', signupIndex)
 app.use('/api/contact', contactIndex)
 app.use('/api/dashboard', dashboardIndex); 
-//app.use('/api/pricingPlans' , pricingIndex )
 app.use('/api/updateProfile' , updateProfileIndex)
 app.use('/api/community' , communityIndex)
 app.use('/api/generatedImage' , generatedImageIndex)
+
+
+
+
 
 
 

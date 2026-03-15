@@ -50,7 +50,7 @@ const Icons = {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className={styles.spinner}
+      className={styles.uploadImage_spinner}
     >
       <line x1="12" y1="2" x2="12" y2="6" />
       <line x1="12" y1="18" x2="12" y2="22" />
@@ -142,9 +142,7 @@ function UploadImagePage() {
     setIsSuccess(false);
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
-    setResultPreview(null); 
-
-
+    setResultPreview(null);
   };
 
   const handleReferenceImageChange = (e) => {
@@ -190,7 +188,6 @@ function UploadImagePage() {
       formData.append("referenceImage", referenceImageFile);
     }
 
-    
     try {
       const res = await axios.post(`${BACKEND_URL}/uploadImage`, formData, {
         headers: {
@@ -217,35 +214,35 @@ function UploadImagePage() {
     <>
       <Header />
 
-      <div className={styles.pageLayout}>
-        <main className={styles.pageWrapper}>
-          <div className={styles.container}>
+      <div className={styles.uploadImage_pageLayout}>
+        <main className={styles.uploadImage_pageWrapper}>
+          <div className={styles.uploadImage_container}>
             {/* LEFT COLUMN */}
-            <div className={styles.controls}>
-              <h1 className={styles.heading}>
+            <div className={styles.uploadImage_controls}>
+              <h1 className={styles.uploadImage_heading}>
                 <Icons.Sparkles size={24} />
                 Enhance Your Image
               </h1>
 
               {error && (
-                <div className={styles.errorMessage}>
+                <div className={styles.uploadImage_errorMessage}>
                   <Icons.AlertCircle />
                   {error}
                 </div>
               )}
 
               {isSuccess && (
-                <div className={styles.successMessage}>
+                <div className={styles.uploadImage_successMessage}>
                   <Icons.CheckCircle2 />
                   Image processed successfully!
                 </div>
               )}
 
-              <div className={styles.inputGroup}>
-                <label className={styles.label}>Upload Image</label>
+              <div className={styles.uploadImage_inputGroup}>
+                <label className={styles.uploadImage_label}>Upload Image</label>
 
                 <div
-                  className={`${styles.uploadZone} ${imagePreview ? styles.hasImage : ""}`}
+                  className={`${styles.uploadImage_uploadZone} ${imagePreview ? styles.uploadImage_hasImage : ""}`}
                   onClick={() =>
                     !imagePreview && mainFileInputRef.current?.click()
                   }
@@ -255,23 +252,23 @@ function UploadImagePage() {
                     type="file"
                     accept="image/png, image/jpg, image/jpeg, image/webp"
                     onChange={handleImageChange}
-                    className={styles.hiddenInput}
+                    className={styles.uploadImage_hiddenInput}
                     disabled={loading}
                   />
 
                   {imagePreview ? (
-                    <div className={styles.previewWrapper}>
-                      <div className={styles.previewContainer}>
+                    <div className={styles.uploadImage_previewWrapper}>
+                      <div className={styles.uploadImage_previewContainer}>
                         <img
                           src={imagePreview}
                           alt="Preview"
-                          className={styles.previewImage}
+                          className={styles.uploadImage_previewImage}
                         />
 
                         {!loading && (
                           <button
                             type="button"
-                            className={styles.clearButton}
+                            className={styles.uploadImage_clearButton}
                             onClick={(e) => {
                               e.stopPropagation();
                               setImageFile(null);
@@ -285,19 +282,19 @@ function UploadImagePage() {
                       </div>
                     </div>
                   ) : (
-                    <div className={styles.uploadPlaceholder}>
-                      <div className={styles.uploadIconWrapper}>
+                    <div className={styles.uploadImage_uploadPlaceholder}>
+                      <div className={styles.uploadImage_uploadIconWrapper}>
                         <Icons.Upload size={36} />
                       </div>
 
-                      <p className={styles.uploadText}>
-                        <span className={styles.uploadTextPrimary}>
+                      <p className={styles.uploadImage_uploadText}>
+                        <span className={styles.uploadImage_uploadTextPrimary}>
                           Click to upload
                         </span>{" "}
                         or drag and drop
                       </p>
 
-                      <p className={styles.uploadHint}>
+                      <p className={styles.uploadImage_uploadHint}>
                         PNG, JPG, JPEG, WebP up to 10MB
                       </p>
                     </div>
@@ -306,14 +303,14 @@ function UploadImagePage() {
               </div>
 
               {!isSuccess && (
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>
+                <div className={styles.uploadImage_inputGroup}>
+                  <label className={styles.uploadImage_label}>
                     Upload Reference Image (Optional)
                   </label>
 
                   <div
-                    className={`${styles.uploadZone} ${
-                      imageReferencePreview ? styles.hasImage : ""
+                    className={`${styles.uploadImage_uploadZone} ${
+                      imageReferencePreview ? styles.uploadImage_hasImage : ""
                     }`}
                     onClick={() =>
                       !imageReferencePreview &&
@@ -325,23 +322,23 @@ function UploadImagePage() {
                       type="file"
                       accept="image/png, image/jpg, image/jpeg, image/webp"
                       onChange={handleReferenceImageChange}
-                      className={styles.hiddenInput}
+                      className={styles.uploadImage_hiddenInput}
                       disabled={loading}
                     />
 
                     {imageReferencePreview ? (
-                      <div className={styles.previewWrapper}>
-                        <div className={styles.previewContainer}>
+                      <div className={styles.uploadImage_previewWrapper}>
+                        <div className={styles.uploadImage_previewContainer}>
                           <img
                             src={imageReferencePreview}
                             alt="Preview"
-                            className={styles.previewImage}
+                            className={styles.uploadImage_previewImage}
                           />
 
                           {!loading && (
                             <button
                               type="button"
-                              className={styles.clearButton}
+                              className={styles.uploadImage_clearButton}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setReferenceImageFile(null);
@@ -355,19 +352,21 @@ function UploadImagePage() {
                         </div>
                       </div>
                     ) : (
-                      <div className={styles.uploadPlaceholder}>
-                        <div className={styles.uploadIconWrapper}>
+                      <div className={styles.uploadImage_uploadPlaceholder}>
+                        <div className={styles.uploadImage_uploadIconWrapper}>
                           <Icons.Upload size={36} />
                         </div>
 
-                        <p className={styles.uploadText}>
-                          <span className={styles.uploadTextPrimary}>
+                        <p className={styles.uploadImage_uploadText}>
+                          <span
+                            className={styles.uploadImage_uploadTextPrimary}
+                          >
                             Click to upload
                           </span>{" "}
                           or drag and drop
                         </p>
 
-                        <p className={styles.uploadHint}>
+                        <p className={styles.uploadImage_uploadHint}>
                           PNG, JPG, JPEG, WebP up to 10MB
                         </p>
                       </div>
@@ -376,21 +375,21 @@ function UploadImagePage() {
                 </div>
               )}
 
-              <div className={styles.inputGroup}>
+              <div className={styles.uploadImage_inputGroup}>
                 <textarea
                   placeholder="Describe how you want to modify this image..."
                   value={inputPrompt}
                   onChange={(e) => setInputPrompt(e.target.value)}
-                  className={styles.textarea}
+                  className={styles.uploadImage_textarea}
                   rows={4}
                 />
               </div>
 
-              <div className={styles.buttonGroup}>
+              <div className={styles.uploadImage_buttonGroup}>
                 <button
                   onClick={handleSubmit}
                   disabled={loading || !imageFile || !inputPrompt.trim()}
-                  className={styles.primaryButton}
+                  className={styles.uploadImage_primaryButton}
                 >
                   {loading ? (
                     <>
@@ -408,22 +407,22 @@ function UploadImagePage() {
             </div>
 
             {/* RIGHT COLUMN */}
-              <div className={styles.previewSection}>
-                {resultPreview ? (
-                  <div className={styles.largePreviewWrapper}>
-                    <img
-                      src={resultPreview}
-                      alt="Generated result"
-                      className={styles.largePreviewImage}
-                    />
-                  </div>
-                ) : (
-                  <div className={styles.emptyState}>
-                    <Icons.Sparkles size={40} />
-                    <p>Your generated image will appear here</p>
-                  </div>
-                )}
-              </div>
+            <div className={styles.uploadImage_previewSection}>
+              {resultPreview ? (
+                <div className={styles.uploadImage_largePreviewWrapper}>
+                  <img
+                    src={resultPreview}
+                    alt="Generated result"
+                    className={styles.uploadImage_largePreviewImage}
+                  />
+                </div>
+              ) : (
+                <div className={styles.uploadImage_emptyState}>
+                  <Icons.Sparkles size={40} />
+                  <p>Your generated image will appear here</p>
+                </div>
+              )}
+            </div>
           </div>
         </main>
       </div>

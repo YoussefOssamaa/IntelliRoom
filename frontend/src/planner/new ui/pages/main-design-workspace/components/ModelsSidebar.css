@@ -1,0 +1,243 @@
+.models-sidebar {
+  position: absolute;
+  left: 64px;
+  top: 0;
+  bottom: 0;
+  width: 600px;
+  background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
+  border-right: 1px solid #e5e7eb;
+  box-shadow: 10px 0 24px -16px rgba(15, 23, 42, 0.35);
+  backdrop-filter: blur(2px);
+  z-index: 30;
+  display: flex;
+}
+
+.category-browser {
+  width: 200px;
+  border-right: 1px solid #e5e7eb;
+  overflow-y: auto;
+}
+
+.category-list {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 8px;
+}
+
+.category-item {
+  width: 100%;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #374151;
+  position: relative;
+}
+
+.category-item:hover {
+  background-color: #eef2ff;
+}
+
+.category-item.active {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+}
+
+.category-label {
+  font-size: 14px;
+  flex: 1;
+}
+
+.subcategory-chevron {
+  margin-left: auto;
+  transition: transform 0.3s ease;
+}
+
+.subcategory-chevron.rotated {
+  transform: rotate(180deg);
+}
+
+.subcategory-list {
+  margin-top: 4px;
+  margin-left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.subcategory-item {
+  width: 100%;
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.subcategory-item:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.subcategory-item.active {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+  font-weight: 500;
+}
+
+.subcategory-label {
+  font-size: 13px;
+}
+
+.models-grid-container {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.models-grid-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.models-grid-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.models-grid {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.model-card {
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.model-card:hover {
+  box-shadow: 0 16px 30px -20px rgba(15, 23, 42, 0.45);
+  transform: translateY(-2px);
+}
+
+.model-image-container {
+  aspect-ratio: 1;
+  overflow: hidden;
+  background-color: #f3f4f6;
+}
+
+.model-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.model-card:hover .model-image {
+  transform: scale(1.1);
+}
+
+.model-info {
+  padding: 12px;
+}
+
+.model-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+  margin: 0;
+}
+
+.model-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+}
+
+/* Texture-specific styles */
+.texture-instructions {
+  padding: 8px 16px;
+  font-size: 12px;
+  color: #6b7280;
+  background-color: #f0f9ff;
+  border-bottom: 1px solid #e5e7eb;
+  line-height: 1.4;
+}
+
+.texture-card {
+  position: relative;
+}
+
+.model-card.texture-active {
+  outline: 3px solid #2563eb;
+  outline-offset: -3px;
+  background-color: #eff6ff;
+}
+
+.model-card.texture-active .model-image-container {
+  opacity: 0.9;
+}
+
+.texture-type-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.texture-type-badge.wall {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.texture-type-badge.floor {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.cancel-texture-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.cancel-texture-btn:hover {
+  background: #f3f4f6;
+  color: #374151;
+}

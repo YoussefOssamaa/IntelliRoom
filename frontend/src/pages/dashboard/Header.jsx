@@ -92,6 +92,10 @@ const Header = ({ user }) => {
             <Link to="/pricingPlans" className={getLinkClass('/pricingPlans')}>
               Pricing
             </Link>
+
+            <Link to="/planner" className={getLinkClass('/planner')}>
+              3D Planner
+            </Link>
             
             <Link to="/dashboard" className={getLinkClass('/dashboard')}>
               Dashboard

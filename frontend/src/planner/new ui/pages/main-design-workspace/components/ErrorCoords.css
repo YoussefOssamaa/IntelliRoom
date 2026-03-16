@@ -1,0 +1,28 @@
+.error-coords {
+  position: absolute;
+  left: 80px; /* to the right of left toolbar */
+  top: 12px;
+  z-index: 70;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  background: rgba(255,255,255,0.95);
+  border: 1px solid #e5e7eb;
+  padding: 8px 10px;
+  border-radius: 8px;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.06);
+}
+
+.error-coords .coords div {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.error-coords .errors div {
+  font-size: 12px;
+  color: #ef4444;
+}
+
+.error-coords .warn-count {
+  color: #f59e0b;
+}

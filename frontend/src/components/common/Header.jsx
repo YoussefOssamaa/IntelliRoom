@@ -27,7 +27,7 @@ const Header = () => {
           
           <div className="flex-shrink-0 flex items-center gap-3 cursor-pointer">
             <img 
-              src="../public/assets/site-logo-white.png" 
+              src="../assets/site-logo-white.png" 
               alt="IntelliRoom AI Logo" 
               className="w-auto h-10 sm:h-12 lg:h-14"
             />
@@ -121,6 +121,14 @@ const Header = () => {
               role="menuitem"
             >
               Pricing
+            </button>
+
+            <button 
+              onClick={()=> navigate("/planner")}
+              className="text-base font-medium text-text-primary hover:text-text-accent transition-colors"
+              role="menuitem"
+            >
+              3D Planner
             </button>
 
             <button 

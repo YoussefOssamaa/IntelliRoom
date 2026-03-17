@@ -143,9 +143,9 @@ const Header = ({ user }) => {
                     <p className="text-xs text-[#666666] truncate">{user?.plan || "Free"} Plan</p>
                   </div>
                   <ul className="py-2">
-                    <li><button className="w-full px-4 py-2 text-left text-sm text-[#333333] hover:bg-[#f0fdf4] transition-colors bg-transparent border-0 cursor-pointer">Profile Settings</button></li>
-                    <li><button className="w-full px-4 py-2 text-left text-sm text-[#333333] hover:bg-[#f0fdf4] transition-colors bg-transparent border-0 cursor-pointer">My Projects</button></li>
-                    <li><button className="w-full px-4 py-2 text-left text-sm text-[#333333] hover:bg-[#f0fdf4] transition-colors bg-transparent border-0 cursor-pointer">Billing</button></li>
+                    <li><button onClick={() => navigate('/updateProfile')} className="w-full px-4 py-2 text-left text-sm text-[#333333] hover:bg-[#f0fdf4] transition-colors bg-transparent border-0 cursor-pointer">Profile Settings</button></li>
+                    <li><button onClick={() => navigate('/myProjects')} className="w-full px-4 py-2 text-left text-sm text-[#333333] hover:bg-[#f0fdf4] transition-colors bg-transparent border-0 cursor-pointer">My Projects</button></li>
+                    <li><button onClick={() => navigate('/billing')} className="w-full px-4 py-2 text-left text-sm text-[#333333] hover:bg-[#f0fdf4] transition-colors bg-transparent border-0 cursor-pointer">Billing</button></li>
                     <li className="border-t border-[#e0e0e0] mt-2 pt-2">
                         <button 
                             onClick={handleLogout}

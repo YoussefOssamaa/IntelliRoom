@@ -8,10 +8,6 @@ import { COMFYUI_OUTPUT_NODE } from '../../../../ai/ComfyUI_Workflows/API_Format
 
 
 
-//const TEST_USER_ID = "64f3a5e6a3c9b7f1a1234567"; /// should be replaced with req.user.id after authentication is implemented
-
-
-
 export const postImageController = async (req, res) => {
     try {
             if (!req.files?.image?.[0]) {
@@ -21,7 +17,7 @@ export const postImageController = async (req, res) => {
         const mainImage = req.files.image[0];
         const referenceImage = req.files.referenceImage?.[0];  
         const inputPrompt = req.body.inputPrompt || ''        
-        console.log('Uploaded file:', req.file);
+        console.log('Uploaded file:', mainImage.filename);
 
 
         console.log('Uploading image to ComfyUI...');
@@ -78,11 +74,17 @@ export const postImageController = async (req, res) => {
 
         await setTimeout(1000);
         
+
+        //const test_localFilename = "test.jpg";
          return res.status(200).json({
             message: 'Image uploaded and processed successfully',
-            originalImage: `/uploads/uploadedImages/${req.file.filename}`,
-            enhancedImageUrl: `/comfyOutputs/${localFilename}`
+            originalImage: `/uploads/uploadedImages/${mainImage.filename}`,
+            referenceImage: referenceImage ? `/uploads/referenceImages/${referenceImage.filename}` : null,
+            enhancedImageUrl: `/api/comfyOutputs/${localFilename}`
         });
+
+
+
 
 
 

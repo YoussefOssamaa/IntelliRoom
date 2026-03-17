@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import MarketplacePage from './screens/PluginMarketplace';
 import { PricingPlansPage } from './pages/pricingPlans/PricingPlansPage';
 import { PluginReviewPage } from './pages/plugins-review/PluginReviewPage';
-import UploadImagePage from './pages/uploadImage/uploadImagePage';
+import UploadImagePage from './pages/uploadImage/UploadImagePage.jsx';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import LoginModal from './pages/auth/login';
 import SignUpModal from './pages/auth/signUp';

@@ -44,10 +44,10 @@ app.use('/api/plugins', pluginIndex);
 app.use('/api/auth', loginIndex)
 app.use('/api/signup', signupIndex)
 app.use('/api/contact', contactIndex)
-app.use('/api/dashboard', dashboardIndex); 
-app.use('/api/updateProfile' , updateProfileIndex)
-app.use('/api/community' , communityIndex)
-app.use('/api/generatedImage' , generatedImageIndex)
+app.use('/api/dashboard', dashboardIndex);
+app.use('/api/updateProfile', updateProfileIndex)
+app.use('/api/community', communityIndex)
+app.use('/api/generatedImage', generatedImageIndex)
 
 
 

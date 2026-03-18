@@ -10,30 +10,30 @@ import { setTimeout as wait } from 'node:timers/promises';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const comfy_output_dir = path.join(__dirname, '../../../uploads/comfyOutputs');
+const comfy_output_dir = path.join(__dirname, '../../uploads/comfyOutputs');
 console.log('ComfyUI output directory:', comfy_output_dir);
 if (!fs.existsSync(comfy_output_dir)) {
-  fs.mkdirSync(comfy_output_dir, { recursive: true });
-} 
+    fs.mkdirSync(comfy_output_dir, { recursive: true });
+}
 
 
 
 function isZrokHost(host) {
-    return host && host.includes('.share.zrok.io');
+    return host && host.includes('.shares.zrok.io');
 }
 function getURLsFromHost(host) {
     const cleanHost = host.replace(/^https?:\/\//, '').replace(/\/$/, '');
     const isZrok = isZrokHost(cleanHost);
     const httpURL = isZrok ? `https://${cleanHost}` : `http://${cleanHost}`;
-    return { httpURL,  isZrok };
+    return { httpURL, isZrok };
 }
 
 
 export class ComfyUIService {
     constructor(host = 'localhost:8188') {
-            const { httpURL, wsURL, isZrok } = getURLsFromHost(host);
-            this.COMFYUI_API_URL = httpURL;
-            this.isZrok = isZrok;
+        const { httpURL, wsURL, isZrok } = getURLsFromHost(host);
+        this.COMFYUI_API_URL = httpURL;
+        this.isZrok = isZrok;
 
     }
 
@@ -41,12 +41,12 @@ export class ComfyUIService {
 
     async uploadImage(filePath, subfolder = '') {
         try {
-            
+
             console.log('📤 Uploading image to ComfyUI:', filePath);
 
             const formData = new FormData();
             formData.append('image', fs.createReadStream(filePath));
-            
+
             if (subfolder) {
                 formData.append('subfolder', subfolder);
             }
@@ -63,7 +63,7 @@ export class ComfyUIService {
             );
 
             console.log('Image uploaded to ComfyUI:', response.data);
-            
+
             return response.data.name; // ComfyUI returns the filename
         } catch (error) {
             console.error('Error uploading image to ComfyUI:', error.response?.data || error.message);
@@ -74,45 +74,45 @@ export class ComfyUIService {
 
 
     async downloadImage(filename, subfolder = '', type = 'output') {
-            try {
+        try {
 
             console.log('📥 Attempting to download image from ComfyUI...');
             console.log('   Filename:', filename);
             console.log('   Subfolder:', subfolder || '(none)');
             console.log('   Type:', type);
-            
-            
 
-                const params = new URLSearchParams({
-                    filename,
-                    type,
-                    ...(subfolder && { subfolder })
-                });
 
-                const headers = {};
-                if (this.isZrok) {
-                    headers['skip_zrok_interstitial'] = 'true';
+
+            const params = new URLSearchParams({
+                filename,
+                type,
+                ...(subfolder && { subfolder })
+            });
+
+            const headers = {};
+            if (this.isZrok) {
+                headers['skip_zrok_interstitial'] = 'true';
+            }
+
+            const response = await axios.get(
+                `${this.COMFYUI_API_URL}/view?${params.toString()}`,
+                {
+                    responseType: 'arraybuffer',
+                    headers
                 }
-
-                const response = await axios.get(
-                    `${this.COMFYUI_API_URL}/view?${params.toString()}`,
-                    { 
-                        responseType: 'arraybuffer',
-                        headers
-                    }
-                );
+            );
 
 
             console.log('Image fetched from ComfyUI, size:', response.data.length, 'bytes');
 
             const outputPath = path.join(comfy_output_dir, filename);
             console.log('💾 Saving to:', outputPath);
-            
-            
+
+
             fs.writeFileSync(outputPath, response.data);
             console.log('Image saved successfully to:', outputPath);
-            
-                        // Verify file was written
+
+            // Verify file was written
             if (fs.existsSync(outputPath)) {
                 const stats = fs.statSync(outputPath);
                 console.log('File verified, size:', stats.size, 'bytes');
@@ -121,27 +121,27 @@ export class ComfyUIService {
             }
 
 
-                return filename; // Return just the filename for URL construction
+            return filename; // Return just the filename for URL construction
 
-                
-            } catch (error) {
+
+        } catch (error) {
             console.error('Error downloading image from ComfyUI:');
             console.error('   Status:', error.response?.status);
             console.error('   Message:', error.message);
             console.error('   Data:', error.response?.data);
             throw error;
-            }
         }
+    }
 
 
-    
+
     async runComfyWorkflow(workflow) {
 
         try {
 
             console.log('Sending workflow to ComfyUI...');
             console.log('Workflow:', JSON.stringify(workflow, null, 2));
-            
+
             const headers = { 'Content-Type': 'application/json' };
             if (this.isZrok) {
                 headers['skip_zrok_interstitial'] = 'true';
@@ -149,13 +149,13 @@ export class ComfyUIService {
 
 
             const response = await axios.post(
-                `${this.COMFYUI_API_URL}/prompt`, 
-                { prompt: workflow} , 
+                `${this.COMFYUI_API_URL}/prompt`,
+                { prompt: workflow },
                 { headers }
             )
 
 
-            const prompt_id  = response.data.prompt_id;
+            const prompt_id = response.data.prompt_id;
             console.log('ComfyUI workflow started with prompt_id:', prompt_id);
 
 
@@ -168,16 +168,16 @@ export class ComfyUIService {
             throw error;
         }
 
-}
+    }
 
 
 
 
-async pollForCompletion(promptId) {
+    async pollForCompletion(promptId) {
 
         await wait(2000);   // waits 2 seconds in the beginning
         const MAX_RETRIES = 300; // Wait up to 300 seconds (5 mins)
-        
+
         for (let i = 0; i < MAX_RETRIES; i++) {
             try {
 
@@ -189,7 +189,7 @@ async pollForCompletion(promptId) {
                     return history;
                 }
 
-                await wait(1000); 
+                await wait(1000);
 
             } catch (error) {
                 console.error('Polling error (retrying):', error.message);
@@ -203,28 +203,28 @@ async pollForCompletion(promptId) {
 
 
 
-        async getHistory(promptId) {
-            try {
+    async getHistory(promptId) {
+        try {
 
-                console.log(`Check if prompt_id ${promptId} appeared in history` );
-                const headers = {};
-                if (this.isZrok) {
-                    headers['skip_zrok_interstitial'] = 'true';
-                }
+            console.log(`Check if prompt_id ${promptId} appeared in history`);
+            const headers = {};
+            if (this.isZrok) {
+                headers['skip_zrok_interstitial'] = 'true';
+            }
 
-                const response = await axios.get(
-                    `${this.COMFYUI_API_URL}/history/${promptId}`,
-                    { headers }
-                );
+            const response = await axios.get(
+                `${this.COMFYUI_API_URL}/history/${promptId}`,
+                { headers }
+            );
 
             const historyData = response.data[promptId];
             return historyData;
             console.log('History data:', JSON.stringify(historyData, null, 2));
-        
+
         } catch (error) {
-                console.error('Error getting history from ComfyUI:', error);
-                throw error;
-            }
+            console.error('Error getting history from ComfyUI:', error);
+            throw error;
         }
+    }
 
 }

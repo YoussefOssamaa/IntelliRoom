@@ -341,7 +341,7 @@ function UploadImagePage() {
     if (resetResult) setResultPreview(null);
   };
 
-  const TEST_MODE = true;
+  const TEST_MODE = false;
   const TEST_IMAGE_URL = `http://localhost:5000/api/comfyOutputs/test2.png`;
 
   /* ── submit ────────────────────────────────────────────── */
@@ -367,10 +367,11 @@ function UploadImagePage() {
     try {
       const res = await axios.post(`${BACKEND_URL}/uploadImage`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
-        timeout: 30000,
         withCredentials: true,
       });
-      setResultPreview(`http://localhost:5000${res.data.enhancedImageUrl}`);
+      // BACKEND_URL is e.g. "http://localhost:5000/api", enhancedImageUrl is "/api/comfyOutputs/<file>"
+      const baseUrl = BACKEND_URL.replace(/\/api$/, '');
+      setResultPreview(`${baseUrl}${res.data.enhancedImageUrl}`);
       setIsSuccess(true);
     } catch (err) {
       setError(err.response?.data?.message || "Processing failed. Please try again.");

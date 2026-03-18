@@ -4,8 +4,7 @@ import fs from 'fs';
 import { comfyUIServiceInstance } from '../../server.js';
 import { setTimeout } from 'node:timers/promises';
 import { escape } from 'node:querystring';
-import { COMFYUI_OUTPUT_NODE } from '../../../../ai/ComfyUI_Workflows/API_Format/Final_workflow_API.mjs';
-
+import { buildComfyWorkflow ,COMFYUI_OUTPUT_NODE } from '../../../../ai/ComfyUI_Workflows/API_Format/Final_workflow_API.mjs';
 
 
 export const postImageController = async (req, res) => {
@@ -75,16 +74,12 @@ export const postImageController = async (req, res) => {
         await setTimeout(1000);
         
 
-        //const test_localFilename = "test.jpg";
          return res.status(200).json({
             message: 'Image uploaded and processed successfully',
             originalImage: `/uploads/uploadedImages/${mainImage.filename}`,
             referenceImage: referenceImage ? `/uploads/referenceImages/${referenceImage.filename}` : null,
             enhancedImageUrl: `/api/comfyOutputs/${localFilename}`
         });
-
-
-
 
 
 

@@ -18,6 +18,14 @@ const subscriptionSchema = new mongoose.Schema(  {
       enum: ["active", "canceled", "expired", "trial"],
       index: true,
     },
+
+    billingCycle: {
+    type: String,
+    enum: ["monthly", "yearly"],
+    required: true,
+    default: "monthly",
+  },
+
     startDate: {
       type: Date,
       required: true,

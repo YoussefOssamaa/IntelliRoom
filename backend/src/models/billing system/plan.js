@@ -1,5 +1,4 @@
-const mongoose = require('mongoose');
-
+import mongoose from "mongoose";
 const planSchema = new mongoose.Schema(  {
     name: {
       type: String,
@@ -19,12 +18,17 @@ const planSchema = new mongoose.Schema(  {
       uppercase: true,
       trim: true,
     },
-    billingCycle: {
-      type: String,
-      enum: ["monthly", "yearly"],
-      default: "monthly",
-    },
+    // billingCycle: {   added to subscription model instead of plan model
+    //   type: String,
+    //   enum: ["monthly", "yearly"],
+    //   default: "monthly",
+    // },
     renderLimit: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    model3DLimit: {
       type: Number,
       required: true,
       min: 0,
@@ -36,4 +40,5 @@ const planSchema = new mongoose.Schema(  {
   },
   { timestamps: true });
 
-  module.exports = mongoose.model('Plan', planSchema);
+ const Plan = mongoose.model('Plan', planSchema);
+ export default Plan;

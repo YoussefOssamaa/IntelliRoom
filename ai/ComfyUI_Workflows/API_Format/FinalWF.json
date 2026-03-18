@@ -1,0 +1,318 @@
+{
+  "113": {
+    "inputs": {
+      "text": "make it yellow",
+      "clip": [
+        "130:122",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Positive Prompt)"
+    }
+  },
+  "114": {
+    "inputs": {
+      "text": "",
+      "clip": [
+        "130:122",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode ( Negative Prompt)"
+    }
+  },
+  "133": {
+    "inputs": {
+      "anything": [
+        "130:123",
+        0
+      ]
+    },
+    "class_type": "Anything Everywhere",
+    "_meta": {
+      "title": "VAE"
+    }
+  },
+  "154": {
+    "inputs": {
+      "rgthree_comparer": {
+        "images": [
+          {
+            "name": "A",
+            "selected": true,
+            "url": "/api/view?filename=rgthree.compare._temp_dundn_00003_.png&type=temp&subfolder=&rand=0.20194708790760674"
+          },
+          {
+            "name": "B",
+            "selected": true,
+            "url": "/api/view?filename=rgthree.compare._temp_dundn_00004_.png&type=temp&subfolder=&rand=0.22163475105930341"
+          }
+        ]
+      },
+      "image_a": [
+        "149:147",
+        0
+      ],
+      "image_b": [
+        "149:102",
+        0
+      ]
+    },
+    "class_type": "Image Comparer (rgthree)",
+    "_meta": {
+      "title": "Image Comparer (rgthree)"
+    }
+  },
+  "130:124": {
+    "inputs": {
+      "anything": [
+        "130:123",
+        0
+      ]
+    },
+    "class_type": "Anything Everywhere",
+    "_meta": {
+      "title": "Anything Everywhere"
+    }
+  },
+  "130:125": {
+    "inputs": {
+      "anything": [
+        "130:121",
+        0
+      ]
+    },
+    "class_type": "Anything Everywhere",
+    "_meta": {
+      "title": "Anything Everywhere"
+    }
+  },
+  "130:122": {
+    "inputs": {
+      "clip_name": "qwen_3_4b.safetensors",
+      "type": "flux2",
+      "device": "cuda:0"
+    },
+    "class_type": "CLIPLoaderMultiGPU",
+    "_meta": {
+      "title": "CLIPLoaderMultiGPU"
+    }
+  },
+  "130:123": {
+    "inputs": {
+      "vae_name": "flux2-vae.safetensors",
+      "device": "cuda:1"
+    },
+    "class_type": "VAELoaderMultiGPU",
+    "_meta": {
+      "title": "VAELoaderMultiGPU"
+    }
+  },
+  "130:121": {
+    "inputs": {
+      "unet_name": "gguf/flux-2-klein-4b-Q8_0.gguf",
+      "device": "cuda:1"
+    },
+    "class_type": "UnetLoaderGGUFMultiGPU",
+    "_meta": {
+      "title": "UnetLoaderGGUFMultiGPU"
+    }
+  },
+  "148:117": {
+    "inputs": {
+      "image": "ComfyUI_00010_.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "148:112:76": {
+    "inputs": {
+      "conditioning": [
+        "114",
+        0
+      ],
+      "latent": [
+        "148:112:78",
+        0
+      ]
+    },
+    "class_type": "ReferenceLatent",
+    "_meta": {
+      "title": "ReferenceLatent"
+    }
+  },
+  "148:112:78": {
+    "inputs": {
+      "pixels": [
+        "149:147",
+        0
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "VAE Encode"
+    }
+  },
+  "148:112:77": {
+    "inputs": {
+      "conditioning": [
+        "113",
+        0
+      ],
+      "latent": [
+        "148:112:78",
+        0
+      ]
+    },
+    "class_type": "ReferenceLatent",
+    "_meta": {
+      "title": "ReferenceLatent"
+    }
+  },
+  "149:147": {
+    "inputs": {
+      "upscale_method": "nearest-exact",
+      "megapixels": 1,
+      "resolution_steps": 1,
+      "image": [
+        "148:117",
+        0
+      ]
+    },
+    "class_type": "ImageScaleToTotalPixels",
+    "_meta": {
+      "title": "ImageScaleToTotalPixels"
+    }
+  },
+  "149:106": {
+    "inputs": {
+      "image": [
+        "149:147",
+        0
+      ]
+    },
+    "class_type": "GetImageSize",
+    "_meta": {
+      "title": "Get Image Size"
+    }
+  },
+  "149:107": {
+    "inputs": {
+      "width": [
+        "149:106",
+        0
+      ],
+      "height": [
+        "149:106",
+        1
+      ],
+      "batch_size": 1
+    },
+    "class_type": "EmptyFlux2LatentImage",
+    "_meta": {
+      "title": "Empty Flux 2 Latent"
+    }
+  },
+  "149:102": {
+    "inputs": {
+      "samples": [
+        "149:127:101",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "149:127:103": {
+    "inputs": {
+      "noise_seed": 596043756343196
+    },
+    "class_type": "RandomNoise",
+    "_meta": {
+      "title": "RandomNoise"
+    }
+  },
+  "149:127:115": {
+    "inputs": {
+      "cfg": 1,
+      "model": [
+        "130:121",
+        0
+      ],
+      "positive": [
+        "148:112:77",
+        0
+      ],
+      "negative": [
+        "148:112:76",
+        0
+      ]
+    },
+    "class_type": "CFGGuider",
+    "_meta": {
+      "title": "CFGGuider"
+    }
+  },
+  "149:127:100": {
+    "inputs": {
+      "sampler_name": "euler"
+    },
+    "class_type": "KSamplerSelect",
+    "_meta": {
+      "title": "KSamplerSelect"
+    }
+  },
+  "149:127:116": {
+    "inputs": {
+      "steps": 4,
+      "width": [
+        "149:106",
+        0
+      ],
+      "height": [
+        "149:106",
+        1
+      ]
+    },
+    "class_type": "Flux2Scheduler",
+    "_meta": {
+      "title": "Flux2Scheduler"
+    }
+  },
+  "149:127:101": {
+    "inputs": {
+      "noise": [
+        "149:127:103",
+        0
+      ],
+      "guider": [
+        "149:127:115",
+        0
+      ],
+      "sampler": [
+        "149:127:100",
+        0
+      ],
+      "sigmas": [
+        "149:127:116",
+        0
+      ],
+      "latent_image": [
+        "149:107",
+        0
+      ]
+    },
+    "class_type": "SamplerCustomAdvanced",
+    "_meta": {
+      "title": "SamplerCustomAdvanced"
+    }
+  }
+}

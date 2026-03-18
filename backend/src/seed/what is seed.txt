@@ -1,0 +1,7 @@
+//🌱 What is “seed” (seeding)?
+
+Seeding = inserting initial/default data into your database
+
+Think of it like:
+
+“pre-loading your database with required data so the app can work”

@@ -11,6 +11,7 @@ import ProtectedRoute from './components/protectedRoute';
 import LandingPage from './pages/landingPage/landingPage';
 import PlannerPage from './pages/planner/PlannerPage';
 import { UpdateProfile } from './pages/updateProfile/updateProfile';
+import { Community } from './pages/community/community';
 
 
 const AppRoutes = () => {
@@ -33,6 +34,8 @@ const AppRoutes = () => {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/updateProfile" element={<UpdateProfile />} />
         <Route path="/planner" element={<PlannerPage />} />
+        <Route path="/community" element={<Community />} />
+        
 
       </Routes>
     </Router>

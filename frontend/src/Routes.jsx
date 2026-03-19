@@ -12,7 +12,7 @@ import LandingPage from './pages/landingPage/landingPage';
 import PlannerPage from './pages/planner/PlannerPage';
 import { UpdateProfile } from './pages/updateProfile/updateProfile';
 import { Community } from './pages/community/community';
-
+import Checkout  from './pages/checkout/Checkout';
 
 const AppRoutes = () => {
   return (
@@ -35,6 +35,7 @@ const AppRoutes = () => {
         <Route path="/updateProfile" element={<UpdateProfile />} />
         <Route path="/planner" element={<PlannerPage />} />
         <Route path="/community" element={<Community />} />
+        <Route path="/checkout" element={<Checkout />} />
         
 
       </Routes>

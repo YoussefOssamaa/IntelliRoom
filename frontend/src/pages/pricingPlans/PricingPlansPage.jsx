@@ -2,11 +2,14 @@ import React, { useState } from 'react';
 import './PricingPlansPage.css';
 import Header from '../../pages/dashboard/Header';
 import Footer from '../../components/common/Footer';
+import { Navigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 
 
 export function PricingPlansPage() {
   const [isAnnual, setIsAnnual] = useState(false);
+  const navigate = useNavigate();
 
   const plans = [
     {
@@ -141,7 +144,7 @@ export function PricingPlansPage() {
               ))}
             </ul>
 
-            <button className="cta-button">Choose {plan.name}</button>
+            <button className="cta-button" onClick={()=> navigate("/checkout")  } >Choose {plan.name}</button>
           </div>
         ))}
       </div>

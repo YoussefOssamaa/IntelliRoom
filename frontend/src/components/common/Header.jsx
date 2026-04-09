@@ -108,7 +108,7 @@ const Header = () => {
             </button>
 */}
             <button
-              onClick={()=> navigate("/marketplace")}
+              onClick={()=> navigate("/ecomm")}
               className="text-base font-medium text-text-primary hover:text-text-accent transition-colors"
               role="menuitem"
             >

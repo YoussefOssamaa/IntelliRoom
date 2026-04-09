@@ -17,7 +17,10 @@ import dashboardIndex from './routes/dashboard/dashboardIndex.js';
 import updateProfileIndex from './routes/updateProfileRoutes/updateProfileIndex.js'
 import communityIndex from './routes/community/communityIndex.js'
 import generatedImageIndex from './routes/generatedImageRoutes/generatedImageIndex.js'
-
+import productRoutes from './routes/ecommerceRoutes/productRoutes.js'; 
+import cartRouter from './routes/ecommerceRoutes/cartRoutes.js';
+import shopperRoutes from './routes/ecommerceRoutes/shopperRoutes.js';
+import wishlistRoutes from './routes/ecommerceRoutes/wishlistRoutes.js';
 
 const __dirname = path.resolve();
 
@@ -50,6 +53,11 @@ app.use('/api/dashboard', dashboardIndex);
 app.use('/api/updateProfile' , updateProfileIndex)
 app.use('/api/community' , communityIndex)
 app.use('/api/generatedImage' , generatedImageIndex)
+app.use('/api/products', productRoutes);
+app.use('/api/cart', cartRouter);
+app.use('/api/shopper', shopperRoutes);
+app.use('/api/wishlist', wishlistRoutes);
+
 
 
 

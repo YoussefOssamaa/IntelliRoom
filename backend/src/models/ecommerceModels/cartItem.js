@@ -10,12 +10,7 @@ const cartItemSchema = new mongoose.Schema({
     type: Number,
     default: 1,
     min: 1
-  },
-  priceAtAdd : {
-    type: Number,
-    required: true,
-    min: 0
   }
 });
 
-export default cartItemSchema;   ////used only by cart.js, no need to be a model itself
+export default cartItemSchema;

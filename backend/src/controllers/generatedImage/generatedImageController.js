@@ -7,7 +7,6 @@ export const postGeneratedImageController = async (req, res) => {
     try {
 
         const user_id = req.userId;
-        console.log(user_id);
         //Security check 1
         if (!user_id) {
             return res.status(401).json({ message: "Not authenticated" });
@@ -16,7 +15,7 @@ export const postGeneratedImageController = async (req, res) => {
 
 
 
-        const {inputPrompt, originalImageUrl, referenceImageUrl, generatedImageUrl, isFavorite} = req.body;
+        const { inputPrompt, originalImageUrl, referenceImageUrl, generatedImageUrl, isFavorite } = req.body;
 
 
         const newPost = await GeneratedImage.create({
@@ -34,7 +33,8 @@ export const postGeneratedImageController = async (req, res) => {
     } catch (error) {
         return res.status(500).json({ error: error.message });
 
-    }}
+    }
+}
 
 
 
@@ -70,7 +70,7 @@ export const getGeneratedImageByIDController = async (req, res) => {
             return res.status(401).json({ message: "Not authenticated" });
         }
 
-        const {id} = req.params;
+        const { id } = req.params;
 
         const generatedImage = await GeneratedImage.findById(id);
         res.status(200).json(generatedImage);
@@ -92,8 +92,8 @@ export const deleteGeneratedImageController = async (req, res) => {
             return res.status(401).json({ message: "Not authenticated" });
         }
 
-        const {id} = req.params;
-        
+        const { id } = req.params;
+
         if (!id) {
             return res.status(404).json({ error: "no ID provided" });
         }
@@ -123,9 +123,9 @@ export const putGeneratedImageController = async (req, res) => {
             return res.status(401).json({ message: "Not authenticated" });
         }
 
-        const {id} = req.params;
-        const {inputPrompt, originalImageUrl, referenceImageUrl, generatedImageUrl, isFavorite} = req.body;
-        const updatedGeneratedImage = await GeneratedImage.findByIdAndUpdate(id, {inputPrompt, originalImageUrl, referenceImageUrl, generatedImageUrl , isFavorite}, {new: true});
+        const { id } = req.params;
+        const { inputPrompt, originalImageUrl, referenceImageUrl, generatedImageUrl, isFavorite } = req.body;
+        const updatedGeneratedImage = await GeneratedImage.findByIdAndUpdate(id, { inputPrompt, originalImageUrl, referenceImageUrl, generatedImageUrl, isFavorite }, { new: true });
         if (!updatedGeneratedImage) {
             return res.status(404).json({ error: "Image not updated" });
         }

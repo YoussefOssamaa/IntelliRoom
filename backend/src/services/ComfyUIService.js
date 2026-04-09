@@ -12,10 +12,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const comfy_output_dir = path.join(__dirname, '../../uploads/comfyOutputs');
 console.log('ComfyUI output directory:', comfy_output_dir);
-if (!fs.existsSync(comfy_output_dir)) {
-    fs.mkdirSync(comfy_output_dir, { recursive: true });
+try {
+    const stats = await fs.promises.stat(comfy_output_dir);
+    console.log('File verified, size:', stats.size, 'bytes');
+} catch {
+    console.error('File was not written to disk!');
 }
-
 
 
 function isZrokHost(host) {
@@ -109,12 +111,12 @@ export class ComfyUIService {
             console.log('💾 Saving to:', outputPath);
 
 
-            fs.writeFileSync(outputPath, response.data);
+            await fs.promises.writeFile(outputPath, response.data);
             console.log('Image saved successfully to:', outputPath);
 
             // Verify file was written
-            if (fs.existsSync(outputPath)) {
-                const stats = fs.statSync(outputPath);
+            if (await fs.promises.exists(outputPath)) {
+                const stats = await fs.promises.stat(outputPath);
                 console.log('File verified, size:', stats.size, 'bytes');
             } else {
                 console.error('File was not written to disk!');

@@ -342,7 +342,7 @@ function UploadImagePage() {
   };
 
   const TEST_MODE = false;
-  const TEST_IMAGE_URL = `http://localhost:5000/api/comfyOutputs/test2.png`;
+  const TEST_IMAGE_URL = `/api/comfyOutputs/test2.png`;
 
   /* ── submit ────────────────────────────────────────────── */
   const handleSubmit = async () => {

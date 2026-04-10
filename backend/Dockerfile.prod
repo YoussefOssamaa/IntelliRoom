@@ -1,0 +1,23 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install pnpm
+RUN npm install -g pnpm
+
+# Copy dependency definitions ///  make a new copy of the existing package.json and pnpm-lock.yaml to make any changes happened  (copy the files from local storage --> into ./ the working directory )
+COPY package.json pnpm-lock.yaml* ./
+
+# Install dependencies (only production ones)
+RUN pnpm install --prod --frozen-lockfile
+
+# Copy the rest of the backend source code
+COPY . .
+
+# Ensure the uploads directory exists 
+RUN mkdir -p /app/uploads/comfyOutputs
+
+EXPOSE 5000
+
+# Start the server directly with node, avoiding nodemon
+CMD ["node", "src/server.js"]

@@ -1,0 +1,34 @@
+/* ─── Smart Preview Panel ─── */
+
+.smart-preview {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: #f0f2f5;
+  border-bottom: 1px solid #d1d5db;
+  border-left: 1px solid #e5e7eb;
+}
+
+.smart-preview canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.preview-label {
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(0,0,0,0.45);
+  padding: 1px 7px;
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 2;
+  letter-spacing: 0.3px;
+  user-select: none;
+}

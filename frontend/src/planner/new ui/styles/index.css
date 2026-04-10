@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  /* Primary Colors */
+  --color-primary: #2563EB;
+  --color-primary-foreground: #FFFFFF;
+  
+  /* Secondary Colors */
+  --color-secondary: #64748B;
+  --color-secondary-foreground: #FFFFFF;
+  
+  /* Accent Colors */
+  --color-accent: #0EA5E9;
+  --color-accent-foreground: #FFFFFF;
+  
+  /* Background Colors */
+  --color-background: #FAFAFA;
+  --color-foreground: #1E293B;
+  
+  /* Surface Colors */
+  --color-card: #FFFFFF;
+  --color-card-foreground: #1E293B;
+  
+  /* Muted Colors */
+  --color-muted: #F1F5F9;
+  --color-muted-foreground: #64748B;
+  
+  /* Border & Input */
+  --color-border: #E2E8F0;
+  --color-input: #E2E8F0;
+  
+  /* Status Colors */
+  --color-success: #10B981;
+  --color-error: #EF4444;
+  --color-warning: #F59E0B;
+  --color-destructive: #EF4444;
+  
+  /* Spacing & Layout */
+  --radius: 6px;
+  --radius-sm: 4px;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+}
+
+* {
+  box-sizing: border-box;
+  line-height: normal;
+  font-family: inherit;
+  margin: unset;
+}
+
+/* Utility classes to replace Tailwind */
+.flex { display: flex; }
+.grid { display: grid; }
+.hidden { display: none; }
+
+.items-center { align-items: center; }
+.justify-center { justify-content: center; }
+.flex-col { flex-direction: column; }
+.space-y-1 > * + * { margin-top: 0.25rem; }
+
+.text-sm { font-size: 0.875rem; }
+.text-destructive { color: var(--color-destructive); }
+.text-muted-foreground { color: var(--color-muted-foreground); }
+.ml-1 { margin-left: 0.25rem; }
+
+.min-h-screen { min-height: 100vh; }
+.max-w-md { max-width: 28rem; }
+.text-center { text-align: center; }
+.mb-6 { margin-bottom: 1.5rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-8 { margin-bottom: 2rem; }
+.p-4 { padding: 1rem; }
+
+.text-9xl { font-size: 8rem; line-height: 1; }
+.text-2xl { font-size: 1.5rem; line-height: 2rem; }
+.font-bold { font-weight: 700; }
+.font-medium { font-weight: 500; }
+.opacity-20 { opacity: 0.2; }
+
+.gap-4 { gap: 1rem; }
+
+.relative { position: relative; }
+.h-3 { height: 0.75rem; }
+.w-3 { width: 0.75rem; }
+.text-current { color: currentColor; }
+.flex-1 { flex: 1 1 0%; }

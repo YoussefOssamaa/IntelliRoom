@@ -1,2 +1,3 @@
 # IntelliRoom
-IntelliRoom AI is a web-based platform that uses AI and cultural awareness to transform interior design. Users can upload a photo of a room and receive a redesigned image that respects Arabic and Middle Eastern aesthetics. The platform also includes an e-commerce marketplace for purchasing recommended items.
+
+IntelliRoom is an AI-powered interior design platform that transforms room photos into culturally-aware redesigns inspired by Arabic and Middle Eastern aesthetics. The platform features an interactive 2D/3D floor planner built with Three.js for visualizing room layouts, an integrated e-commerce marketplace for browsing and purchasing recommended furniture, and a community gallery where users can share their designs and discover inspiration from others.

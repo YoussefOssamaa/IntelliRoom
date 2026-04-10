@@ -75,7 +75,7 @@
   justify-content: center;
 }
 
-.primaryButton {
+.landing_primaryButton {
   padding: 1rem 2.5rem;
   font-size: 1.125rem;
   font-weight: 600;
@@ -88,12 +88,12 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
-.primaryButton:hover {
+.landing_primaryButton:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
-.primaryButton:active {
+.landing_primaryButton:active {
   transform: translateY(0);
 }
 
@@ -170,7 +170,7 @@
     width: 100%;
   }
 
-  .primaryButton,
+  .landing_primaryButton,
   .secondaryButton,
   .marketplaceButton {
     width: 100%;

@@ -5,6 +5,9 @@ import path from 'path'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  define: {
+    'global': 'globalThis',
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -15,7 +18,13 @@ export default defineConfig({
       '@services': path.resolve(__dirname, './src/services'),
       '@hooks': path.resolve(__dirname, './src/hooks'),
       '@context': path.resolve(__dirname, './src/context'),
+      // React-planner alias — catalog elements import from 'react-planner'
+      'react-planner': path.resolve(__dirname, './src/planner/index.js'),
     },
+  },
+  assetsInclude: ['**/*.glb', '**/*.obj', '**/*.mtl'],
+  optimizeDeps: {
+    include: ['immutablediff', 'immutablepatch'],
   },
   server: {
     host: true,

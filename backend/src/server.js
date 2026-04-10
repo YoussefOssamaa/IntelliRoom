@@ -3,7 +3,6 @@ import dotenv from "dotenv";  //to import the variables declared in "/backend/.e
 dotenv.config(); // used here, only once to load the variables from .env file into process.env
 import connectDB from "./config/db.js";
 import ecommerceIndex from './routes/ecommerceRoutes/ecommerceIndex.js';
-import design2DIndex from './routes/design2DRoutes/design2DIndex.js';
 import loginIndex from './routes/loginRoutes/loginIndex.js';
 import signupIndex from './routes/signupRoutes/signupIndex.js';
 import contactIndex from './routes/contactRoutes/contactIndex.js'
@@ -21,6 +20,8 @@ import productRoutes from './routes/ecommerceRoutes/productRoutes.js';
 import cartRouter from './routes/ecommerceRoutes/cartRoutes.js';
 import shopperRoutes from './routes/ecommerceRoutes/shopperRoutes.js';
 import wishlistRoutes from './routes/ecommerceRoutes/wishlistRoutes.js';
+import design2D3Dndex from './routes/design2D-3DRoutes/design2D3DIndex.js'
+import healthcontroller from './controllers/healthcontroller.js'
 
 const __dirname = path.resolve();
 
@@ -29,20 +30,22 @@ const COMFYUI_HOST = process.env.COMFYUI_HOST || 'localhost:8188';
 
 
 const app = express();
+app.set('trust proxy', 1);
+
 
 await connectDB();
 app.use(express.json());
 app.use(CORSMiddleware)
 app.use(cookieParser())
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
-app.use('/api/comfyOutputs', express.static(path.join(__dirname, '../uploads/comfyOutputs')));
+app.use('/api/comfyOutputs', express.static(path.join(__dirname, './uploads/comfyOutputs')));
 
 
 export const comfyUIServiceInstance = new ComfyUIService(COMFYUI_HOST);
 
 
 app.use('/api/ecommerce', ecommerceIndex);
-app.use('/api/design2D', design2DIndex);
+app.use('/api/design2D3D', design2D3Dndex);
 app.use('/api/uploadImage', uploadIndex);
 app.use('/api/plugins', pluginIndex);
 app.use('/api/auth', loginIndex)
@@ -57,6 +60,13 @@ app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRouter);
 app.use('/api/shopper', shopperRoutes);
 app.use('/api/wishlist', wishlistRoutes);
+app.use('/api/dashboard', dashboardIndex);
+app.use('/api/updateProfile', updateProfileIndex)
+app.use('/api/community', communityIndex)
+app.use('/api/generatedImage', generatedImageIndex)
+
+
+app.use('/health', healthcontroller)
 
 
 

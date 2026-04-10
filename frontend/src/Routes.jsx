@@ -13,6 +13,11 @@ import Ecomm from './pages/marketplace/MarketPlacePage';
 import CategoryListingPage from './pages/marketplace/CategoryListingPage';
 import ProductDetailsPage from './pages/marketplace/ProductDetailsPage';
 
+import PlannerPage from './pages/planner/PlannerPage';
+import { UpdateProfile } from './pages/updateProfile/updateProfile';
+import { Community } from './pages/community/community';
+import Checkout  from './pages/checkout/Checkout';
+
 import { ShopProvider } from './context/ShopContext';
 import CartPage from './pages/marketplace/CartPage';
 import MarketHeader from './pages/marketplace/MarketHeader';
@@ -27,10 +32,9 @@ const MarketplaceLayout = () => {
     </ShopProvider>
   )
 }
-
+    
 const AppRoutes = () => {
   return (
-    
     <Router>
       <Routes>
         <Route path="/login" element={<LoginModal />} />
@@ -63,9 +67,21 @@ const AppRoutes = () => {
             </ProtectedRoute>} 
         />
 
+        <Route path="/marketplace/pluginReview/:id" element={<PluginReviewPage />} />
+        <Route path="/upload" element={<UploadImagePage />} />
+        {/* <Route path="/dashboard" element={<DashboardPage />} /> */}
+        <Route path="/updateProfile" element={<UpdateProfile />} />
+        <Route path="/planner" element={<PlannerPage />} />
+        <Route path="/community" element={<Community />} />
+        <Route path="/checkout" element={<Checkout />} />
+
       </Routes>
     </Router>
   
+        
+        
+
+    
   );
 };
 

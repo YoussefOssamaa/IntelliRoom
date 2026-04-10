@@ -20,7 +20,7 @@ function LandingPage() {
           
           <div className={styles.buttonGroup}>
             <button 
-              className={styles.primaryButton}
+              className={styles.landing_primaryButton}
               onClick={() => navigate("/signup")}
             >
               Start Designing Free

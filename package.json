@@ -1,5 +1,10 @@
 {
-	"dependencies": {
+  "scripts": {
+    "dev": "npx concurrently \"pnpm run dev:backend\" \"pnpm run dev:frontend\"",
+    "dev:backend": "cd backend && pnpm dev",
+    "dev:frontend": "cd frontend && pnpm dev"
+  },
+  "dependencies": {
 		"express": "^5.2.1",
 		"form-data": "^4.0.5",
 		"git": "^0.1.5"

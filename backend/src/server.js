@@ -25,6 +25,8 @@ const COMFYUI_HOST = process.env.COMFYUI_HOST || 'localhost:8188';
 
 
 const app = express();
+app.set('trust proxy', 1);
+
 
 await connectDB();
 app.use(express.json());
@@ -50,7 +52,7 @@ app.use('/api/community', communityIndex)
 app.use('/api/generatedImage', generatedImageIndex)
 
 
-
+app.use('/health', healthcontroller)
 
 
 

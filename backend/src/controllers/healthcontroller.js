@@ -1,9 +1,9 @@
 import express from 'express';
 
-const router = express.Router();
+const healthcontroller = express.Router();
 
-router.get('/', (req, res) => {
+healthcontroller.get('/', (req, res) => {
     res.status(200).send('Backend is working');
 });
 
-export default router;
+export default healthcontroller;

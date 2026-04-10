@@ -17,6 +17,7 @@ import updateProfileIndex from './routes/updateProfileRoutes/updateProfileIndex.
 import communityIndex from './routes/community/communityIndex.js'
 import generatedImageIndex from './routes/generatedImageRoutes/generatedImageIndex.js'
 import design2D3Dndex from './routes/design2D-3DRoutes/design2D3DIndex.js'
+import healthcontroller from './controllers/healthcontroller.js'
 
 const __dirname = path.resolve();
 

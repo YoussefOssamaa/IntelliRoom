@@ -16,23 +16,23 @@ import ProductDetailsPage from './pages/marketplace/ProductDetailsPage';
 import PlannerPage from './pages/planner/PlannerPage';
 import { UpdateProfile } from './pages/updateProfile/updateProfile';
 import { Community } from './pages/community/community';
-import Checkout  from './pages/checkout/Checkout';
+import Checkout from './pages/checkout/Checkout';
 
 import { ShopProvider } from './context/ShopContext';
 import CartPage from './pages/marketplace/CartPage';
 import MarketHeader from './pages/marketplace/MarketHeader';
 import FavoritesPage from './pages/marketplace/FavoritesPage';
-
+import RoomPage from './pages/marketplace/RoomPage';
 
 const MarketplaceLayout = () => {
   return (
     <ShopProvider>
       <MarketHeader />
-      <Outlet /> 
+      <Outlet />
     </ShopProvider>
   )
 }
-    
+
 const AppRoutes = () => {
   return (
     <Router>
@@ -42,29 +42,29 @@ const AppRoutes = () => {
         <Route path="/test" element={
           <ProtectedRoute>
             <h1>Protected Route</h1>
-          </ProtectedRoute>} 
+          </ProtectedRoute>}
         />
-        
+
         <Route path="/" element={<LandingPage />} />
         <Route path="/marketplace" element={<MarketplacePage />} />
         <Route path="/pricingPlans" element={<PricingPlansPage />} />
         <Route path="/pluginReview/:id" element={<PluginReviewPage />} />
 
         <Route element={<MarketplaceLayout />}>
-            <Route path="/ecomm" element={<Ecomm />} />
-            <Route path="/ecomm/product/:slug" element={<ProductDetailsPage />} />
-            <Route path="/ecomm/category/:categoryId" element={<CategoryListingPage />} />
-            <Route path="/ecomm/cart" element={<CartPage />} />
-            <Route path="/ecomm/wishlist" element={<FavoritesPage user={null} />} />
-            <Route path="/marketplace/room/:roomName" element={<RoomPage />} />
-      </Route>
+          <Route path="/ecomm" element={<Ecomm />} />
+          <Route path="/ecomm/product/:slug" element={<ProductDetailsPage />} />
+          <Route path="/ecomm/category/:categoryId" element={<CategoryListingPage />} />
+          <Route path="/ecomm/cart" element={<CartPage />} />
+          <Route path="/ecomm/wishlist" element={<FavoritesPage user={null} />} />
+          <Route path="/marketplace/room/:roomName" element={<RoomPage />} />
+        </Route>
 
 
         <Route path="/upload" element={<UploadImagePage />} />
         <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <DashboardPage />
-            </ProtectedRoute>} 
+          <ProtectedRoute>
+            <DashboardPage />
+          </ProtectedRoute>}
         />
 
         <Route path="/marketplace/pluginReview/:id" element={<PluginReviewPage />} />
@@ -77,11 +77,11 @@ const AppRoutes = () => {
 
       </Routes>
     </Router>
-  
-        
-        
 
-    
+
+
+
+
   );
 };
 

@@ -40,7 +40,7 @@ const ShopByRoom = () => {
       description:
         "Where flavors meet. Shop dining tables, bar stools, and modern fixtures.",
       image:
-        "https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1617228069096-4638a7ffc906?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8a2l0Y2hlbnxlbnwwfHwwfHx8MA%3D%3D",
     },
     {
       id: "Bathroom",

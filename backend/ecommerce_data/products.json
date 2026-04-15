@@ -1,0 +1,1908 @@
+[
+    {
+        "_id": { "$oid": "3bc5153ef2d7bbd1ad3a7dea" },
+        "sku": "SF-MOD-001",
+        "name": "Modular Sectional Sofa - 3 Piece",
+        "slug": "modular-sectional-sofa-3-piece",
+        "description": "A versatile modular sectional featuring deep seats and plush velvet upholstery. Perfect for modern living spaces with configurable layouts to suit any room configuration.",
+        "brand": "West Elm",
+        "pricing": {
+            "originalPrice": 2499.0,
+            "currentPrice": 1899.0,
+            "isOnSale": true,
+            "costPerItem": 1200.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Seating",
+            "subCategory": "Sofas",
+            "tags": ["sofas", "seating", "west-elm"],
+            "rooms": ["living-room"],
+            "materials": ["Velvet", "Birch Plywood", "Metal"],
+            "colors": ["Charcoal", "Navy Blue"]
+        },
+        "physical": {
+            "dimensions": { "width": 280, "height": 85, "depth": 95 },
+            "weight": 85,
+            "assemblyRequired": true
+        },
+        "media": {
+            "primaryImage": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800",
+            "gallery": [
+                "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800",
+                "https://images.unsplash.com/photo-1550226891-ef816aed4a98?w=800",
+                "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=800"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 15,
+            "inStock": true,
+            "shippingDimensions": { "width": 290, "height": 95, "depth": 105, "weight": 90 }
+        },
+        "aiStyleTags": ["contemporary", "minimalist", "luxury"],
+        "social": { "averageRating": 4.9, "reviewCount": 91, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:20:08.987496Z" },
+        "updatedAt": { "$date": "2026-04-15T04:20:08.987506Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "926af2ad3c3f00bc8ebf0c9c" },
+        "sku": "CH-LMB-002",
+        "name": "Eames Lounge Chair & Ottoman",
+        "slug": "eames-lounge-chair-ottoman",
+        "description": "Iconic mid-century design featuring molded plywood technology and premium leather upholstery. The ultimate relaxation piece combining timeless aesthetics with ergonomic comfort.",
+        "brand": "Herman Miller",
+        "pricing": {
+            "originalPrice": 6995.0,
+            "currentPrice": 6995.0,
+            "isOnSale": false,
+            "costPerItem": 3500.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Seating",
+            "subCategory": "Armchairs",
+            "tags": ["armchairs", "seating", "herman-miller"],
+            "rooms": ["living-room", "office"],
+            "materials": ["Walnut Wood", "Leather", "Metal"],
+            "colors": ["Natural Oak", "Black"]
+        },
+        "physical": {
+            "dimensions": { "width": 84, "height": 85, "depth": 85 },
+            "weight": 45,
+            "assemblyRequired": false
+        },
+        "media": {
+            "primaryImage": "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=800",
+            "gallery": [
+                "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=800",
+                "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800"
+            ],
+            "threeDModelUrl": "https://3d.intelliroom.com/models/eames-lounge-chair-ottoman.glb"
+        },
+        "inventory": {
+            "stockQuantity": 8,
+            "inStock": true,
+            "shippingDimensions": { "width": 94, "height": 95, "depth": 95, "weight": 50 }
+        },
+        "aiStyleTags": ["mid-century modern", "classic", "luxury"],
+        "social": { "averageRating": 4.7, "reviewCount": 169, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:20:08.987529Z" },
+        "updatedAt": { "$date": "2026-04-15T04:20:08.987532Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "5f0bb8ba8cc09cd8888eb97c" },
+        "sku": "TB-OAK-003",
+        "name": "Solid Oak Dining Table - Extendable",
+        "slug": "solid-oak-dining-table-extendable",
+        "description": "Crafted from sustainably sourced solid oak, this dining table features a hidden leaf extension system. Seats 6-10 people comfortably with a natural oil finish that highlights the wood grain.",
+        "brand": "Article",
+        "pricing": {
+            "originalPrice": 1899.0,
+            "currentPrice": 1599.0,
+            "isOnSale": true,
+            "costPerItem": 900.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Tables",
+            "subCategory": "Dining Tables",
+            "tags": ["dining-tables", "tables", "article"],
+            "rooms": ["dining-room", "kitchen"],
+            "materials": ["Oak Wood", "Metal"],
+            "colors": ["Natural Oak", "Warm Beige"]
+        },
+        "physical": {
+            "dimensions": { "width": 180, "height": 75, "depth": 90 },
+            "weight": 65,
+            "assemblyRequired": true
+        },
+        "media": {
+            "primaryImage": "https://images.unsplash.com/photo-1577140917170-285929fb55b7?w=800",
+            "gallery": [
+                "https://images.unsplash.com/photo-1577140917170-285929fb55b7?w=800",
+                "https://images.unsplash.com/photo-1617806118233-18e1de247200?w=800",
+                "https://images.unsplash.com/photo-1604578762246-41134e37f9cc?w=800"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 22,
+            "inStock": true,
+            "shippingDimensions": { "width": 190, "height": 85, "depth": 100, "weight": 70 }
+        },
+        "aiStyleTags": ["scandinavian", "japandi", "minimalist"],
+        "social": { "averageRating": 4.6, "reviewCount": 93, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:20:08.987556Z" },
+        "updatedAt": { "$date": "2026-04-15T04:20:08.987558Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "8b4fcf337cbec5ce41fbd73d" },
+        "sku": "SF-SCA-004",
+        "name": "Scandinavian Fabric Armchair",
+        "slug": "scandinavian-fabric-armchair",
+        "description": "Clean lines and organic curves define this comfortable armchair. Upholstered in durable bouclé fabric with solid wood legs. Perfect reading nook essential.",
+        "brand": "IKEA",
+        "pricing": {
+            "originalPrice": 599.0,
+            "currentPrice": 499.0,
+            "isOnSale": true,
+            "costPerItem": 250.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Seating",
+            "subCategory": "Armchairs",
+            "tags": ["armchairs", "seating", "ikea"],
+            "rooms": ["living-room", "bedroom", "office"],
+            "materials": ["Birch Plywood", "Cotton", "Foam"],
+            "colors": ["Cream White", "Sage Green", "Terracotta"]
+        },
+        "physical": {
+            "dimensions": { "width": 82, "height": 100, "depth": 85 },
+            "weight": 28,
+            "assemblyRequired": true
+        },
+        "media": {
+            "primaryImage": "https://images.unsplash.com/photo-1580480055273-228ff5388ef8?w=800",
+            "gallery": [
+                "https://images.unsplash.com/photo-1580480055273-228ff5388ef8?w=800",
+                "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=800"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 45,
+            "inStock": true,
+            "shippingDimensions": { "width": 92, "height": 110, "depth": 95, "weight": 33 }
+        },
+        "aiStyleTags": ["scandinavian", "cozy", "minimalist"],
+        "social": { "averageRating": 4.0, "reviewCount": 87, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:20:08.987572Z" },
+        "updatedAt": { "$date": "2026-04-15T04:20:08.987574Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "c1ff0cf63d9162f482899b7b" },
+        "sku": "LT-ARC-005",
+        "name": "Arc Floor Lamp - Marble Base",
+        "slug": "arc-floor-lamp-marble-base",
+        "description": "Dramatic arc design with genuine Carrara marble base and brass-finished metal shade. Provides overhead lighting without ceiling installation. Dimmable LED compatible.",
+        "brand": "CB2",
+        "pricing": {
+            "originalPrice": 899.0,
+            "currentPrice": 899.0,
+            "isOnSale": false,
+            "costPerItem": 450.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Lighting",
+            "subCategory": "Floor Lamps",
+            "tags": ["floor-lamps", "lighting", "cb2"],
+            "rooms": ["living-room", "office"],
+            "materials": ["Marble", "Metal", "Glass"],
+            "colors": ["Matte Black", "Brass"]
+        },
+        "physical": {
+            "dimensions": { "width": 180, "height": 205, "depth": 50 },
+            "weight": 35,
+            "assemblyRequired": true
+        },
+        "media": {
+            "primaryImage": "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=800",
+            "gallery": [
+                "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=800",
+                "https://qc4n.bigmodel.cn/image5BHY_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 12,
+            "inStock": true,
+            "shippingDimensions": { "width": 190, "height": 215, "depth": 60, "weight": 40 }
+        },
+        "aiStyleTags": ["contemporary", "modern", "statement piece"],
+        "social": { "averageRating": 4.8, "reviewCount": 64, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:20:08.987589Z" },
+        "updatedAt": { "$date": "2026-04-15T04:20:08.987591Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "a1b2c3d4e5f6000000000006" },
+        "sku": "BD-PFM-006",
+        "name": "Platform Bed - Upholstered Headboard Queen",
+        "slug": "platform-bed-upholstered-headboard-queen",
+        "description": "Modern platform bed featuring a tall upholstered headboard with vertical channel tufting. Low-profile frame creates a floating effect. No box spring required.",
+        "brand": "Casper",
+        "pricing": {
+            "originalPrice": 1799.0,
+            "currentPrice": 1499.0,
+            "isOnSale": true,
+            "costPerItem": 850.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Beds",
+            "subCategory": "Platform Beds",
+            "tags": ["beds", "bedroom", "casper"],
+            "rooms": ["bedroom"],
+            "materials": ["Linen", "Plywood", "Metal"],
+            "colors": ["Charcoal Gray", "Cream", "Sage"]
+        },
+        "physical": {
+            "dimensions": { "width": 165, "height": 125, "depth": 215 },
+            "weight": 72,
+            "assemblyRequired": true
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/imagecXmG_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/imagecXmG_searched_original.png",
+                "https://qc4n.bigmodel.cn/imagek3Jv_searched_original.png",
+                "https://qc4n.bigmodel.cn/imagefpMS_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 18,
+            "inStock": true,
+            "shippingDimensions": { "width": 175, "height": 135, "depth": 225, "weight": 78 }
+        },
+        "aiStyleTags": ["contemporary", "minimalist", "cozy"],
+        "social": { "averageRating": 4.7, "reviewCount": 156, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:00.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:00.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "b2c3d4e5f601000000000007" },
+        "sku": "CT-MRB-007",
+        "name": "Round Marble Coffee Table",
+        "slug": "round-marble-coffee-table",
+        "description": "Elegant round coffee table featuring a genuine Carrara marble top with subtle gray veining. Gold-finished metal base adds luxury touch. Perfect centerpiece for modern living rooms.",
+        "brand": "West Elm",
+        "pricing": {
+            "originalPrice": 899.0,
+            "currentPrice": 749.0,
+            "isOnSale": true,
+            "costPerItem": 420.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Tables",
+            "subCategory": "Coffee Tables",
+            "tags": ["coffee-tables", "tables", "west-elm"],
+            "rooms": ["living-room"],
+            "materials": ["Marble", "Metal"],
+            "colors": ["White Marble", "Gold"]
+        },
+        "physical": {
+            "dimensions": { "width": 90, "height": 45, "depth": 90 },
+            "weight": 32,
+            "assemblyRequired": false
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/imagelfOd_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/imagelfOd_searched_original.png",
+                "https://qc4n.bigmodel.cn/imageqZuP_searched_original.png",
+                "https://qc4n.bigmodel.cn/image73aN_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 24,
+            "inStock": true,
+            "shippingDimensions": { "width": 100, "height": 55, "depth": 100, "weight": 36 }
+        },
+        "aiStyleTags": ["luxury", "modern", "elegant"],
+        "social": { "averageRating": 4.6, "reviewCount": 89, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:01.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:01.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "c3d4e5f60102000000000008" },
+        "sku": "DR-MCM-008",
+        "name": "Mid-Century Modern Dresser - 6 Drawer",
+        "slug": "mid-century-modern-dresser-6-drawer",
+        "description": "Timeless mid-century design with tapered legs and clean lines. Six spacious drawers feature soft-close mechanisms and brass-finished handles. Crafted from solid walnut wood.",
+        "brand": "Article",
+        "pricing": {
+            "originalPrice": 1299.0,
+            "currentPrice": 1099.0,
+            "isOnSale": true,
+            "costPerItem": 650.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Storage",
+            "subCategory": "Dressers",
+            "tags": ["dressers", "storage", "article"],
+            "rooms": ["bedroom"],
+            "materials": ["Walnut Wood", "Metal"],
+            "colors": ["Dark Walnut", "Natural Oak"]
+        },
+        "physical": {
+            "dimensions": { "width": 160, "height": 95, "depth": 50 },
+            "weight": 58,
+            "assemblyRequired": true
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/imageUfxV_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/imageUfxV_searched_original.png",
+                "https://qc4n.bigmodel.cn/imagerXKO_searched_original.png",
+                "https://qc4n.bigmodel.cn/imageYLRq_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 14,
+            "inStock": true,
+            "shippingDimensions": { "width": 170, "height": 105, "depth": 60, "weight": 64 }
+        },
+        "aiStyleTags": ["mid-century modern", "classic", "timeless"],
+        "social": { "averageRating": 4.5, "reviewCount": 112, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:02.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:02.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "d4e5f601020300000000009" },
+        "sku": "DK-WDM-009",
+        "name": "Executive Office Desk - Walnut & Metal",
+        "slug": "executive-office-desk-walnut-metal",
+        "description": "Spacious executive desk featuring a rich walnut wood top with striking black metal X-frame legs. Includes cable management system and ample workspace for productivity.",
+        "brand": "West Elm",
+        "pricing": {
+            "originalPrice": 1599.0,
+            "currentPrice": 1399.0,
+            "isOnSale": true,
+            "costPerItem": 780.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Office Furniture",
+            "subCategory": "Desks",
+            "tags": ["desks", "office", "west-elm"],
+            "rooms": ["office"],
+            "materials": ["Walnut Wood", "Metal"],
+            "colors": ["Dark Walnut", "Black Metal"]
+        },
+        "physical": {
+            "dimensions": { "width": 180, "height": 75, "depth": 80 },
+            "weight": 52,
+            "assemblyRequired": true
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/imageZZDQ_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/imageZZDQ_searched_original.png",
+                "https://qc4n.bigmodel.cn/imagerKPA_searched_original.png",
+                "https://qc4n.bigmodel.cn/imageROqU_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 19,
+            "inStock": true,
+            "shippingDimensions": { "width": 190, "height": 85, "depth": 90, "weight": 58 }
+        },
+        "aiStyleTags": ["industrial", "executive", "professional"],
+        "social": { "averageRating": 4.8, "reviewCount": 78, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:03.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:03.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "e5f6010203040000000000a" },
+        "sku": "CH-LTH-010",
+        "name": "Executive Leather Office Chair",
+        "slug": "executive-leather-office-chair",
+        "description": "Premium ergonomic office chair upholstered in top-grain leather with diamond-stitched detailing. Features adjustable height, lumbar support, and recline mechanism for all-day comfort.",
+        "brand": "Herman Miller",
+        "pricing": {
+            "originalPrice": 1899.0,
+            "currentPrice": 1699.0,
+            "isOnSale": true,
+            "costPerItem": 950.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Seating",
+            "subCategory": "Office Chairs",
+            "tags": ["office-chairs", "seating", "herman-miller"],
+            "rooms": ["office"],
+            "materials": ["Leather", "Metal", "Foam"],
+            "colors": ["Brown", "Black", "Tan"]
+        },
+        "physical": {
+            "dimensions": { "width": 72, "height": 115, "depth": 72 },
+            "weight": 35,
+            "assemblyRequired": false
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/imagejDWs_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/imagejDWs_searched_original.png",
+                "https://qc4n.bigmodel.cn/imageKzjt_searched_original.png",
+                "https://qc4n.bigmodel.cn/imageBSc0_searched_original.png"
+            ],
+            "threeDModelUrl": "https://3d.intelliroom.com/models/executive-leather-chair.glb"
+        },
+        "inventory": {
+            "stockQuantity": 22,
+            "inStock": true,
+            "shippingDimensions": { "width": 82, "height": 125, "depth": 82, "weight": 40 }
+        },
+        "aiStyleTags": ["executive", "ergonomic", "professional"],
+        "social": { "averageRating": 4.7, "reviewCount": 203, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:04.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:04.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "f601020305000000000000b" },
+        "sku": "BK-FLT-011",
+        "name": "Floating Wall Bookshelf - Large",
+        "slug": "floating-wall-bookshelf-large",
+        "description": "Modern wall-mounted bookshelf with asymmetrical compartment design. Creates visual interest while maximizing floor space. Perfect for displaying books, plants, and decorative objects.",
+        "brand": "IKEA",
+        "pricing": {
+            "originalPrice": 349.0,
+            "currentPrice": 279.0,
+            "isOnSale": true,
+            "costPerItem": 140.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Storage",
+            "subCategory": "Bookshelves",
+            "tags": ["bookshelves", "storage", "ikea"],
+            "rooms": ["living-room", "office", "bedroom"],
+            "materials": ["MDF", "Wood Veneer"],
+            "colors": ["Natural Oak", "White", "Walnut"]
+        },
+        "physical": {
+            "dimensions": { "width": 180, "height": 120, "depth": 30 },
+            "weight": 28,
+            "assemblyRequired": true
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/imageTxkN_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/imageTxkN_searched_original.png",
+                "https://qc4n.bigmodel.cn/imagerhey_searched_original.png",
+                "https://qc4n.bigmodel.cn/imageJGEN_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 38,
+            "inStock": true,
+            "shippingDimensions": { "width": 190, "height": 130, "depth": 40, "weight": 32 }
+        },
+        "aiStyleTags": ["modern", "space-saving", "versatile"],
+        "social": { "averageRating": 4.3, "reviewCount": 145, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:05.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:05.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "01020304050600000000000c" },
+        "sku": "PT-ALU-012",
+        "name": "Outdoor Patio Dining Set - 7 Piece",
+        "slug": "outdoor-patio-dining-set-7-piece",
+        "description": "Complete outdoor dining set featuring weather-resistant aluminum frame with plush Sunbrella cushions. Seats 6 comfortably around a rectangular table. Perfect for entertaining on patios or decks.",
+        "brand": "CB2",
+        "pricing": {
+            "originalPrice": 3499.0,
+            "currentPrice": 2999.0,
+            "isOnSale": true,
+            "costPerItem": 1750.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Outdoor Furniture",
+            "subCategory": "Dining Sets",
+            "tags": ["outdoor", "patio", "cb2"],
+            "rooms": [ "living-room"],
+            "materials": ["Aluminum", "Sunbrella Fabric"],
+            "colors": ["Charcoal Gray", "Slate Black", "Beige"]
+        },
+        "physical": {
+            "dimensions": { "tableWidth": 180, "tableHeight": 75, "tableDepth": 100, "chairWidth": 65, "chairHeight": 85, "chairDepth": 65 },
+            "weight": 145,
+            "assemblyRequired": true
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/imagebfqh_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/imagebfqh_searched_original.png",
+                "https://qc4n.bigmodel.cn/imageMT9Z_searched_original.png",
+                "https://qc4n.bigmodel.cn/imageDRsd_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 8,
+            "inStock": true,
+            "shippingDimensions": { "width": 250, "height": 120, "depth": 160, "weight": 165 }
+        },
+        "aiStyleTags": ["outdoor", "entertaining", "weather-resistant"],
+        "social": { "averageRating": 4.6, "reviewCount": 67, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:06.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:06.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "11121314151600000000000d" },
+        "sku": "RG-GEO-013",
+        "name": "Geometric Area Rug - Large",
+        "slug": "geometric-area-rug-large",
+        "description": "Contemporary area rug featuring bold geometric patterns in neutral tones. Machine-washable low-pile construction makes it perfect for high-traffic areas. Adds instant style to any room.",
+        "brand": "Ruggable",
+        "pricing": {
+            "originalPrice": 499.0,
+            "currentPrice": 399.0,
+            "isOnSale": true,
+            "costPerItem": 180.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Rugs",
+            "subCategory": "Area Rugs",
+            "tags": ["rugs", "flooring", "ruggable"],
+            "rooms": ["living-room", "bedroom", "dining-room"],
+            "materials": ["Polyester", "Rubber Backing"],
+            "colors": ["Gray Multi", "Beige Neutral", "Blue Geometric"]
+        },
+        "physical": {
+            "dimensions": { "width": 245, "height": 3, "depth": 305 },
+            "weight": 12,
+            "assemblyRequired": false
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/images5Jx_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/images5Jx_searched_original.png",
+                "https://qc4n.bigmodel.cn/imagexJdX_searched_original.png",
+                "https://qc4n.bigmodel.cn/imageLE1c_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 42,
+            "inStock": true,
+            "shippingDimensions": { "width": 260, "height": 15, "depth": 320, "weight": 15 }
+        },
+        "aiStyleTags": ["contemporary", "geometric", "practical"],
+        "social": { "averageRating": 4.4, "reviewCount": 234, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:07.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:07.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "12131415161800000000000e" },
+        "sku": "ST-RND-014",
+        "name": "Round Side Table - Marble & Gold",
+        "slug": "round-side-table-marble-gold",
+        "description": "Elegant accent side table with faux marble top and gold-finished metal frame. Compact size perfect for beside sofas or as a bedside table. Adds luxury touch to any space.",
+        "brand": "CB2",
+        "pricing": {
+            "originalPrice": 299.0,
+            "currentPrice": 249.0,
+            "isOnSale": true,
+            "costPerItem": 120.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Tables",
+            "subCategory": "Side Tables",
+            "tags": ["side-tables", "tables", "cb2"],
+            "rooms": ["living-room", "bedroom"],
+            "materials": ["Marble Effect", "Metal"],
+            "colors": ["White Marble", "Gold Frame"]
+        },
+        "physical": {
+            "dimensions": { "width": 50, "height": 55, "depth": 50 },
+            "weight": 10,
+            "assemblyRequired": true
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/imageRVpv_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/imageRVpv_searched_original.png",
+                "https://qc4n.bigmodel.cn/image1pSS_searched_original.png",
+                "https://qc4n.bigmodel.cn/image2YNM_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 56,
+            "inStock": true,
+            "shippingDimensions": { "width": 60, "height": 65, "depth": 60, "weight": 13 }
+        },
+        "aiStyleTags": ["glam", "accent piece", "versatile"],
+        "social": { "averageRating": 4.5, "reviewCount": 178, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:08.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:08.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "13141516172000000000000f" },
+        "sku": "CN-SLD-015",
+        "name": "Slim Console Table - Entryway",
+        "slug": "slim-console-table-entryway",
+        "description": "Narrow console table perfect for entryways and hallways. Clean lines and slim profile maximize space efficiency. Crafted from solid wood with a smooth matte finish.",
+        "brand": "West Elm",
+        "pricing": {
+            "originalPrice": 599.0,
+            "currentPrice": 499.0,
+            "isOnSale": true,
+            "costPerItem": 280.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Tables",
+            "subCategory": "Console Tables",
+            "tags": ["console-tables", "tables", "west-elm"],
+            "rooms": ["living-room"],
+            "materials": ["Solid Wood"],
+            "colors": ["Black", "Natural Oak", "Walnut"]
+        },
+        "physical": {
+            "dimensions": { "width": 140, "height": 78, "depth": 35 },
+            "weight": 22,
+            "assemblyRequired": true
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/image6bhm_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/image6bhm_searched_original.png",
+                "https://qc4n.bigmodel.cn/imagerDbr_searched_original.png",
+                "https://qc4n.bigmodel.cn/image2oRh_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 31,
+            "inStock": true,
+            "shippingDimensions": { "width": 150, "height": 88, "depth": 45, "weight": 26 }
+        },
+        "aiStyleTags": ["minimalist", "functional", "entryway essential"],
+        "social": { "averageRating": 4.6, "reviewCount": 92, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:09.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:09.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "141516171819000000000010" },
+        "sku": "NS-MCM-016",
+        "name": "Mid-Century Nightstand - 2 Drawer",
+        "slug": "mid-century-nightstand-2-drawer",
+        "description": "Compact nightstand with mid-century modern styling. Features two spacious drawers with brass pulls and tapered legs. Perfect bedside companion with open shelf for books or decor.",
+        "brand": "Article",
+        "pricing": {
+            "originalPrice": 449.0,
+            "currentPrice": 379.0,
+            "isOnSale": true,
+            "costPerItem": 190.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Storage",
+            "subCategory": "Nightstands",
+            "tags": ["nightstands", "storage", "article"],
+            "rooms": ["bedroom"],
+            "materials": ["Wood", "Metal"],
+            "colors": ["Walnut", "Oak", "White"]
+        },
+        "physical": {
+            "dimensions": { "width": 55, "height": 60, "depth": 45 },
+            "weight": 18,
+            "assemblyRequired": true
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/imagewP3A_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/imagewP3A_searched_original.png",
+                "https://qc4n.bigmodel.cn/imageLxnZ_searched_original.png",
+                "https://qc4n.bigmodel.cn/imagely0w_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 44,
+            "inStock": true,
+            "shippingDimensions": { "width": 65, "height": 70, "depth": 55, "weight": 21 }
+        },
+        "aiStyleTags": ["mid-century modern", "compact", "bedroom essential"],
+        "social": { "averageRating": 4.4, "reviewCount": 127, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:10.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:10.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "151617181920000000000011" },
+        "sku": "TV-MCM-017",
+        "name": "Mid-Century TV Stand - Media Console",
+        "slug": "mid-century-tv-stand-media-console",
+        "description": "Stylish media console with mid-century modern aesthetics. Features slatted door fronts, cable management, and adjustable shelving. Accommodates TVs up to 75 inches.",
+        "brand": "West Elm",
+        "pricing": {
+            "originalPrice": 1199.0,
+            "currentPrice": 999.0,
+            "isOnSale": true,
+            "costPerItem": 550.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Storage",
+            "subCategory": "TV Stands",
+            "tags": ["tv-stands", "storage", "west-elm"],
+            "rooms": ["living-room"],
+            "materials": ["Wood", "Metal"],
+            "colors": ["Acacia Natural", "Walnut", "White Oak"]
+        },
+        "physical": {
+            "dimensions": { "width": 185, "height": 55, "depth": 45 },
+            "weight": 48,
+            "assemblyRequired": true
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/imageOqz2_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/imageOqz2_searched_original.png",
+                "https://qc4n.bigmodel.cn/imagey3eT_searched_original.png",
+                "https://qc4n.bigmodel.cn/imageDwA7_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 17,
+            "inStock": true,
+            "shippingDimensions": { "width": 195, "height": 65, "depth": 55, "weight": 54 }
+        },
+        "aiStyleTags": ["mid-century modern", "entertainment center", "functional"],
+        "social": { "averageRating": 4.7, "reviewCount": 156, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:11.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:11.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "161718192021000000000012" },
+        "sku": "BS-IND-018",
+        "name": "Industrial Bar Stool Set of 4",
+        "slug": "industrial-bar-stool-set-of-4",
+        "description": "Set of four industrial-style bar stools with solid wood seats and black metal frames. Counter-height design perfect for kitchen islands or home bars. Stackable for easy storage.",
+        "brand": "CB2",
+        "pricing": {
+            "originalPrice": 596.0,
+            "currentPrice": 479.0,
+            "isOnSale": true,
+            "costPerItem": 240.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Seating",
+            "subCategory": "Bar Stools",
+            "tags": ["bar-stools", "seating", "cb2"],
+            "rooms": ["kitchen", "dining-room"],
+            "materials": ["Wood", "Metal"],
+            "colors": ["Natural Wood", "Black Frame", "White Frame"]
+        },
+        "physical": {
+            "dimensions": { "width": 42, "height": 105, "depth": 42 },
+            "weight": 18,
+            "assemblyRequired": true
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/imageIqj1_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/imageIqj1_searched_original.png",
+                "https://qc4n.bigmodel.cn/imagetaqw_searched_original.png",
+                "https://qc4n.bigmodel.cn/imageFKGV_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 25,
+            "inStock": true,
+            "shippingDimensions": { "width": 180, "height": 115, "depth": 180, "weight": 82 }
+        },
+        "aiStyleTags": ["industrial", "counter seating", "versatile"],
+        "social": { "averageRating": 4.5, "reviewCount": 143, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:12.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:12.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "171819202122000000000013" },
+        "sku": "DC-UPL-019",
+        "name": "Upholstered Dining Chairs - Set of 6",
+        "slug": "upholstered-dining-chairs-set-of-6",
+        "description": "Set of six modern dining chairs with curved silhouettes and plush upholstery. Gold-finished metal legs add elegance. Comfortable for long dinner parties with supportive backrests.",
+        "brand": "West Elm",
+        "pricing": {
+            "originalPrice": 1799.0,
+            "currentPrice": 1499.0,
+            "isOnSale": true,
+            "costPerItem": 850.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Seating",
+            "subCategory": "Dining Chairs",
+            "tags": ["dining-chairs", "seating", "west-elm"],
+            "rooms": ["dining-room", "kitchen"],
+            "materials": ["Fabric", "Metal", "Foam"],
+            "colors": ["Beige", "Gray", "Blush Pink"]
+        },
+        "physical": {
+            "dimensions": { "width": 58, "height": 85, "depth": 62 },
+            "weight": 12,
+            "assemblyRequired": true
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/image8kFk_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/image8kFk_searched_original.png",
+                "https://qc4n.bigmodel.cn/image9ifg_searched_original.png",
+                "https://qc4n.bigmodel.cn/imagel8AX_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 13,
+            "inStock": true,
+            "shippingDimensions": { "width": 190, "height": 95, "depth": 200, "weight": 80 }
+        },
+        "aiStyleTags": ["modern", "comfortable", "entertaining"],
+        "social": { "averageRating": 4.6, "reviewCount": 198, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:13.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:13.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "181920212324000000000014" },
+        "sku": "OT-VLV-020",
+        "name": "Velvet Storage Ottoman Bench",
+        "slug": "velvet-storage-ottoman-bench",
+        "description": "Luxurious velvet ottoman bench with button-tufted detailing and gold-finished legs. Hidden storage compartment perfect for blankets, shoes, or extra linens. Elegant addition to bedroom or entryway.",
+        "brand": "CB2",
+        "pricing": {
+            "originalPrice": 549.0,
+            "currentPrice": 449.0,
+            "isOnSale": true,
+            "costPerItem": 220.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Storage",
+            "subCategory": "Ottomans",
+            "tags": ["ottomans", "storage", "cb2"],
+            "rooms": ["bedroom","living-room"],
+            "materials": ["Velvet", "Wood", "Metal"],
+            "colors": ["Cream", "Blush", "Emerald Green", "Navy Blue"]
+        },
+        "physical": {
+            "dimensions": { "width": 110, "height": 46, "depth": 42 },
+            "weight": 18,
+            "assemblyRequired": false
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/imageLWk8_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/imageLWk8_searched_original.png",
+                "https://qc4n.bigmodel.cn/imageftBn_searched_original.png",
+                "https://qc4n.bigmodel.cn/image83ml_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 29,
+            "inStock": true,
+            "shippingDimensions": { "width": 120, "height": 56, "depth": 52, "weight": 22 }
+        },
+        "aiStyleTags": ["glam", "storage solution", "versatile"],
+        "social": { "averageRating": 4.7, "reviewCount": 167, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:14.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:14.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "192021232425000000000015" },
+        "sku": "PN-BRS-021",
+        "name": "Brass Pendant Light Cluster - 5 Light",
+        "slug": "brass-pendant-light-cluster-5-light",
+        "description": "Stunning cluster pendant light fixture with five globe-shaped glass shades suspended at varying heights. Warm brass finish complements both modern and traditional interiors. Dimmable LED compatible.",
+        "brand": "Rejuvenation",
+        "pricing": {
+            "originalPrice": 899.0,
+            "currentPrice": 799.0,
+            "isOnSale": true,
+            "costPerItem": 420.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Lighting",
+            "subCategory": "Pendant Lights",
+            "tags": ["pendant-lights", "lighting", "rejuvenation"],
+            "rooms": ["dining-room", "kitchen", "living-room"],
+            "materials": ["Brass", "Glass"],
+            "colors": ["Brushed Brass", "Clear Glass"]
+        },
+        "physical": {
+            "dimensions": { "width": 60, "height": 120, "depth": 60 },
+            "weight": 8,
+            "assemblyRequired": true
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/imageFntJ_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/imageFntJ_searched_original.png",
+                "https://qc4n.bigmodel.cn/imageIwfI_searched_original.png",
+                "https://qc4n.bigmodel.cn/imageQhFp_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 15,
+            "inStock": true,
+            "shippingDimensions": { "width": 70, "height": 130, "depth": 70, "weight": 11 }
+        },
+        "aiStyleTags": ["modern", "statement lighting", "warm ambiance"],
+        "social": { "averageRating": 4.8, "reviewCount": 84, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:15.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:15.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "202122232426000000000016" },
+        "sku": "MR-RND-022",
+        "name": "Round Wall Mirror - Gold Frame 36 inch",
+        "slug": "round-wall-mirror-gold-frame-36-inch",
+        "description": "Large circular wall mirror with thin gold metal frame. Creates illusion of space while adding elegant touch to any room. Perfect above dressers, consoles, or as standalone statement piece.",
+        "brand": "West Elm",
+        "pricing": {
+            "originalPrice": 349.0,
+            "currentPrice": 279.0,
+            "isOnSale": true,
+            "costPerItem": 140.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Decor",
+            "subCategory": "Mirrors",
+            "tags": ["mirrors", "decor", "west-elm"],
+            "rooms": ["living-room", "bedroom", "bathroom"],
+            "materials": ["Glass", "Metal"],
+            "colors": ["Gold Frame", "Silver Frame", "Black Frame"]
+        },
+        "physical": {
+            "dimensions": { "width": 91, "height": 91, "depth": 4 },
+            "weight": 10,
+            "assemblyRequired": true
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/imagebgoL_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/imagebgoL_searched_original.png",
+                "https://qc4n.bigmodel.cn/imageQQnn_searched_original.png",
+                "https://qc4n.bigmodel.cn/imagePpMt_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 38,
+            "inStock": true,
+            "shippingDimensions": { "width": 101, "height": 101, "depth": 14, "weight": 13 }
+        },
+        "aiStyleTags": ["glam", "spacious", "decorative"],
+        "social": { "averageRating": 4.6, "reviewCount": 192, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:16.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:16.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "212223242527000000000017" },
+        "sku": "WD-SLD-023",
+        "name": "Sliding Door Wardrobe - 3 Door",
+        "slug": "sliding-door-wardrobe-3-door",
+        "description": "Spacious wardrobe closet with modern sliding barn doors. Features hanging rods, adjustable shelves, and bottom drawers. Space-saving design ideal for bedrooms with limited floor space.",
+        "brand": "IKEA",
+        "pricing": {
+            "originalPrice": 1299.0,
+            "currentPrice": 1099.0,
+            "isOnSale": true,
+            "costPerItem": 580.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Storage",
+            "subCategory": "Wardrobes",
+            "tags": ["wardrobes", "storage", "ikea"],
+            "rooms": ["bedroom"],
+            "materials": ["Wood", "Metal"],
+            "colors": ["White", "Natural Oak", "Dark Walnut"]
+        },
+        "physical": {
+            "dimensions": { "width": 180, "height": 210, "depth": 62 },
+            "weight": 145,
+            "assemblyRequired": true
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/imagezz6s_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/imagezz6s_searched_original.png",
+                "https://qc4n.bigmodel.cn/image9gQA_searched_original.png",
+                "https://qc4n.bigmodel.cn/imagefurj_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 9,
+            "inStock": true,
+            "shippingDimensions": { "width": 190, "height": 220, "depth": 72, "weight": 155 }
+        },
+        "aiStyleTags": ["modern", "space-saving", "organized"],
+        "social": { "averageRating": 4.3, "reviewCount": 134, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:17.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:17.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "222324252628000000000018" },
+        "sku": "VN-LIT-024",
+        "name": "Vanity Table Set with LED Mirror",
+        "slug": "vanity-table-set-with-led-mirror",
+        "description": "Complete vanity set featuring large LED-backlit mirror with adjustable brightness. Multiple drawers and shelves provide ample storage for beauty essentials. Includes cushioned stool for comfort during makeup application.",
+        "brand": "Target",
+        "pricing": {
+            "originalPrice": 599.0,
+            "currentPrice": 499.0,
+            "isOnSale": true,
+            "costPerItem": 260.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Bedroom Furniture",
+            "subCategory": "Vanity Tables",
+            "tags": ["vanity-tables", "bedroom", "target"],
+            "rooms": ["bedroom"],
+            "materials": ["Wood", "Mirror", "LED Lights"],
+            "colors": ["White", "Pink", "Gray"]
+        },
+        "physical": {
+            "dimensions": { "tableWidth": 120, "tableHeight": 78, "tableDepth": 45, "mirrorWidth": 100, "mirrorHeight": 80, "stoolWidth": 40, "stoolHeight": 48, "stoolDepth": 35 },
+            "weight": 42,
+            "assemblyRequired": true
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/imagetlYA_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/imagetlYA_searched_original.png",
+                "https://qc4n.bigmodel.cn/imagepyQT_searched_original.png",
+                "https://qc4n.bigmodel.cn/imaget42j_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 21,
+            "inStock": true,
+            "shippingDimensions": { "width": 130, "height": 130, "depth": 90, "weight": 48 }
+        },
+        "aiStyleTags": ["glam", "beauty station", "organized"],
+        "social": { "averageRating": 4.5, "reviewCount": 178, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:18.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:18.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "232425262729000000000019" },
+        "sku": "PS-GLD-025",
+        "name": "Gold Tiered Plant Stand - 5 Shelf",
+        "slug": "gold-tiered-plant-stand-5-shelf",
+        "description": "Elegant multi-tiered plant stand with gold-finished metal frame. Five levels accommodate various plant sizes from small succulents to medium potted plants. Adds vertical greenery display to any corner.",
+        "brand": "CB2",
+        "pricing": {
+            "originalPrice": 199.0,
+            "currentPrice": 159.0,
+            "isOnSale": true,
+            "costPerItem": 75.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Decor",
+            "subCategory": "Plant Stands",
+            "tags": ["plant-stands", "decor", "cb2"],
+            "rooms": ["living-room", "bedroom", "office"],
+            "materials": ["Metal"],
+            "colors": ["Gold", "Black", "White"]
+        },
+        "physical": {
+            "dimensions": { "width": 55, "height": 130, "depth": 40 },
+            "weight": 8,
+            "assemblyRequired": true
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/imagezoYx_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/imagezoYx_searched_original.png",
+                "https://qc4n.bigmodel.cn/imageLyAn_searched_original.png",
+                "https://qc4n.bigmodel.cn/imageBP5N_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 52,
+            "inStock": true,
+            "shippingDimensions": { "width": 65, "height": 140, "depth": 50, "weight": 11 }
+        },
+        "aiStyleTags": ["bohemian", "plant lover", "vertical display"],
+        "social": { "averageRating": 4.4, "reviewCount": 156, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:19.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:19.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "24252627283000000000001a" },
+        "sku": "DL-ADJ-026",
+        "name": "Adjustable Desk Lamp - Brass with USB Port",
+        "slug": "adjustable-desk-lamp-brass-usb-port",
+        "description": "Modern desk lamp with sleek brass finish and adjustable arm. Features built-in USB charging port for devices. Touch-sensitive dimmer switch offers three brightness levels for task lighting needs.",
+        "brand": "West Elm",
+        "pricing": {
+            "originalPrice": 129.0,
+            "currentPrice": 99.0,
+            "isOnSale": true,
+            "costPerItem": 45.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Lighting",
+            "subCategory": "Desk Lamps",
+            "tags": ["desk-lamps", "lighting", "west-elm"],
+            "rooms": ["office", "bedroom"],
+            "materials": ["Metal", "Plastic"],
+            "colors": ["Brass", "Matte Black", "Rose Gold"]
+        },
+        "physical": {
+            "dimensions": { "width": 20, "height": 55, "depth": 18 },
+            "weight": 1.5,
+            "assemblyRequired": false
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/imagezrTP_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/imagezrTP_searched_original.png",
+                "https://qc4n.bigmodel.cn/imageEbkx_searched_original.png",
+                "https://qc4n.bigmodel.cn/imageQvve_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 67,
+            "inStock": true,
+            "shippingDimensions": { "width": 30, "height": 65, "depth": 28, "weight": 2.5 }
+        },
+        "aiStyleTags": ["modern", "functional", "task lighting"],
+        "social": { "averageRating": 4.6, "reviewCount": 245, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:20.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:20.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "25262728293100000000001b" },
+        "sku": "CH-CRY-027",
+        "name": "Crystal Chandelier - Large Tiered",
+        "slug": "crystal-chandelier-large-tiered",
+        "description": "Breathtaking tiered crystal chandelier with cascading prisms that create dazzling light refractions. Gold-finished frame adds warmth and luxury. Perfect statement piece for formal dining rooms or grand foyers.",
+        "brand": "Rejuvenation",
+        "pricing": {
+            "originalPrice": 2499.0,
+            "currentPrice": 2099.0,
+            "isOnSale": true,
+            "costPerItem": 1200.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Lighting",
+            "subCategory": "Chandeliers",
+            "tags": ["chandeliers", "lighting", "rejuvenation"],
+            "rooms": ["dining-room", "living-room"],
+            "materials": ["Crystal", "Metal"],
+            "colors": ["Gold Frame", "Clear Crystal", "Chrome Frame"]
+        },
+        "physical": {
+            "dimensions": { "width": 80, "height": 90, "depth": 80 },
+            "weight": 22,
+            "assemblyRequired": true
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/image2LUh_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/image2LUh_searched_original.png",
+                "https://qc4n.bigmodel.cn/imageSN6S_searched_original.png",
+                "https://qc4n.bigmodel.cn/imagebd6d_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 6,
+            "inStock": true,
+            "shippingDimensions": { "width": 90, "height": 100, "depth": 90, "weight": 28 }
+        },
+        "aiStyleTags": ["luxury", "grand", "statement piece"],
+        "social": { "averageRating": 4.9, "reviewCount": 52, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:21.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:21.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "26272829303200000000001c" },
+        "sku": "CT-REC-028",
+        "name": "Rectangular Coffee Table - Rustic Wood",
+        "slug": "rectangular-coffee-table-rustic-wood",
+        "description": "Rustic-style coffee table with thick reclaimed wood top and industrial metal base. Lower shelf provides additional storage for magazines or blankets. Robust construction ensures durability for daily use.",
+        "brand": "Article",
+        "pricing": {
+            "originalPrice": 699.0,
+            "currentPrice": 579.0,
+            "isOnSale": true,
+            "costPerItem": 300.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Tables",
+            "subCategory": "Coffee Tables",
+            "tags": ["coffee-tables", "tables", "article"],
+            "rooms": ["living-room"],
+            "materials": ["Reclaimed Wood", "Metal"],
+            "colors": ["Natural Brown", "Distressed Gray", "Espresso"]
+        },
+        "physical": {
+            "dimensions": { "width": 120, "height": 45, "depth": 65 },
+            "weight": 30,
+            "assemblyRequired": true
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/imagempkT_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/imagempkT_searched_original.png",
+                "https://qc4n.bigmodel.cn/imageE66q_searched_original.png",
+                "https://qc4n.bigmodel.cn/imagesBVM_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 27,
+            "inStock": true,
+            "shippingDimensions": { "width": 130, "height": 55, "depth": 75, "weight": 35 }
+        },
+        "aiStyleTags": ["rustic", "industrial", "sturdy"],
+        "social": { "averageRating": 4.5, "reviewCount": 134, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:22.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:22.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "27282930313300000000001d" },
+        "sku": "AC-VEL-029",
+        "name": "Velvet Accent Chair - Channel Tufted",
+        "slug": "velvet-accent-chair-channel-tufted",
+        "description": "Luxurious accent chair upholstered in soft velvet fabric with channel tufting detail. Curved silhouette and slightly angled back provide exceptional comfort. Gold-finished legs add glamorous touch.",
+        "brand": "CB2",
+        "pricing": {
+            "originalPrice": 799.0,
+            "currentPrice": 649.0,
+            "isOnSale": true,
+            "costPerItem": 320.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Seating",
+            "subCategory": "Accent Chairs",
+            "tags": ["accent-chairs", "seating", "cb2"],
+            "rooms": ["living-room", "bedroom"],
+            "materials": ["Velvet", "Wood", "Metal"],
+            "colors": ["Emerald Green", "Blush Pink", "Royal Blue", "Cream"]
+        },
+        "physical": {
+            "dimensions": { "width": 78, "height": 86, "depth": 82 },
+            "weight": 22,
+            "assemblyRequired": true
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/imagenCPF_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/imagenCPF_searched_original.png",
+                "https://qc4n.bigmodel.cn/imageSWM2_searched_original.png",
+                "https://qc4n.bigmodel.cn/imageY7QL_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 33,
+            "inStock": true,
+            "shippingDimensions": { "width": 88, "height": 96, "depth": 92, "weight": 26 }
+        },
+        "aiStyleTags": ["glam", "comfortable", "statement seating"],
+        "social": { "averageRating": 4.7, "reviewCount": 189, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:23.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:23.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "28293031323400000000001e" },
+        "sku": "DT-FRM-030",
+        "name": "Farmhouse Dining Table - Rectangular",
+        "slug": "farmhouse-dining-table-rectangular",
+        "description": "Classic farmhouse-style dining table crafted from solid pine wood with natural grain variations. Thick tabletop and sturdy trestle base ensure stability. Seats 6-8 people comfortably for family gatherings.",
+        "brand": "Pottery Barn",
+        "pricing": {
+            "originalPrice": 1499.0,
+            "currentPrice": 1249.0,
+            "isOnSale": true,
+            "costPerItem": 700.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Tables",
+            "subCategory": "Dining Tables",
+            "tags": ["dining-tables", "tables", "pottery-barn"],
+            "rooms": ["dining-room", "kitchen"],
+            "materials": ["Solid Pine Wood"],
+            "colors": ["Natural Pine", "White Washed", "Espresso Stain"]
+        },
+        "physical": {
+            "dimensions": { "width": 180, "height": 77, "depth": 95 },
+            "weight": 72,
+            "assemblyRequired": true
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/imagebfAt_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/imagebfAt_searched_original.png",
+                "https://qc4n.bigmodel.cn/imageLF6l_searched_original.png",
+                "https://qc4n.bigmodel.cn/imagek7Vo_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 11,
+            "inStock": true,
+            "shippingDimensions": { "width": 190, "height": 87, "depth": 105, "weight": 80 }
+        },
+        "aiStyleTags": ["farmhouse", "rustic", "family-friendly"],
+        "social": { "averageRating": 4.8, "reviewCount": 167, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:24.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:24.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "29303132333500000000001f" },
+        "sku": "SF-LIN-031",
+        "name": "Linear Sofa - 3 Seat Linen",
+        "slug": "linear-sofa-3-seat-linen",
+        "description": "Clean-lined three-seat sofa upholstered in breathable linen fabric. Deep seats and plush cushions offer superior comfort. Tapered wooden legs add mid-century touch. Perfect for contemporary living spaces.",
+        "brand": "West Elm",
+        "pricing": {
+            "originalPrice": 1799.0,
+            "currentPrice": 1499.0,
+            "isOnSale": true,
+            "costPerItem": 850.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Seating",
+            "subCategory": "Sofas",
+            "tags": ["sofas", "seating", "west-elm"],
+            "rooms": ["living-room"],
+            "materials": ["Linen", "Wood", "Foam"],
+            "colors": ["Stone Gray", "Ivory", "Slate Blue"]
+        },
+        "physical": {
+            "dimensions": { "width": 225, "height": 88, "depth": 94 },
+            "weight": 68,
+            "assemblyRequired": true
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/imageBiQ_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/imageBiQ_searched_original.png",
+                "https://qc4n.bigmodel.cn/imagevz6c_searched_original.png",
+                "https://qc4n.bigmodel.cn/imageSVFa_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 16,
+            "inStock": true,
+            "shippingDimensions": { "width": 235, "height": 98, "depth": 104, "weight": 74 }
+        },
+        "aiStyleTags": ["contemporary", "clean lines", "comfortable"],
+        "social": { "averageRating": 4.6, "reviewCount": 142, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:25.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:25.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "303132333436000000000020" },
+        "sku": "AR-BOU-032",
+        "name": "Bouclé Lounge Chair - Curved Silhouette",
+        "slug": "boucle-lounge-chair-curved-silhouette",
+        "description": "Trendy lounge chair wrapped in cozy bouclé fabric with curved barrel shape. Swivel base allows 360-degree rotation. Plush cushioning envelops you in comfort. Instagram-worthy statement piece.",
+        "brand": "CB2",
+        "pricing": {
+            "originalPrice": 899.0,
+            "currentPrice": 749.0,
+            "isOnSale": true,
+            "costPerItem": 380.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Seating",
+            "subCategory": "Lounge Chairs",
+            "tags": ["lounge-chairs", "seating", "cb2"],
+            "rooms": ["living-room", "bedroom"],
+            "materials": ["Bouclé Fabric", "Metal Base"],
+            "colors": ["Cream White", "Oatmeal", "Taupe"]
+        },
+        "physical": {
+            "dimensions": { "width": 80, "height": 78, "depth": 80 },
+            "weight": 20,
+            "assemblyRequired": false
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/imageaMpX_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/imageaMpX_searched_original.png",
+                "https://qc4n.bigmodel.cn/imageaFXg_searched_original.png",
+                "https://qc4n.bigmodel.cn/imagezAwS_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 28,
+            "inStock": true,
+            "shippingDimensions": { "width": 90, "height": 88, "depth": 90, "weight": 24 }
+        },
+        "aiStyleTags": ["trendy", "cozy", "swivel chair"],
+        "social": { "averageRating": 4.8, "reviewCount": 215, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:26.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:26.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "313234353637000000000021" },
+        "sku": "TB-EXT-033",
+        "name": "Extendable Dining Table - Live Edge",
+        "slug": "extendable-dining-table-live-edge",
+        "description": "Stunning live-edge dining table showcasing natural wood edges and organic shapes. Hidden extension leaf accommodates additional guests. Each piece is unique due to natural wood variations. Conversation starter for any dining room.",
+        "brand": "Article",
+        "pricing": {
+            "originalPrice": 2499.0,
+            "currentPrice": 2099.0,
+            "isOnSale": true,
+            "costPerItem": 1200.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Tables",
+            "subCategory": "Dining Tables",
+            "tags": ["dining-tables", "tables", "article"],
+            "rooms": ["dining-room"],
+            "materials": ["Live Edge Walnut", "Metal Base"],
+            "colors": ["Natural Walnut", "Dark Stain"]
+        },
+        "physical": {
+            "dimensions": { "width": 200, "height": 76, "depth": 100, "extendedWidth": 280 },
+            "weight": 85,
+            "assemblyRequired": true
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/imagePS5R_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/imagePS5R_searched_original.png",
+                "https://qc4n.bigmodel.cn/image9vGM_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 7,
+            "inStock": true,
+            "shippingDimensions": { "width": 210, "height": 86, "depth": 110, "weight": 92 }
+        },
+        "aiStyleTags": ["organic", "natural", "unique"],
+        "social": { "averageRating": 4.9, "reviewCount": 43, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:27.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:27.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "323435373839000000000022" },
+        "sku": "BK-STG-034",
+        "name": "Storage Bench - Entryway with Hooks",
+        "slug": "storage-bench-entryway-with-hooks",
+        "description": "Functional entryway bench combining seating, storage, and coat hooks. Lift-top compartment hides shoes and accessories. Coat hooks on back panel keep outerwear organized. Durable construction withstands daily use.",
+        "brand": "West Elm",
+        "pricing": {
+            "originalPrice": 699.0,
+            "currentPrice": 579.0,
+            "isOnSale": true,
+            "costPerItem": 310.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Storage",
+            "subCategory": "Benches",
+            "tags": ["benches", "storage", "west-elm"],
+            "rooms": ["living-room"],
+            "materials": ["Wood", "Metal"],
+            "colors": ["White", "Gray", "Natural Oak"]
+        },
+        "physical": {
+            "dimensions": { "width": 140, "height": 190, "depth": 40 },
+            "weight": 38,
+            "assemblyRequired": true
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/imageLWk8_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/imageLWk8_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 19,
+            "inStock": true,
+            "shippingDimensions": { "width": 150, "height": 200, "depth": 50, "weight": 43 }
+        },
+        "aiStyleTags": ["functional", "organized", "entryway essential"],
+        "social": { "averageRating": 4.5, "reviewCount": 128, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:28.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:28.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "343538394041000000000023" },
+        "sku": "FL-TBL-035",
+        "name": "Folding Utility Table - Multipurpose",
+        "slug": "folding-utility-table-multipurpose",
+        "description": "Versatile folding table suitable for crafting, dining, or as temporary desk. Lightweight yet sturdy construction folds flat for easy storage. Easy-clean surface resists stains and scratches.",
+        "brand": "IKEA",
+        "pricing": {
+            "originalPrice": 129.0,
+            "currentPrice": 99.0,
+            "isOnSale": true,
+            "costPerItem": 45.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Tables",
+            "subCategory": "Utility Tables",
+            "tags": ["utility-tables", "tables", "ikea"],
+            "rooms": ["living-room"],
+            "materials": ["Plastic", "Metal"],
+            "colors": ["White", "Gray", "Black"]
+        },
+        "physical": {
+            "dimensions": { "width": 110, "height": 74, "depth": 70 },
+            "weight": 10,
+            "assemblyRequired": false
+        },
+        "media": {
+            "primaryImage": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800",
+            "gallery": [
+                "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 73,
+            "inStock": true,
+            "shippingDimensions": { "width": 115, "height": 10, "depth": 75, "weight": 12 }
+        },
+        "aiStyleTags": ["practical", "portable", "multipurpose"],
+        "social": { "averageRating": 4.2, "reviewCount": 287, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:29.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:29.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "353940414243000000000024" },
+        "sku": "SH-WLL-036",
+        "name": "Wall Mounted Floating Shelves - Set of 3",
+        "slug": "wall-mounted-floating-shelves-set-of-3",
+        "description": "Set of three minimalist floating shelves in varying sizes. Easy wall-mount installation with hidden brackets. Display books, photos, plants, or collectibles. Clean design complements any decor style.",
+        "brand": "CB2",
+        "pricing": {
+            "originalPrice": 179.0,
+            "currentPrice": 139.0,
+            "isOnSale": true,
+            "costPerItem": 60.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Storage",
+            "subCategory": "Wall Shelves",
+            "tags": ["wall-shelves", "storage", "cb2"],
+            "rooms": ["living-room", "bedroom", "office", "bathroom"],
+            "materials": ["MDF", "Metal Brackets"],
+            "colors": ["White", "Natural Wood", "Black"]
+        },
+        "physical": {
+            "dimensions": { "largeWidth": 60, "mediumWidth": 45, "smallWidth": 30, "depth": 25, "thickness": 4 },
+            "weight": 8,
+            "assemblyRequired": true
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/imageTxkN_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/imageTxkN_searched_original.png",
+                "https://qc4n.bigmodel.cn/imageJGEN_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 58,
+            "inStock": true,
+            "shippingDimensions": { "width": 70, "height": 35, "depth": 30, "weight": 10 }
+        },
+        "aiStyleTags": ["minimalist", "display", "space-saving"],
+        "social": { "averageRating": 4.4, "reviewCount": 198, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:30.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:30.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "394142434445000000000025" },
+        "sku": "LN-LED-037",
+        "name": "LED Floor Lamp - Arc Design with Remote",
+        "slug": "led-floor-lamp-arc-design-with-remote",
+        "description": "Modern arc floor lamp with integrated LED technology and remote control. Adjustable color temperature from warm to cool white. Dimming function sets perfect ambiance. Energy-efficient and long-lasting.",
+        "brand": "West Elm",
+        "pricing": {
+            "originalPrice": 349.0,
+            "currentPrice": 279.0,
+            "isOnSale": true,
+            "costPerItem": 140.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Lighting",
+            "subCategory": "Floor Lamps",
+            "tags": ["floor-lamps", "lighting", "west-elm"],
+            "rooms": ["living-room", "bedroom", "office"],
+            "materials": ["Metal", "LED"],
+            "colors": ["Matte Black", "Brass", "Chrome"]
+        },
+        "physical": {
+            "dimensions": { "width": 170, "height": 180, "depth": 45 },
+            "weight": 12,
+            "assemblyRequired": true
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/image6fCD_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/image6fCD_searched_original.png",
+                "https://qc4n.bigmodel.cn/imagelgru_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 34,
+            "inStock": true,
+            "shippingDimensions": { "width": 180, "height": 190, "depth": 55, "weight": 15 }
+        },
+        "aiStyleTags": ["modern", "tech-savvy", "adjustable"],
+        "social": { "averageRating": 4.6, "reviewCount": 156, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:31.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:31.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "404243444546000000000026" },
+        "sku": "CT-NST-038",
+        "name": "Nesting Coffee Tables - Set of 2 Round",
+        "slug": "nesting-coffee-tables-set-of-2-round",
+        "description": "Space-saving nesting tables with round marble-effect tops and gold frames. Smaller table tucks neatly under larger one when not in use. Perfect for small apartments or flexible living spaces.",
+        "brand": "CB2",
+        "pricing": {
+            "originalPrice": 549.0,
+            "currentPrice": 449.0,
+            "isOnSale": true,
+            "costPerItem": 220.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Tables",
+            "subCategory": "Coffee Tables",
+            "tags": ["coffee-tables", "nesting-tables", "cb2"],
+            "rooms": ["living-room"],
+            "materials": ["Marble Effect", "Metal"],
+            "colors": ["White Marble", "Gold Frame", "Black Marble"]
+        },
+        "physical": {
+            "dimensions": { "largeDiameter": 80, "largeHeight": 45, "smallDiameter": 55, "smallHeight": 40 },
+            "weight": 22,
+            "assemblyRequired": true
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/imagedqPe_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/imagedqPe_searched_original.png",
+                "https://qc4n.bigmodel.cn/image1pSS_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 41,
+            "inStock": true,
+            "shippingDimensions": { "width": 90, "height": 55, "depth": 90, "weight": 26 }
+        },
+        "aiStyleTags": ["space-saving", "versatile", "modern"],
+        "social": { "averageRating": 4.5, "reviewCount": 134, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:32.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:32.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "414344454647000000000027" },
+        "sku": "DC-WRT-039",
+        "name": "Writing Desk - Minimalist White",
+        "slug": "writing-desk-minimalist-white",
+        "description": "Clean-lined writing desk with white lacquer finish and slim profile. Single drawer stores pens and supplies. Compact size fits perfectly in bedrooms or small home offices. Cable management grommet included.",
+        "brand": "West Elm",
+        "pricing": {
+            "originalPrice": 499.0,
+            "currentPrice": 399.0,
+            "isOnSale": true,
+            "costPerItem": 190.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Office Furniture",
+            "subCategory": "Desks",
+            "tags": ["desks", "office", "west-elm"],
+            "rooms": ["bedroom"],
+            "materials": ["MDF", "Metal"],
+            "colors": ["White", "Black", "Natural Oak"]
+        },
+        "physical": {
+            "dimensions": { "width": 110, "height": 75, "depth": 55 },
+            "weight": 22,
+            "assemblyRequired": true
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/imageM59H_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/imageM59H_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 47,
+            "inStock": true,
+            "shippingDimensions": { "width": 120, "height": 85, "depth": 65, "weight": 26 }
+        },
+        "aiStyleTags": ["minimalist", "compact", "functional"],
+        "social": { "averageRating": 4.3, "reviewCount": 167, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:33.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:33.000001Z" },
+        "__v": 0
+    },
+    {
+        "_id": { "$oid": "424445464748000000000028" },
+        "sku": "RG-JUT-040",
+        "name": "Jute Area Rug - Natural Fiber Round",
+        "slug": "jute-area-rug-natural-fiber-round",
+        "description": "Handwoven round jute rug bringing organic texture to floors. Natural fiber construction is eco-friendly and durable. Subtle variations in weave add character. Works beautifully under coffee tables or in entryways.",
+        "brand": "West Elm",
+        "pricing": {
+            "originalPrice": 299.0,
+            "currentPrice": 249.0,
+            "isOnSale": true,
+            "costPerItem": 110.0,
+            "currency": "USD"
+        },
+        "categorization": {
+            "primary": "Rugs",
+            "subCategory": "Area Rugs",
+            "tags": ["rugs", "natural-fiber", "west-elm"],
+            "rooms": ["living-room", "bedroom"],
+            "materials": ["Jute", "Natural Fiber"],
+            "colors": ["Natural", "Bleached White", "Gray Mix"]
+        },
+        "physical": {
+            "dimensions": { "diameter": 152, "height": 2 },
+            "weight": 8,
+            "assemblyRequired": false
+        },
+        "media": {
+            "primaryImage": "https://qc4n.bigmodel.cn/imagexJdX_searched_original.png",
+            "gallery": [
+                "https://qc4n.bigmodel.cn/imagexJdX_searched_original.png",
+                "https://qc4n.bigmodel.cn/imageHQw4_searched_original.png"
+            ],
+            "threeDModelUrl": null
+        },
+        "inventory": {
+            "stockQuantity": 35,
+            "inStock": true,
+            "shippingDimensions": { "width": 162, "height": 12, "depth": 162, "weight": 10 }
+        },
+        "aiStyleTags": ["organic", "natural", "textured"],
+        "social": { "averageRating": 4.4, "reviewCount": 189, "featuredInDesigns": [] },
+        "vendorUrl": "IntelliRoom Store",
+        "createdAt": { "$date": "2026-04-15T04:25:34.000000Z" },
+        "updatedAt": { "$date": "2026-04-15T04:25:34.000001Z" },
+        "__v": 0
+    }
+]

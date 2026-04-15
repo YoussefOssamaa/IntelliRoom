@@ -11,15 +11,20 @@ import SpecialOffers from "./SpecialOffers";
 import NewAndFeatured from "./NewAndFeatured";
 import ProductFilter from "./ProductFilter";
 
+
+
+
 const MarketplacePage = () => {
-    
+
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedStyle, setSelectedStyle] = useState("All"); // Still used by the Top Row!
   const [priceRange, setPriceRange] = useState("All");
   const [inStockOnly, setInStockOnly] = useState(false);
   const [sortBy, setSortBy] = useState('Recommended');
-    const [selectedMaterials, setSelectedMaterials] = useState([]);
+  const [selectedMaterials, setSelectedMaterials] = useState([]);
+
+
 
   const filteredProducts = dummyMarketplaceData.filter((product) => {
     // 1. Category Match
@@ -37,10 +42,10 @@ const MarketplacePage = () => {
 
     // 4. Price Match
     let matchesPrice = true;
-    if (priceRange === "Under $100") matchesPrice = product.price < 100;
+    if (priceRange === "Under $100") matchesPrice = product.currentPrice < 100;
     if (priceRange === "$100 - $500")
-      matchesPrice = product.price >= 100 && product.price <= 500;
-    if (priceRange === "Over $500") matchesPrice = product.price > 500;
+      matchesPrice = product.currentPrice >= 100 && product.currentPrice <= 500;
+    if (priceRange === "Over $500") matchesPrice = product.currentPrice > 500;
 
     // Return true ONLY if all four conditions are met
     return matchesCategory && matchesStyle && matchesStock && matchesPrice;
@@ -200,11 +205,10 @@ const MarketplacePage = () => {
             >
               {/* The Image Circle */}
               <div
-                className={`w-28 h-28 rounded-full overflow-hidden mb-4 border-4 transition-all duration-300 ${
-                  selectedStyle === style.name
-                    ? "border-sky-500 shadow-lg scale-105"
-                    : "border-transparent group-hover:border-gray-200"
-                }`}
+                className={`w-28 h-28 rounded-full overflow-hidden mb-4 border-4 transition-all duration-300 ${selectedStyle === style.name
+                  ? "border-sky-500 shadow-lg scale-105"
+                  : "border-transparent group-hover:border-gray-200"
+                  }`}
               >
                 <img
                   src={style.image}
@@ -215,11 +219,10 @@ const MarketplacePage = () => {
 
               {/* The Label */}
               <span
-                className={`text-sm transition-colors ${
-                  selectedStyle === style.name
-                    ? "text-sky-600 font-extrabold"
-                    : "text-gray-700 font-medium group-hover:text-gray-900"
-                }`}
+                className={`text-sm transition-colors ${selectedStyle === style.name
+                  ? "text-sky-600 font-extrabold"
+                  : "text-gray-700 font-medium group-hover:text-gray-900"
+                  }`}
               >
                 {style.name}
               </span>
@@ -295,18 +298,17 @@ const MarketplacePage = () => {
                       {product.name}
                     </h3>
                     <p className="text-lg font-medium text-sky-600 mb-4">
-                      ${product.price.toFixed(2)}
+                      ${product.currentPrice.toFixed(2)}
                     </p>
 
                     {/* Buy Button pushes to the bottom */}
                     <div className="mt-auto pt-4 border-t border-gray-50">
                       <button
                         disabled={!product.inventory.inStock}
-                        className={`w-full py-2.5 rounded-lg font-medium text-sm transition-colors ${
-                          product.inventory.inStock
-                            ? "bg-gray-900 text-white hover:bg-gray-800"
-                            : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        }`}
+                        className={`w-full py-2.5 rounded-lg font-medium text-sm transition-colors ${product.inventory.inStock
+                          ? "bg-gray-900 text-white hover:bg-gray-800"
+                          : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          }`}
                       >
                         {product.inventory.inStock
                           ? "Add to Cart"

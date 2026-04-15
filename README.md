@@ -1,11 +1,3 @@
-# IntelliRoom
-
-IntelliRoom is a local-first furniture recommendation system for room photos.
-
-The project uses a two-plane architecture:
-- Local control plane: FastAPI orchestrator, taxonomy snapper, and ChromaDB retrieval
-- Remote inference plane: Kaggle GPU notebook serving detection, embedding, and tagging APIs through zrok
-
 ## Table of Contents
 
 - [Overview](#overview)

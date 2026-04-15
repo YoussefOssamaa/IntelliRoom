@@ -205,10 +205,10 @@ function UploadZone({ preview, fileName, onFile, onClear, label, optional, disab
   }, [disabled, onFile]);
 
   return (
-    <div className={styles.textAreaContainer} style={{flex: 1}}>
+    <div className={styles.textAreaContainer} style={{ flex: 1 }}>
       <label className={styles.eyebrow}>
         {label}
-        {optional && <span style={{opacity: 0.6, fontSize: '0.9em', marginLeft: 4}}>(Optional)</span>}
+        {optional && <span style={{ opacity: 0.6, fontSize: '0.9em', marginLeft: 4 }}>(Optional)</span>}
       </label>
       <div
         className={`${styles.squareUploadZone} ${preview ? styles.hasImage : ""} ${dragging ? styles.uploadImage_dragActive : ""}`}
@@ -337,6 +337,9 @@ function UploadImagePage() {
   const [shareOpen, setShareOpen] = useState(false);
   const [toast, setToast] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [matchedProducts, setMatchedProducts] = useState([]);
+
 
   const mainRef = useRef(null);
   const referenceRef = useRef(null);
@@ -405,6 +408,27 @@ function UploadImagePage() {
       URL.revokeObjectURL(a.href);
     } catch { window.open(resultPreview, "_blank"); }
   };
+
+
+  const handleFeaturedProducts = async () => {
+    try {
+      const res = await axios.get(`${BACKEND_URL}/products/featuredProducts`);
+      setFeaturedProducts(res.data);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+
+  const handleMatchedProducts = async () => {
+    try {
+      const res = await axios.get(`${BACKEND_URL}/products/matchedProducts`);
+      setMatchedProducts(res.data);
+    } catch (err) {
+      console.log(err);
+    }
+
+  }
 
   /* ── step indicator ────────────────────────────────────── */
   const step = !imageFile ? 1 : !inputPrompt.trim() ? 2 : 3;
@@ -482,11 +506,11 @@ function UploadImagePage() {
               <div className={styles.textAreaContainer}>
                 <label className={styles.eyebrow}>Enhancement Prompt</label>
                 <textarea
-                   className={styles.enhancePrompt}
-                   placeholder="e.g., 'A Scandinavian minimalist living room with warm oak textures, floor-to-ceiling linen curtains, and soft afternoon sunlight...'"
-                   value={inputPrompt}
-                   onChange={(e) => setInputPrompt(e.target.value)}
-                   disabled={loading}
+                  className={styles.enhancePrompt}
+                  placeholder="e.g., 'A Scandinavian minimalist living room with warm oak textures, floor-to-ceiling linen curtains, and soft afternoon sunlight...'"
+                  value={inputPrompt}
+                  onChange={(e) => setInputPrompt(e.target.value)}
+                  disabled={loading}
                 />
               </div>
 
@@ -500,29 +524,19 @@ function UploadImagePage() {
                 {loading ? "Generating Image..." : "Generate Image"}
               </button>
             </div>
-
-            {/* Social Avatars */}
-            <div className={styles.avatarRow}>
-              <div className={styles.avatars}>
-                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDj73s1cZM90ChItAIlzyHzthXphxO41jmSRPr1586a2R3adbb_lqpqhr0n34tDQUuAAYzW4tv-CyExam39VSB62qObXFBKOZmid_yG4_4k5sf3P4R5jcOU6UW5SgU1Oo2YP9bsIM0RIrc1lznaJg_rZpA-5QH0Rvfy1-mHAvU9RolM507QaPG4GT92NBwwszuB5DJyljZ-hXr8hlw0LXSRmvejQWYizad273UQKUmM5j5YrACF8wdtzJwyj_ZT0asU5fvH6pXyS-A" alt="Avatar" className={styles.avatar} />
-                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyfXsMEAovonrl1nsjag0mGg0DMwnw61BsBgEaq4682IH98g9ANg-N-5pLcn7Auno5GJpF2lqmnJ4W3kYUbm1W9jRR1p1qLnyRsD5rudK0Of2u4AdT3dojUHlj-6I9uGynnCeeOxq03PVVVGC81vOsJ-tSrh7umV9VGUIfUKUWIcZdmCCfiU7Yx46tNlmboqKKhrcMLD0WL00DU5yl_3Y30D-BwyBRLHEoyJXPULA7acTOZIKYKVVrVtzpHzMlWqM2cCJm3e32mrc" alt="Avatar" className={styles.avatar} />
-                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmbS7U_n2s4Hv_I9ga7ZmgLocjXRHcgtbTyI38nkpRsxwDWY1SenJsg_MluxIZVVlyLo54R-wzezhXeIPwmNDSYqG2mNh-Hmi6a7nQl-m3kPaaQS1hFkkcpqtzdOD0WN1nXfxHr3nJcE5B5k1FCHdBOpDYPg8tWKl96SleIQjaefcEhPk7kQ88dEtlfQxqDebbVOSOpg01sBvushxHEKCHVYgkGhO8BoKsKbWAQxxyH9w9xcdNkD2TPk7CWX2UreBTR083nKAsbTg" alt="Avatar" className={styles.avatar} />
-              </div>
-              <span className={styles.avatarText}>Join 2,400+ designers creating today.</span>
-            </div>
           </div>
 
           {/* Right Side: Awaiting Your Creation / Result */}
           <div className={styles.gridCol7}>
             <div className={styles.canvasContainer}>
               {resultPreview ? (
-                <div style={{width: '100%', height: '100%', position: 'relative'}}>
-                  <img src={resultPreview} alt="Generated result" className={styles.canvasResultImage} style={{position: 'absolute'}} />
+                <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+                  <img src={resultPreview} alt="Generated result" className={styles.canvasResultImage} style={{ position: 'absolute' }} />
                   <div style={{ position: "absolute", bottom: "1.5rem", right: "1.5rem", display: "flex", gap: "0.5rem", zIndex: 10 }}>
                     <button className={styles.uploadImage_actionBtn} onClick={() => setShareOpen(o => !o)}>
                       <Icons.Share size={13} /> Share
                     </button>
-                    <button className={`${styles.uploadImage_actionBtn} ${styles.uploadImage_actionBtnAccent}`} onClick={handleDownload} style={{background: 'var(--accent)', color: 'white', borderColor: 'transparent'}}>
+                    <button className={`${styles.uploadImage_actionBtn} ${styles.uploadImage_actionBtnAccent}`} onClick={handleDownload} style={{ background: 'var(--accent)', color: 'white', borderColor: 'transparent' }}>
                       <Icons.Download size={13} /> Download
                     </button>
                     {shareOpen && (
@@ -541,7 +555,7 @@ function UploadImagePage() {
                       Once you hit generate, your AI-enhanced room will materialize here with pixel-perfect lighting and texture.
                     </p>
                   </div>
-                  
+
                   {/* Decorative elements */}
                   <div className={styles.canvasDecoTop}>
                     <div className={styles.canvasDecoLine} />
@@ -556,6 +570,85 @@ function UploadImagePage() {
           </div>
         </section>
 
+
+
+        {/* Recommended for Your Space - Only show on success */}
+        {isSuccess == false && (
+          <section className={styles.recommendedSection}>
+            <div className={styles.recommendedHeader}>
+              <div>
+                <span className={styles.recommendedEyebrow}>CURATED COLLECTION</span>
+                <h2 className={styles.recommendedTitle}>Featured Products</h2>
+                <p className={styles.heroSubtext} style={{ fontSize: '1rem', margin: 0 }}>
+                  Discover the latest trends in home decor and furniture.
+                </p>
+              </div>
+              <div className={styles.navArrows}>
+                <button className={styles.navArrow}><Icons.Plus size={16} style={{ transform: "rotate(45deg)" }} /></button>
+                <button className={styles.navArrow}><Icons.Plus size={16} /></button>
+              </div>
+            </div>
+
+            <div className={styles.productGrid}>
+              <div className={styles.productCard}>
+                <div className={styles.productImageWrap}>
+                  <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuArw3Y8nseY4_hNfFn_K41TUmDGlLSE7wtL4ni56cojJUKEKYFz6tyhMfqzI5I3ZB6WbY9VzK0E1fDvQSM4Z4yshGuEYc__NwGmOz0RC_wIyx7NkzQBjBB1yDtBhIj3cUKRQAIY_Ny-b94jr__PadEkgEj8sd2Vcr5zTfdUbjXxa24EO_NU3XOxn18qLOD_ytkj4Jexv7_TzmzQ8BpuIQ8A0JJOOtkq6YxS9eFLfB9k0kjdy252YFR1vF2OhX7JFRu91I-3Hr8g1mY" alt="Modern Velvet Sofa" className={styles.productImage} />
+                  <div className={styles.productBadge}>New Arrival</div>
+                </div>
+                <div className={styles.productInfo}>
+                  <div>
+                    <h4 className={styles.productName}>Modern Velvet Sofa</h4>
+                    <span className={styles.productDesc}>Deep Emerald, Solid Oak</span>
+                  </div>
+                  <span className={styles.productPrice}>$2,450</span>
+                </div>
+                <div className={styles.productActions}>
+                  <button className={styles.viewDetailsBtn}>View Details</button>
+                  <button className={styles.addToCartBtn}><Icons.Plus size={16} /></button>
+                </div>
+              </div>
+
+              <div className={styles.productCard}>
+                <div className={styles.productImageWrap}>
+                  <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuApXzEKn3A_DQ5tG4VC7pg8lSkeMVWPx5ODKnfTbNJYS25_vRY-4D34WjYuJJ6QrwgwWs5q045agmXfyAK2folhYp-4u7IwjOiZwcvwsy_9KrrnmuxzhEnmfBI0O0RzRDFZVj8SGOJ2zK9DFM2Q48cbNglt1RGvL8A9eY03W6J5bveaMU1GKfgHfx1abje7tqsBZiA8uLJR4gYH354wXLKljke25HdW3fWP4ed7LZ2TDeZisvsgQgDy0eLGzIgR1TbGFRGHSqqCbYU" alt="Minimalist Floor Lamp" className={styles.productImage} />
+                  <div className={styles.productBadge}>Editor's Pick</div>
+                </div>
+                <div className={styles.productInfo}>
+                  <div>
+                    <h4 className={styles.productName}>Minimalist Lamp</h4>
+                    <span className={styles.productDesc}>Matte Black, Warm</span>
+                  </div>
+                  <span className={styles.productPrice}>$420</span>
+                </div>
+                <div className={styles.productActions}>
+                  <button className={styles.viewDetailsBtn}>View Details</button>
+                  <button className={styles.addToCartBtn}><Icons.Plus size={16} /></button>
+                </div>
+              </div>
+
+              <div className={styles.productCard}>
+                <div className={styles.productImageWrap}>
+                  <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEDvMHnFhpvYSxefHGYrjC2xNYvUmX8DSYkZi8GrflZW_NyoWuGOZ3shT8zlRsoiorpqb-Vx7wkPeR7bb-MT_iYn4hWJyByNqiDcGBw4tIzDE2lD_wQgaqhLFoNbGSVSyxtZWYM5bpFwVmpQN2dKbmd2Tkl8OPsTVj13YFNonrmXoJSKwIvu5PdCma1ZaJyX6UJlxgNmM2kxn8N_S0t6-zMAu92sVEO2MXODmkyOYlIlKVd1jR4Y0SbQLyyzj9AALzmSQuf0D0BMg" alt="Abstract Wool Rug" className={styles.productImage} />
+                  <div className={styles.productBadge}>Limited</div>
+                </div>
+                <div className={styles.productInfo}>
+                  <div>
+                    <h4 className={styles.productName}>Abstract Wool Rug</h4>
+                    <span className={styles.productDesc}>Organic Shape, Hand-Tufted</span>
+                  </div>
+                  <span className={styles.productPrice}>$1,200</span>
+                </div>
+                <div className={styles.productActions}>
+                  <button className={styles.viewDetailsBtn}>View Details</button>
+                  <button className={styles.addToCartBtn}><Icons.Plus size={16} /></button>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+
+
         {/* Recommended for Your Space - Only show on success */}
         {isSuccess && (
           <section className={styles.recommendedSection}>
@@ -563,12 +656,12 @@ function UploadImagePage() {
               <div>
                 <span className={styles.recommendedEyebrow}>CURATED COLLECTION</span>
                 <h2 className={styles.recommendedTitle}>Recommended for Your Space</h2>
-                <p className={styles.heroSubtext} style={{fontSize: '1rem', margin: 0}}>
+                <p className={styles.heroSubtext} style={{ fontSize: '1rem', margin: 0 }}>
                   AI-matched furniture and decor items that complement your generated room aesthetic.
                 </p>
               </div>
               <div className={styles.navArrows}>
-                <button className={styles.navArrow}><Icons.Plus size={16} style={{transform: "rotate(45deg)"}} /></button>
+                <button className={styles.navArrow}><Icons.Plus size={16} style={{ transform: "rotate(45deg)" }} /></button>
                 <button className={styles.navArrow}><Icons.Plus size={16} /></button>
               </div>
             </div>

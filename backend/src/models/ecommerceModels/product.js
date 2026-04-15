@@ -7,7 +7,7 @@ const productSchema = new mongoose.Schema({
     slug: { type: String, required: true, unique: true, lowercase: true },
     description: { type: String, required: true },
     brand: { type: String, required: true },
-
+    is_featured: { type: Boolean, required: false, default: false },
     // 2. Pricing & Economics
     pricing: {
         originalPrice: { type: Number, required: true },

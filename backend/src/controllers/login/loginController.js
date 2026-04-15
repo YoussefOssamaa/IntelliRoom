@@ -101,11 +101,11 @@ export const loginHandler = async (req, res) => {
 
         const authCookieOptions = {
             ...commonCookieOptions,
-            maxAge: 15 * 60 * 1000 //in melliseconds
+            maxAge: 24 * 60 * 60 * 1000 //in melliseconds
         }
 
         const authToken = jwt.sign(payload, authPrivateKey, {
-            expiresIn: 15 * 60,
+            expiresIn: 24 * 60 * 60,
             algorithm: "RS256",
 
         });
@@ -162,7 +162,7 @@ export const refreshTokenHandler = async (req, res) => {
             httpOnly: true,
             secure: true,
             sameSite: "none",
-            maxAge: 15 * 60 * 1000
+            maxAge: 24 * 60 * 60 * 1000
         }
         const authPayload = {
             userId: user.user_id

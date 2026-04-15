@@ -20,10 +20,13 @@ router.get('/:slug', getProductBySlug);
 
 
 //router.get('/', getProductsByCategory ) //// =>  /ecommerce/products?category=categoryId
-router.get('/:id', getProductByIdController );   //// =>  /ecommerce/products/:id
+router.get('/:id', getProductByIdController);   //// =>  /ecommerce/products/:id
 router.post('/', postProductsController);   //// =>  /ecommerce/products
 router.put('/:id', putProductsController);   //// =>  /ecommerce/products/:id
 router.delete('/:id', deleteProductsController);   //// =>  /ecommerce/products/:id
+router.get('/featuredProducts', getFeaturedProducts);   //// =>  /ecommerce/products/featured
+router.get('/matchedProducts', getMatchedProducts)
+
 
 
 

@@ -43,12 +43,10 @@ export class ComfyUIService {
 
     async uploadImage(filePath, subfolder = '') {
         try {
-
             console.log('📤 Uploading image to ComfyUI:', filePath);
 
             const formData = new FormData();
             formData.append('image', fs.createReadStream(filePath));
-
             if (subfolder) {
                 formData.append('subfolder', subfolder);
             }
@@ -65,7 +63,6 @@ export class ComfyUIService {
             );
 
             console.log('Image uploaded to ComfyUI:', response.data);
-
             return response.data.name; // ComfyUI returns the filename
         } catch (error) {
             console.error('Error uploading image to ComfyUI:', error.response?.data || error.message);
@@ -143,7 +140,6 @@ export class ComfyUIService {
 
             console.log('Sending workflow to ComfyUI...');
             console.log('Workflow:', JSON.stringify(workflow, null, 2));
-
             const headers = { 'Content-Type': 'application/json' };
             if (this.isZrok) {
                 headers['skip_zrok_interstitial'] = 'true';

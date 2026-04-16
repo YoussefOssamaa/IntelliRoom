@@ -1,80 +1,46 @@
-import express from 'express';
 import User from '../../models/user.js';
 
-
-export const getWishlistController = async (req, res) => {
-
-  try {
-    const user_id = req.userId;
-
-    const user = await User.findById(user_id).populate('ecommerce_wishlist');
-
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
+// 1. Get the populated wishlist
+export const getWishlist = async (req, res) => {
+    try {
+        // Find the user and populate the products in the wishlist array
+        const user = await User.findById(req.userId).populate('ecommerce_wishlist');
+        
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+        
+        // Send the populated array back to React
+        res.status(200).json({ success: true, wishlist: user.ecommerce_wishlist });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
     }
+};
 
-    res.status(200).json(user.ecommerce_wishlist);
+// 2. Add or Remove an item from the wishlist
+export const toggleWishlistItem = async (req, res) => {
+    try {
+        const { productId } = req.body;
+        const user = await User.findById(req.userId);
 
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
-  }
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
 
-}
+        // Check if the product is already in the array
+        const isFavorite = user.ecommerce_wishlist.includes(productId);
 
+        if (isFavorite) {
+            // If it's there, remove it
+            user.ecommerce_wishlist = user.ecommerce_wishlist.filter(id => id.toString() !== productId);
+        } else {
+            // If it's not there, add it
+            user.ecommerce_wishlist.push(productId);
+        }
 
-export const postWishlistController = async (req, res) => {
-
-  try {
-    const user_id = req.userId;
-
-
-    const user = await User.findById(user_id);
-
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
+        await user.save();
+        res.status(200).json({ success: true, message: 'Wishlist updated' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
     }
-
-    const productIdToAdd = req.body.productId;
-
-    if (user.ecommerce_wishlist.includes(productIdToAdd)) {
-      return res.status(400).json({ error: "Product already in wishlist" });
-    }
-
-    user.ecommerce_wishlist.push(productIdToAdd);
-    await user.save();
-
-    await user.populate('ecommerce_wishlist');
-
-    res.status(201).json(user.ecommerce_wishlist);
-
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
-  }
-
-}
-
-export const DeleteFromWishlistController = async (req, res) => {
-
-  try {
-    const user_id = req.userId;
-
-
-    const { id } = req.params;
-
-    const user = await User.findByIdAndUpdate(
-      user_id,
-      { $pull: { ecommerce_wishlist: id } },
-      { new: true }
-    ).populate('ecommerce_wishlist');
-
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    res.status(200).json(user.ecommerce_wishlist);
-
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
-  }
-
-}
+};

@@ -16,6 +16,10 @@ import dashboardIndex from './routes/dashboard/dashboardIndex.js';
 import updateProfileIndex from './routes/updateProfileRoutes/updateProfileIndex.js'
 import communityIndex from './routes/community/communityIndex.js'
 import generatedImageIndex from './routes/generatedImageRoutes/generatedImageIndex.js'
+import productRoutes from './routes/ecommerceRoutes/productRoutes.js'; 
+import cartRouter from './routes/ecommerceRoutes/cartRoutes.js';
+import shopperRoutes from './routes/ecommerceRoutes/shopperRoutes.js';
+import wishlistRoutes from './routes/ecommerceRoutes/wishlistRoutes.js';
 import design2D3Dndex from './routes/design2D-3DRoutes/design2D3DIndex.js'
 import healthcontroller from './controllers/healthcontroller.js'
 
@@ -47,6 +51,15 @@ app.use('/api/plugins', pluginIndex);
 app.use('/api/auth', loginIndex)
 app.use('/api/signup', signupIndex)
 app.use('/api/contact', contactIndex)
+app.use('/api/dashboard', dashboardIndex); 
+//app.use('/api/pricingPlans' , pricingIndex )
+app.use('/api/updateProfile' , updateProfileIndex)
+app.use('/api/community' , communityIndex)
+app.use('/api/generatedImage' , generatedImageIndex)
+app.use('/api/products', productRoutes);
+app.use('/api/cart', cartRouter);
+app.use('/api/shopper', shopperRoutes);
+app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/dashboard', dashboardIndex);
 app.use('/api/updateProfile', updateProfileIndex)
 app.use('/api/community', communityIndex)

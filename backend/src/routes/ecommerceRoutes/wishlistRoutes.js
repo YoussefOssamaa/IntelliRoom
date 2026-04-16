@@ -1,14 +1,13 @@
 import express from 'express';
-import { DeleteFromWishlistController, getWishlistController, postWishlistController } from '../../controllers/ecommerce/wishlistController.js';
-
-
+import protect from '../../middleware/protect.middleware.js'; 
+import { getWishlist, toggleWishlistItem } from '../../controllers/ecommerce/wishlistController.js';
 
 const router = express.Router();
 
-router.post('/', postWishlistController)
-router.get('/', getWishlistController)
-router.delete('/:id', DeleteFromWishlistController)
+// GET /api/wishlist
+router.get('/', protect, getWishlist);
 
+// POST /api/wishlist/toggle
+router.post('/toggle', protect, toggleWishlistItem);
 
 export default router;
-

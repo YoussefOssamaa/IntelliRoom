@@ -85,7 +85,7 @@ const Header = ({ user }) => {
               Gallery
             </Link>
 */}
-            <Link to="/marketplace" className={getLinkClass('/marketplace')}>
+            <Link to="/ecomm" className={getLinkClass('/marketplace')}>
               Marketplace
             </Link>
 

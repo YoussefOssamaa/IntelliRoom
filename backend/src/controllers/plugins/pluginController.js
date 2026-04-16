@@ -7,6 +7,7 @@ export const getPluginsController = async (req, res) => {
     try {
 
         const plugins = await Plugin.find().populate('plugin_author' , 'user_name email');
+        console.log(plugins);
         if (plugins.length === 0) {
             return res.status(404).json({ message: 'No plugins found' });
         }
@@ -22,6 +23,7 @@ export const getPluginByIdController = async (req, res) => {
 
 
         const plugin = await Plugin.findById(req.params.id).populate('plugin_author' , 'user_name email');
+        console.log(plugin);
         if (!plugin) {
             return res.status(404).json({ message: 'Plugin not found' });
         }

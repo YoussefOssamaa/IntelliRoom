@@ -6,7 +6,8 @@ import {
     logout, 
     Refresh,
     getAllAdmins, 
-    unlockAdmin   
+    unlockAdmin,
+    getAdminLogs 
 } from '../../controllers/admin/adminController.js';
 
 import protectAdmin from '../../middleware/protectAdmin.middleware.js';
@@ -23,8 +24,12 @@ router.get('/me', getMe);
 router.post('/logout', logout);
 
 router.post('/addAdmin', isSuperAdmin, addAdmin); 
+
 router.get('/all', isSuperAdmin, getAllAdmins);
+
 router.patch('/unlock/:id', isSuperAdmin, unlockAdmin); 
 
+
+router.get('/logs', isSuperAdmin, getAdminLogs); 
 
 export default router;

@@ -2,7 +2,52 @@ import { adminAuthPublicKey , adminAuthPrivateKey , adminRefreshPrivateKey , adm
 import jwt from 'jsonwebtoken';
 import Admin from '../../models/admin/admin.js';
 import AdminRefreshToken from '../../models/admin/adminRefreshToken.js';
+import AdminLog from '../../models/admin/adminLog.js';
 
+export const logAdminAction = async (adminId, action, targetUserId = null, details = "") => {
+    try {
+        await AdminLog.create({
+            adminId,
+            action,
+            targetUserId,
+            details
+        });
+    } catch (error) {
+        console.error("Failed to log admin action:", error.message);
+    }
+};
+
+export const getAdminLogs = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const skip = (page - 1) * limit;
+
+        const logs = await AdminLog.find({})
+            .populate('adminId', 'name email role')
+            .populate('targetUserId', 'firstName lastName email')
+            .sort({ createdAt: -1 }) // الأحدث أولاً
+            .skip(skip)
+            .limit(limit)
+            .lean();
+
+        const totalLogs = await AdminLog.countDocuments({});
+
+        res.status(200).json({
+            success: true,
+            data: logs,
+            pagination: {
+                total: totalLogs,
+                page,
+                pages: Math.ceil(totalLogs / limit),
+                limit
+            }
+        });
+    } catch (error) {
+        console.error("Error in getAdminLogs:", error.message);
+        res.status(500).json({ success: false, message: 'Server error while fetching logs' });
+    }
+};
 
 export const signIn = async (req, res) => {
     try {

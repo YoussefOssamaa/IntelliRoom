@@ -1,6 +1,7 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
-const subscriptionSchema = new mongoose.Schema(  {
+const subscriptionSchema = new mongoose.Schema(
+  {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -15,17 +16,20 @@ const subscriptionSchema = new mongoose.Schema(  {
     },
     status: {
       type: String,
-      enum: ["active", "canceled", "expired", "trial"],
+      enum: ["active", "canceled", "expired", "trial", "past_due"], // ضفنا past_due لو الدفع فشل
       index: true,
     },
-
     billingCycle: {
-    type: String,
-    enum: ["monthly", "yearly"],
-    required: true,
-    default: "monthly",
-  },
-
+      type: String,
+      enum: ["monthly", "yearly"],
+      required: true,
+      default: "monthly",
+    },
+    // الـ Token الخاص بكارت العميل المربوط من بيموب عشان التجديد التلقائي
+    paymobCardToken: {
+      type: String,
+      select: false, // مخفي لزيادة الأمان
+    },
     startDate: {
       type: Date,
       required: true,
@@ -38,12 +42,12 @@ const subscriptionSchema = new mongoose.Schema(  {
     renewalDate: {
       type: Date,
     },
-    cancelAtPeriodEnd: {  //Whether the subscription should stop renewing at that end date {user must cancel renewal before the end date}
+    cancelAtPeriodEnd: {  
       type: Boolean,
       default: false,
     },
   },
-  { timestamps: true });
+  { timestamps: true }
+);
 
-
-module.exports = mongoose.model('Subscription', subscriptionSchema);
+export default mongoose.model('Subscription', subscriptionSchema);

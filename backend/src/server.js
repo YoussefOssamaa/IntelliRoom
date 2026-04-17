@@ -23,6 +23,9 @@ import wishlistRoutes from './routes/ecommerceRoutes/wishlistRoutes.js';
 import design2D3Dndex from './routes/design2D-3DRoutes/design2D3DIndex.js'
 import healthcontroller from './controllers/healthcontroller.js'
 import adminRoutes from './routes/adminRoutes/adminIndex.js';
+import adminDashboardRoutes from './routes/adminRoutes/dashboardIndex.js';
+import subscribtionRoutes from './routes/subscriptionRoutes/subscriptionIndex.js';
+
 const __dirname = path.resolve();
 
 export const PORT = process.env.PORT || 5000;
@@ -44,6 +47,9 @@ app.use('/api/comfyOutputs', express.static(path.join(__dirname, './uploads/comf
 export const comfyUIServiceInstance = new ComfyUIService(COMFYUI_HOST);
 
 app.use('/api/admin', adminRoutes);
+app.use('/api/admin/dashboard', adminDashboardRoutes);
+app.use('/api/subscription', subscribtionRoutes);
+
 app.use('/api/ecommerce', ecommerceIndex);
 app.use('/api/design2D3D', design2D3Dndex);
 app.use('/api/uploadImage', uploadIndex);

@@ -9,29 +9,30 @@
     "pnpm": ">=9.0.0"
   },
   "scripts": {
-    "preinstall": "node ../scripts/block-npm.js",
+    "preinstall": "node ./scripts/block-npm.js",
     "start": "nodemon src/server.js",
     "dev": "nodemon src/server.js",
     "lint": "eslint . --ext .js"
   },
   "dependencies": {
-    "axios": "^1.13.2",
+    "axios": "^1.15.0",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.21.0",
-    "express-rate-limit": "^8.2.1",
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.1",
+    "express-rate-limit": "^8.3.2",
+    "form-data": "^4.0.5",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.0.0",
-    "multer": "^2.0.2",
-    "ws": "^8.18.3",
-    "zod": "^4.3.5"
+    "mongoose": "^9.4.1",
+    "multer": "^2.1.1",
+    "ws": "^8.20.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
-    "eslint": "^9.12.0",
-    "eslint-config-prettier": "^9.1.0",
-    "nodemon": "^3.1.7",
-    "prettier": "^3.3.3"
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^9.1.2",
+    "nodemon": "^3.1.14",
+    "prettier": "^3.8.3"
   }
 }

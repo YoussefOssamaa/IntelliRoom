@@ -38,6 +38,19 @@ Thumbs.db
 *.log
 logs/
 
+#keys
+keys/
 
+# Project Notes
+notes.txt
 
+# Docker Overrides
+docker-compose.override.yml
+
+# Storage / Data
+uploads/
+database/backup/
+database/restore/
+
+# .env.prod
 .env.prod

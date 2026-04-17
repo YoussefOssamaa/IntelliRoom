@@ -1,5 +1,4 @@
-version: "3.8"
-
+name: intelliroom-prod
 services:
 
   # Nginx Reverse Proxy
@@ -7,12 +6,11 @@ services:
     image: nginx:alpine
     ports:
       - "80:80"
-      - "443:443"
     volumes:
       - ./nginx.prod.conf:/etc/nginx/nginx.conf:ro ### normal path to import config
-      - ./certs:/etc/letsencrypt:ro ### normal path to import cert
-      - ./certbot-var:/var/www/certbot:ro
       - nginx-cache:/var/cache/nginx ### docker volume instead of path to reduce overhead 
+      # - ./certs:/etc/letsencrypt:ro ### normal path to import cert
+      # - ./certbot-var:/var/www/certbot:ro
     depends_on:
       frontend:
         condition: service_healthy
@@ -22,7 +20,7 @@ services:
     networks:
       - intelliroom-network
     healthcheck:
-      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health" ]
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -35,8 +33,8 @@ services:
 
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile.prod
+      context: .
+      dockerfile: ./frontend/Dockerfile.prod
     restart: unless-stopped
     networks:
       - intelliroom-network
@@ -51,7 +49,7 @@ services:
           cpus: "0.25"
           memory: 128M
     healthcheck:
-      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/" ]
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:80/" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -64,8 +62,8 @@ services:
 
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile.prod
+      context: .
+      dockerfile: ./backend/Dockerfile.prod
     restart: unless-stopped
     networks:
       - intelliroom-network
@@ -74,21 +72,23 @@ services:
     environment:
       - NODE_ENV=production
       - DATABASE_URL=mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongo:27017/${MONGO_DB}?authSource=admin
-      - JWT_SECRET=${JWT_SECRET}
       - API_PORT=5000
       - LOG_LEVEL=warn
       - ZROK_ENDPOINT=${ZROK_ENDPOINT}
+      - KEYS_PATH=/app/keys
     depends_on:
       mongo:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5000/health" ]
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:5000/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 10s
     volumes:
       - backend-uploads:/app/uploads #### docker volume not a normal local path
+      - ./keys:/app/keys:ro
+      - ./ai:/app/ai:ro
     deploy:
       resources:
         limits:
@@ -105,7 +105,7 @@ services:
 
   mongo:
     image: mongo:7
-    container_name: intelliroom-mongo
+    container_name: intelliroom-mongo-prod
     restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
@@ -136,14 +136,12 @@ services:
       options:
         max-size: "10m"
         max-file: "5"
-
-
-  certbot:
-    image: certbot/certbot
-    volumes:
-      - ./certs:/etc/letsencrypt
-      - ./certbot-var:/var/www/certbot
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+  # # certbot:
+  # #   image: certbot/certbot
+  # #   volumes:
+  # #     - ./certs:/etc/letsencrypt
+  # #     - ./certbot-var:/var/www/certbot
+  # #   entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
 
 

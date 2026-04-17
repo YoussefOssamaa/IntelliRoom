@@ -5,19 +5,22 @@ WORKDIR /app
 # Install pnpm
 RUN npm install -g pnpm
 
-# Copy dependency definitions ///  make a new copy of the existing package.json and pnpm-lock.yaml to make any changes happened  (copy the files from local storage --> into ./ the working directory )
-COPY package.json pnpm-lock.yaml* ./
+# Copy dependency definitions and preinstall scripts
+COPY backend/package.json backend/pnpm-lock.yaml* ./
+COPY backend/scripts ./scripts
 
-# Install dependencies (only production ones)
-RUN pnpm install --prod --frozen-lockfile
+RUN pnpm install --prod --no-frozen-lockfile
 
-# Copy the rest of the backend source code
-COPY . .
+# Copy the rest of the backend source code and AI directory
+COPY backend . 
 
 # Ensure the uploads directory exists 
 RUN mkdir -p /app/uploads/comfyOutputs
 
+ENV NODE_ENV=production
+# Install dependencies (only production ones)
+
 EXPOSE 5000
 
-# Start the server directly with node, avoiding nodemon
+# Start the server directly with node
 CMD ["node", "src/server.js"]

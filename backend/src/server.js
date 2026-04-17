@@ -22,7 +22,7 @@ import shopperRoutes from './routes/ecommerceRoutes/shopperRoutes.js';
 import wishlistRoutes from './routes/ecommerceRoutes/wishlistRoutes.js';
 import design2D3Dndex from './routes/design2D-3DRoutes/design2D3DIndex.js'
 import healthcontroller from './controllers/healthcontroller.js'
-
+import adminRoutes from './routes/adminRoutes/adminIndex.js';
 const __dirname = path.resolve();
 
 export const PORT = process.env.PORT || 5000;
@@ -43,7 +43,7 @@ app.use('/api/comfyOutputs', express.static(path.join(__dirname, './uploads/comf
 
 export const comfyUIServiceInstance = new ComfyUIService(COMFYUI_HOST);
 
-
+app.use('/api/admin', adminRoutes);
 app.use('/api/ecommerce', ecommerceIndex);
 app.use('/api/design2D3D', design2D3Dndex);
 app.use('/api/uploadImage', uploadIndex);
@@ -67,9 +67,6 @@ app.use('/api/generatedImage', generatedImageIndex)
 
 
 app.use('/health', healthcontroller)
-
-
-
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);

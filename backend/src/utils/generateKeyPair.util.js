@@ -16,14 +16,14 @@ const generateKeyPair = (prefix = '') => {
     });
 
     try {
-        fs.writeFileSync(path.join("src","keys", prefix + 'Public.pem'), publicKey);
-        fs.writeFileSync(path.join("src","keys", prefix + 'Private.pem'), privateKey);
+        fs.writeFileSync(path.join("src", "keys", prefix + 'Public.pem'), publicKey);
+        fs.writeFileSync(path.join("src", "keys", prefix + 'Private.pem'), privateKey);
         console.log(`✅ Success: Keys generated and saved `);
     } catch (err) {
         console.error('❌ Error saving keys:', err);
     }
 }
 
-// generateKeyPair("Auth");
-// generateKeyPair("Refresh");
-// generateKeyPair("Reset");
+generateKeyPair("Auth");
+generateKeyPair("Refresh");
+generateKeyPair("Reset");

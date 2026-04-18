@@ -42,7 +42,7 @@ logs/
 keys/
 
 # Project Notes
-notes.txt
+notes_and_future_plans.txt
 
 # Docker Overrides
 docker-compose.override.yml

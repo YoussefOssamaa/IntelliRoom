@@ -1,6 +1,7 @@
 # Build stage
 FROM node:20-alpine AS builder
 
+### the container path starts with /app then the rest of the frontend folder, ex: /app/src/components
 WORKDIR /app
 
 # Install pnpm

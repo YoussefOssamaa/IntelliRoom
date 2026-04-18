@@ -74,8 +74,8 @@ services:
       - DATABASE_URL=mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongo:27017/${MONGO_DB}?authSource=admin
       - API_PORT=5000
       - LOG_LEVEL=warn
-      - ZROK_ENDPOINT=${ZROK_ENDPOINT}
-      - KEYS_PATH=/app/keys
+      - COMFYUI_HOST=${COMFYUI_HOST}
+      - KEYS_PATH=${KEYS_PATH}
     depends_on:
       mongo:
         condition: service_healthy
@@ -87,7 +87,6 @@ services:
       start_period: 10s
     volumes:
       - backend-uploads:/app/uploads #### docker volume not a normal local path
-      - ./keys:/app/keys:ro
       - ./ai:/app/ai:ro
     deploy:
       resources:

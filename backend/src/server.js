@@ -22,7 +22,7 @@ import shopperRoutes from './routes/ecommerceRoutes/shopperRoutes.js';
 import wishlistRoutes from './routes/ecommerceRoutes/wishlistRoutes.js';
 import design2D3Dndex from './routes/design2D-3DRoutes/design2D3DIndex.js'
 import healthcontroller from './controllers/healthcontroller.js'
-
+import render3DIndex from './routes/render3DRoutes/render3DIndex.js'
 const __dirname = path.resolve();
 
 export const PORT = process.env.PORT || 5000;
@@ -64,7 +64,7 @@ app.use('/api/dashboard', dashboardIndex);
 app.use('/api/updateProfile', updateProfileIndex)
 app.use('/api/community', communityIndex)
 app.use('/api/generatedImage', generatedImageIndex)
-
+app.use('/api/render3d', render3DIndex) 
 
 app.use('/health', healthcontroller)
 

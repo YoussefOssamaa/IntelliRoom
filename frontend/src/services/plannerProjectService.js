@@ -38,10 +38,16 @@ export async function getPlannerUserProfile() {
   }
 }
 
-export async function savePlannerProject({ projectId, sceneData, title = 'Untitled Project' }) {
+export async function savePlannerProject({
+  projectId,
+  title = 'Untitled Project',
+  sceneData,
+  thumbnailUrl
+}) {
   const payload = {
     title,
-    data: sceneData,
+    sceneData,
+    thumbnailUrl
   };
 
   if (projectId) {

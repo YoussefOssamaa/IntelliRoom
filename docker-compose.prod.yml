@@ -144,6 +144,15 @@ services:
 
 
 
+  # # cloudflared:
+  # #   image: cloudflare/cloudflared:latest
+  # #   restart: unless-stopped
+  # #   environment:
+  # #     - CLOUDFLARE_TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+  # #   command: tunnel run
+  # #   networks:
+  # #     - intelliroom-network
+
 
 
 networks:

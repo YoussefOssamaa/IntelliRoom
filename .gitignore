@@ -20,6 +20,8 @@ __pycache__/
 *.pyc
 .venv/
 .env/
+.venv_intelliroom_test/
+chromadb/
 
 # VS Code
 .vscode/

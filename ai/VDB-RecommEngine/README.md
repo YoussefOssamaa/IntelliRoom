@@ -1,4 +1,4 @@
-The project uses a two-plane architecture:
+The feature uses a two-plane architecture:
 - Local control plane: FastAPI orchestrator, taxonomy snapper, and ChromaDB retrieval
 - Remote inference plane: Kaggle GPU notebook serving detection, embedding, and tagging APIs through zrok
 

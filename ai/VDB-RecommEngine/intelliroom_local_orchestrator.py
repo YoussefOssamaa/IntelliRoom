@@ -10,8 +10,11 @@ import chromadb
 import httpx
 import numpy as np
 import uvicorn
-from fastapi import FastAPI, UploadFile, HTTPException
+from fastapi import FastAPI, HTTPException
 from PIL import Image
+from pydantic import BaseModel
+import httpx
+
 
 KAGGLE_BASE_URL  = os.getenv("KAGGLE_BASE_URL", "https://somezroklink.share.zrok.io")
 CHROMA_DIR       = "./chromadb"
@@ -71,6 +74,10 @@ collection    = chroma_client.get_or_create_collection(
     metadata={"hnsw:space": "cosine"},
 )
 print(f"ChromaDB ready. Current item count: {collection.count()}")
+
+
+class SearchRequest(BaseModel):
+    image_url: str
 
 
 def _img_to_bytes(image: Image.Image) -> bytes:
@@ -426,22 +433,33 @@ async def health():
 
 
 @app.post("/search")
-async def search(photo: UploadFile):
+async def search(request: SearchRequest):
     """
-    User uploads a room photo.
+    User uploads a room photo's URL.
     Returns top-K complementary furniture recommendations.
     """
     try:
-        image_bytes = await photo.read()
-        results     = await run_search(image_bytes)
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.get(request.image_url)
+            if response.status_code != 200:
+                raise HTTPException(status_code=400, detail="Unable to fetch image from URL")
+            image_bytes = response.content
+
+
+        results = await run_search(image_bytes)
 
         if not results:
             return {"results": [], "message": "No furniture detected in photo."}
 
         return {"results": results, "count": len(results)}
 
+    except httpx.RequestError as e:
+        raise HTTPException(status_code=503, detail=f"Image server unreachable: {str(e)}")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+
+
 
 
 @app.post("/ingest/single")

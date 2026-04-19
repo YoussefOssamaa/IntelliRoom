@@ -20,8 +20,6 @@ __pycache__/
 *.pyc
 .venv/
 .env/
-.venv_intelliroom_test/
-chromadb/
 
 # VS Code
 .vscode/
@@ -43,3 +41,4 @@ logs/
 
 
 .env.prod
+.notes and future plans.txt

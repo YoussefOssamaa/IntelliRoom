@@ -39,6 +39,6 @@ Thumbs.db
 logs/
 
 
-
+.env
 .env.prod
 .notes and future plans.txt

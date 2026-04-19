@@ -1,6 +1,7 @@
 import express from 'express';
 import { getProducts, getProductBySlug } from '../../controllers/ecommerce/productController.js';
 import { deleteProductsController, getProductByIdController, postProductsController, putProductsController } from '../../controllers/ecommerce/productController.js';
+import { getFeaturedProducts, getMatchedProducts } from '../../controllers/ecommerce/productController.js';
 
 const router = express.Router();
 

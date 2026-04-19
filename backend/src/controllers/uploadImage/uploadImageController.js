@@ -76,8 +76,10 @@ export const postImageController = async (req, res) => {
 
         let recommendations = [];
         try {
-            const absoluteImageUrl = `${req.protocol}://${req.get('host')}${fullImagePath}`;
-            const response = await axios.post('http://localhost:7860/search', {
+            const backendContainer = process.env.NODE_ENV === 'production' ? 'backend' : 'dev';
+            const absoluteImageUrl = `http://${backendContainer}:5000${fullImagePath}`;
+            
+            const response = await axios.post('http://orchestrator:7860/search', {
                 image_url: absoluteImageUrl
             });
             recommendations = response.data.results || [];

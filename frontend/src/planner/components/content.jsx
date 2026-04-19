@@ -29,7 +29,7 @@ export default function Content({width, height, state, customContents}) {
   // doesn't intercept mouse/keyboard events and doesn't affect layout.
   const viewer3DEl = mode !== constants.MODE_3D_FIRST_PERSON ? (
     <div style={{ display: is3DActive ? 'block' : 'none', width, height, position: 'absolute', top: 0, left: 0 }}>
-      <Viewer3D state={state} width={width} height={height}/>
+      <Viewer3D state={state} width={width} height={height} isActive={is3DActive}/>
     </div>
   ) : null;
 

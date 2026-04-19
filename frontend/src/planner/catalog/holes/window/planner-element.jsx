@@ -87,6 +87,29 @@ export default {
 
   render3D: function (element, layer, scene) {
     let onLoadItem = (object) => {
+      object.traverse((child) => {
+        if (!child.isMesh || !child.material) return;
+
+        const materials = Array.isArray(child.material) ? child.material : [child.material];
+        materials.forEach((material) => {
+          if (material.map) {
+            material.map.colorSpace = Three.SRGBColorSpace;
+            material.map.needsUpdate = true;
+          }
+
+          const materialName = `${material.name || ''} ${child.name || ''}`.toLowerCase();
+          if (materialName.includes('glass')) {
+            material.transparent = true;
+            material.opacity = 0.18;
+            material.depthWrite = false;
+            material.side = Three.DoubleSide;
+            material.color = new Three.Color(0xd8ecff);
+          }
+
+          material.needsUpdate = true;
+        });
+      });
+
       let boundingBox = new Three.Box3().setFromObject(object);
 
       let initialWidth = boundingBox.max.x - boundingBox.min.x;

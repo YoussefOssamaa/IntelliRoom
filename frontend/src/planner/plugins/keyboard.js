@@ -16,6 +16,14 @@ import {
   setAlterateState
 } from '../actions/project-actions';
 
+function isTypingInField(target) {
+  if (!target) return false;
+  if (target.isContentEditable) return true;
+
+  const tag = target.tagName ? target.tagName.toLowerCase() : '';
+  return tag === 'input' || tag === 'textarea' || tag === 'select';
+}
+
 export default function keyboard() {
 
   return (store, stateExtractor) => {
@@ -24,6 +32,13 @@ export default function keyboard() {
 
       let state = stateExtractor(store.getState());
       let mode = state.get('mode');
+
+      if (
+        (event.keyCode === KEYBOARD_BUTTON_CODE.BACKSPACE || event.keyCode === KEYBOARD_BUTTON_CODE.DELETE) &&
+        isTypingInField(event.target)
+      ) {
+        return;
+      }
 
       switch (event.keyCode) {
         case KEYBOARD_BUTTON_CODE.BACKSPACE:

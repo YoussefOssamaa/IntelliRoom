@@ -8,6 +8,11 @@ import _texturePng from './texture.png';
 
 let cached3DWindow = null;
 
+const getAssetDir = (assetUrl) => {
+  const lastSlash = assetUrl.lastIndexOf('/');
+  return lastSlash >= 0 ? assetUrl.slice(0, lastSlash + 1) : '';
+};
+
 export default {
   name: 'venetian-blind-window',
   prototype: 'holes',
@@ -123,7 +128,7 @@ export default {
     let obj = _venetianObj;
     let img = _texturePng;
 
-    return loadObjWithMaterial(mtl, obj, path.dirname(img) + '/')
+    return loadObjWithMaterial(mtl, obj, getAssetDir(img))
       .then(object => {
         cached3DWindow = object;
         return onLoadItem(cached3DWindow.clone());

@@ -241,3 +241,118 @@
   background: #f3f4f6;
   color: #374151;
 }
+.personal-model-upload-input {
+  display: none;
+}
+
+.models-grid-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.upload-model-btn,
+.upload-model-empty-btn,
+.personal-upload-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #111827 0%, #374151 100%);
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 12px;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+}
+
+.upload-model-btn:hover,
+.upload-model-empty-btn:hover,
+.personal-upload-link:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 24px -18px rgba(17, 24, 39, 0.9);
+}
+
+.upload-model-btn:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.personal-upload-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 16px 16px 0;
+  padding: 14px 16px;
+  border: 1px solid #dbeafe;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%);
+}
+
+.personal-upload-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.personal-upload-copy {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #475569;
+}
+
+.personal-upload-link {
+  flex-shrink: 0;
+}
+
+.personal-upload-error {
+  margin: 12px 16px 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.personal-model-file {
+  display: block;
+  margin-top: 6px;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.models-empty-state {
+  margin: 16px;
+  min-height: 280px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  color: #64748b;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 28px;
+}
+
+.models-empty-title {
+  margin: 14px 0 6px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.models-empty-copy {
+  margin: 0;
+  max-width: 280px;
+  font-size: 13px;
+  line-height: 1.55;
+}

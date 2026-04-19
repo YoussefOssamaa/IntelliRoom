@@ -1,6 +1,6 @@
 import * as Three from 'three';
 import React from 'react';
-import { loadGLTF, deepCloneWithMaterials } from './load-gltf';
+import { loadGLTF, deepCloneWithMaterials, normalizeMaterialForPlanner } from './load-gltf';
 
 // Cache for loaded 3D models to avoid reloading
 const holeModelCache = new Map();
@@ -175,19 +175,40 @@ export default function GLBHoleFactory(config) {
             const materials = Array.isArray(child.material) ? child.material : [child.material];
             
             materials.forEach((material) => {
-              // Ensure all textures use the correct color space
-              if (material.map) {
-                material.map.colorSpace = Three.SRGBColorSpace;
-                material.map.needsUpdate = true;
+              normalizeMaterialForPlanner(material);
+
+              const materialName = `${material.name || ''} ${child.name || ''}`.toLowerCase();
+              const looksLikeGlass = materialName.includes('glass') || materialName.includes('glazing');
+              const isStandardLike = material.isMeshStandardMaterial || material.isMeshPhysicalMaterial;
+
+              if (holeType === 'door' || holeType === 'window') {
+                material.side = Three.DoubleSide;
+
+                if (isStandardLike) {
+                  if (!material.envMap && material.metalness > 0.2) {
+                    material.metalness = 0.08;
+                  }
+                  material.roughness = Math.max(material.roughness ?? 0.08, holeType === 'window' ? 0.12 : 0.22);
+                }
               }
-              if (material.emissiveMap) {
-                material.emissiveMap.colorSpace = Three.SRGBColorSpace;
-                material.emissiveMap.needsUpdate = true;
+
+              if (looksLikeGlass) {
+                material.transparent = true;
+                material.opacity = Math.min(typeof material.opacity === 'number' ? material.opacity : 1, holeType === 'window' ? 0.18 : 0.28);
+                material.depthWrite = false;
+                material.side = Three.DoubleSide;
+
+                if (isStandardLike) {
+                  material.metalness = 0;
+                  material.roughness = Math.max(material.roughness ?? 0.08, 0.08);
+                }
+
+                if (material.isMeshPhysicalMaterial) {
+                  material.transmission = Math.max(material.transmission || 0, 0.9);
+                  material.thickness = Math.max(material.thickness || 0, 0.02);
+                }
               }
-              
-              // Material adjustments
-              material.needsUpdate = true;
-              
+
               if (emissiveIntensity > 0 && !material.map && material.color) {
                 if (!material.emissive || material.emissive.r === 0) {
                   material.emissive = material.color.clone();
@@ -195,7 +216,9 @@ export default function GLBHoleFactory(config) {
                   material.emissiveIntensity = emissiveIntensity;
                 }
               }
-              
+
+              material.needsUpdate = true;
+
               if (enableShadows) {
                 child.castShadow = true;
                 child.receiveShadow = true;

@@ -138,7 +138,9 @@ const DEFAULT_SETTINGS = {
   helpers: true,
   markers: true,
   guides: true,
-  boundingBoxes: false
+  boundingBoxes: false,
+  gestureZoom: false,
+  gestureCameraPreview: false
 };
 
 export default function ViewSettingsPanel({ 
@@ -256,6 +258,12 @@ export default function ViewSettingsPanel({
           {/* Objects Section */}
           <div style={SECTION_TITLE_STYLE}>Objects</div>
           {renderToggleItem('furniture', 'Furniture', '🪑')}
+          
+          <div style={DIVIDER_STYLE} />
+
+          <div style={SECTION_TITLE_STYLE}>Hand Gestures</div>
+          {renderToggleItem('gestureZoom', 'Enable Gesture Zoom', '✋')}
+          {renderToggleItem('gestureCameraPreview', 'Show Camera Preview', '📷')}
           
           <div style={DIVIDER_STYLE} />
           

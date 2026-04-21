@@ -1,4 +1,3 @@
-import express from 'express';
 import WebSocket from 'ws';
 import axios from 'axios';
 import path from 'path';

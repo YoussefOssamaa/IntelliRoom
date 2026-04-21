@@ -1,6 +1,3 @@
-import express from 'express';
-
-
 export function buildComfyWorkflow(inputImageFilename, inputReferenceImageFilename=null , inputPrompt) {
         return {
 

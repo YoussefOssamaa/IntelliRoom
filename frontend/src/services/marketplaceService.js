@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 //  backend URL or a local one only for testing
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
 
 const marketplaceAPI = axios.create({
   baseURL: `${API_BASE_URL}/plugins`,

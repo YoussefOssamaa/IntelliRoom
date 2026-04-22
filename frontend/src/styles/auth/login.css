@@ -112,7 +112,7 @@ h2 {
     border: 1px solid #86efac;
 }
 
-img {
+.btn img {
     width: 30px;
     height: 30px;
     position: relative;

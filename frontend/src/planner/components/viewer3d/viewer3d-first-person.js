@@ -20,8 +20,273 @@ export default class Viewer3DFirstPerson extends React.Component {
     this.width = props.width;
     this.height = props.height;
     this.stopRendering = false;
+    this.renderInteractionMode = 'default';
+    this.renderControlType = 'drag-pan';
+    this.renderCameraHeight = 170;
+    this.renderCameraHeightLimit = 280;
+    this.renderCameraVerticalRotation = 0;
+    this.isDirectionDragging = false;
+    this.isMoveDragging = false;
+    this.lastRenderDragPoint = { x: 0, y: 0 };
+    this._lodEntries = [];
+    this._lodDirty = true;
+    this._sceneDirtyForFrame = true;
+    this._hasLastFrameCameraState = false;
+    this._lastCameraPosition = new Three.Vector3();
+    this._lastCameraQuaternion = new Three.Quaternion();
+    this._cameraWorldPosition = new Three.Vector3();
+    this._cameraWorldQuaternion = new Three.Quaternion();
+    this._lastRendererWidth = this.width;
+    this._lastRendererHeight = this.height;
     this.renderer = window.__threeRenderer || new Three.WebGLRenderer({preserveDrawingBuffer: true});
     window.__threeRenderer = this.renderer;
+  }
+
+  emitRenderCameraVerticalRotationChange(verticalDegrees) {
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(new CustomEvent('render-camera-vertical-rotation-change', {
+      detail: verticalDegrees,
+    }));
+  }
+
+  getPitchObject() {
+    const yawObject = this.controls?.getObject?.();
+    if (!yawObject?.children?.length) return null;
+    return yawObject.children.find((child) => child?.name === 'pitchObject') || null;
+  }
+
+  _refreshLodEntries(planData) {
+    const lodMap = (planData && planData.sceneGraph && planData.sceneGraph.LODs) || {};
+    this._lodEntries = Object.values(lodMap).filter(Boolean);
+    this._lodDirty = false;
+  }
+
+  _didCameraStateChange(camera) {
+    camera.getWorldPosition(this._cameraWorldPosition);
+    camera.getWorldQuaternion(this._cameraWorldQuaternion);
+
+    if (!this._hasLastFrameCameraState) {
+      this._lastCameraPosition.copy(this._cameraWorldPosition);
+      this._lastCameraQuaternion.copy(this._cameraWorldQuaternion);
+      this._hasLastFrameCameraState = true;
+      return true;
+    }
+
+    const positionChanged = this._lastCameraPosition.distanceToSquared(this._cameraWorldPosition) > 1e-6;
+    const rotationChanged = 1 - Math.abs(this._lastCameraQuaternion.dot(this._cameraWorldQuaternion)) > 1e-6;
+
+    if (positionChanged || rotationChanged) {
+      this._lastCameraPosition.copy(this._cameraWorldPosition);
+      this._lastCameraQuaternion.copy(this._cameraWorldQuaternion);
+      return true;
+    }
+
+    return false;
+  }
+
+  enablePointerLockClick(enable) {
+    if (!this.renderer?.domElement || !this.requestPointerLockEvent) return;
+
+    if (enable && !this.pointerLockClickEnabled) {
+      this.renderer.domElement.addEventListener('click', this.requestPointerLockEvent);
+      this.pointerLockClickEnabled = true;
+      return;
+    }
+
+    if (!enable && this.pointerLockClickEnabled) {
+      this.renderer.domElement.removeEventListener('click', this.requestPointerLockEvent);
+      this.pointerLockClickEnabled = false;
+    }
+  }
+
+  applyRenderInteractionMode() {
+    const mode = this.renderInteractionMode || 'default';
+    const controlType = this.renderControlType || 'drag-pan';
+
+    if (!this.controls || !this.renderer?.domElement) return;
+
+    if (mode !== 'walkthrough') {
+      this.enablePointerLockClick(false);
+      if (document.pointerLockElement === document.body) {
+        document.exitPointerLock?.();
+      }
+      this.controls.enabled = true;
+      this.isDirectionDragging = false;
+      this.isMoveDragging = false;
+      this.renderer.domElement.style.cursor = 'default';
+      return;
+    }
+
+    if (controlType === 'pointer-lock') {
+      this.enablePointerLockClick(true);
+      this.renderer.domElement.style.cursor = this.isPointerLocked() ? 'none' : 'crosshair';
+      return;
+    }
+
+    this.enablePointerLockClick(false);
+    if (document.pointerLockElement === document.body) {
+      document.exitPointerLock?.();
+    }
+    this.controls.enabled = false;
+    this.renderer.domElement.style.cursor = (this.isDirectionDragging || this.isMoveDragging) ? 'grabbing' : 'grab';
+  }
+
+  isPointerLocked() {
+    return document.pointerLockElement === document.body ||
+      document.mozPointerLockElement === document.body ||
+      document.webkitPointerLockElement === document.body;
+  }
+
+  isDragPanControlEnabled() {
+    return this.renderInteractionMode === 'walkthrough' && this.renderControlType === 'drag-pan';
+  }
+
+  isKeyboardWalkEnabled() {
+    return this.renderInteractionMode === 'walkthrough' &&
+      this.renderControlType === 'pointer-lock' &&
+      this.isPointerLocked();
+  }
+
+  shouldIgnoreKeyboardEvent(event) {
+    const activeElement = document.activeElement;
+    const activeTag = activeElement?.tagName?.toLowerCase();
+    if (activeTag === 'input' || activeTag === 'textarea' || activeTag === 'select') {
+      return true;
+    }
+    if (activeElement?.isContentEditable) {
+      return true;
+    }
+
+    const eventTag = event?.target?.tagName?.toLowerCase();
+    if (eventTag === 'input' || eventTag === 'textarea' || eventTag === 'select') {
+      return true;
+    }
+
+    return false;
+  }
+
+  getRenderCameraHeightLimit() {
+    const fallbackLimit = Number.isFinite(this.renderCameraHeightLimit) ? this.renderCameraHeightLimit : 280;
+    const scene = this.props?.state?.scene;
+
+    if (!scene?.get) {
+      return fallbackLimit;
+    }
+
+    const selectedLayerId = scene.get('selectedLayer');
+    if (!selectedLayerId) {
+      return fallbackLimit;
+    }
+
+    const lines = scene.getIn(['layers', selectedLayerId, 'lines']);
+    if (!lines?.forEach || lines.size === 0) {
+      return fallbackLimit;
+    }
+
+    let maxWallHeight = 0;
+    lines.forEach((line) => {
+      const wallHeight = Number(line?.getIn?.(['properties', 'height', 'length']));
+      if (!Number.isNaN(wallHeight) && wallHeight > maxWallHeight) {
+        maxWallHeight = wallHeight;
+      }
+    });
+
+    return maxWallHeight > 0 ? maxWallHeight : fallbackLimit;
+  }
+
+  getRenderSlabHeight() {
+    const scene = this.props?.state?.scene;
+    const selectedLayerId = scene?.get?.('selectedLayer');
+    if (!selectedLayerId) return 0;
+
+    const areas = scene?.getIn?.(['layers', selectedLayerId, 'areas']);
+    if (!areas?.forEach) return 0;
+
+    let slabHeight = 0;
+    areas.forEach((area) => {
+      const floorThickness = Number(area?.getIn?.(['properties', 'floorThickness', 'length']));
+      if (!Number.isNaN(floorThickness) && floorThickness > slabHeight) {
+        slabHeight = floorThickness;
+      }
+    });
+
+    return slabHeight;
+  }
+
+  getRenderFloorLevel() {
+    const scene = this.props?.state?.scene;
+    const selectedLayerId = scene?.get?.('selectedLayer');
+    const slabHeight = this.getRenderSlabHeight();
+
+    if (selectedLayerId) {
+      const layerAltitude = Number(scene?.getIn?.(['layers', selectedLayerId, 'altitude']));
+      if (!Number.isNaN(layerAltitude)) {
+        return layerAltitude + slabHeight;
+      }
+    }
+
+    const bboxFloor = this.planData?.boundingBox?.min?.y;
+    if (Number.isFinite(bboxFloor)) {
+      return bboxFloor + slabHeight;
+    }
+
+    return slabHeight;
+  }
+
+  clampRenderCameraHeight(heightValue) {
+    const heightLimit = this.getRenderCameraHeightLimit();
+    return Math.max(0, Math.min(heightLimit, heightValue));
+  }
+
+  getRenderPreviewState() {
+    if (!this.camera || !this.controls?.getObject) return null;
+
+    const position = new Three.Vector3();
+    const target = new Three.Vector3();
+    const direction = new Three.Vector3();
+
+    this.camera.getWorldPosition(position);
+    this.camera.getWorldDirection(direction);
+    target.copy(position).add(direction.multiplyScalar(220));
+
+    return { position, target };
+  }
+
+  setRenderPreviewState(nextState = {}) {
+    if (!this.controls?.getObject) return;
+
+    const controlObject = this.controls.getObject();
+    const previewState = this.getRenderPreviewState();
+    const nextPosition = nextState.position || previewState?.position;
+    const nextTarget = nextState.target || previewState?.target;
+
+    if (nextPosition) {
+      const nextX = Number(nextPosition.x);
+      const nextZ = Number(nextPosition.z);
+
+      if (!Number.isNaN(nextX)) controlObject.position.x = nextX;
+      if (!Number.isNaN(nextZ)) controlObject.position.z = nextZ;
+    }
+
+    const cameraWorldY = this.camera?.getWorldPosition(new Three.Vector3()).y ?? controlObject.position.y;
+    if (nextTarget) {
+      const dx = Number(nextTarget.x) - controlObject.position.x;
+      const dz = Number(nextTarget.z) - controlObject.position.z;
+      const horizontalDistance = Math.hypot(dx, dz);
+
+      if (horizontalDistance > 1e-6) {
+        controlObject.rotation.y = Math.atan2(-dx, -dz);
+
+        const nextTargetY = Number(nextTarget.y);
+        if (!Number.isNaN(nextTargetY)) {
+          const nextPitch = Three.MathUtils.radToDeg(Math.atan2(nextTargetY - cameraWorldY, horizontalDistance));
+          this.setRenderCameraVerticalRotation(nextPitch);
+        }
+      }
+    }
+
+    controlObject.position.y = this.getRenderFloorLevel() + this.renderCameraHeight;
+    this._sceneDirtyForFrame = true;
   }
 
   componentDidMount() {
@@ -60,18 +325,21 @@ export default class Viewer3DFirstPerson extends React.Component {
     this.renderer.setSize(this.width, this.height);
 
     /* Set user initial position */
-    let humanHeight = 170; // 170 cm
+    let humanHeight = this.clampRenderCameraHeight(this.renderCameraHeight);
+    this.renderCameraHeight = humanHeight;
 
     // Called once all GLB assets finish loading — reposition camera to plan center
     const onBoundingBoxReady = (planData) => {
       const center = planData.boundingBoxCenter;
+      const floorY = this.getRenderFloorLevel();
       if (center) {
-        this.controls.getObject().position.set(center.x, humanHeight, center.z);
+        this.controls.getObject().position.set(center.x, floorY + this.renderCameraHeight, center.z);
       }
     };
 
     // LOAD DATA
     this.planData = parseData(data, actions, catalog, onBoundingBoxReady);
+    this._refreshLodEntries(this.planData);
 
     scene3D.add(this.planData.plan);
 
@@ -100,23 +368,40 @@ export default class Viewer3DFirstPerson extends React.Component {
 
     // POINTER LOCK
 
-    document.body.requestPointerLock = document.body.requestPointerLock ||
-      document.body.mozRequestPointerLock ||
-      document.body.webkitRequestPointerLock;
-
-    document.body.requestPointerLock();
-
     let {controls, pointerlockChangeEvent, requestPointerLockEvent} = initPointerLock(camera, this.renderer.domElement);
     this.controls = controls;
     this.pointerlockChangeListener = pointerlockChangeEvent;
     this.requestPointerLockEvent = requestPointerLockEvent;
+    this.pointerLockClickEnabled = true;
+
+    this.renderPointerLockSyncEvent = () => {
+      if (!this.controls) return;
+
+      if (this.renderControlType === 'pointer-lock') {
+        if (this.isPointerLocked()) {
+          return;
+        }
+
+        this.renderControlType = 'drag-pan';
+        this.resetKeyboardMovement?.();
+        window.dispatchEvent(new CustomEvent('render-control-type-change', { detail: 'drag-pan' }));
+      }
+
+      this.applyRenderInteractionMode();
+    };
+    document.addEventListener('pointerlockchange', this.renderPointerLockSyncEvent);
+    document.addEventListener('mozpointerlockchange', this.renderPointerLockSyncEvent);
+    document.addEventListener('webkitpointerlockchange', this.renderPointerLockSyncEvent);
 
     // Place camera at origin until onBoundingBoxReady fires and moves it to plan center
-    this.controls.getObject().position.set(0, humanHeight, 0);
+    this.controls.getObject().position.set(0, this.getRenderFloorLevel() + this.renderCameraHeight, 0);
     sceneOnTop.add(this.controls.getObject()); // Add the pointer lock controls to the scene that will be rendered on top
 
     // Add move controls on the page
     this.keyDownEvent = (event) => {
+      if (this.shouldIgnoreKeyboardEvent(event)) return;
+      if (!this.isKeyboardWalkEnabled()) return;
+
       let moveResult = firstPersonOnKeyDown(event, moveForward, moveLeft, moveBackward, moveRight, canJump, velocity);
       moveForward = moveResult.moveForward;
       moveLeft = moveResult.moveLeft;
@@ -126,6 +411,10 @@ export default class Viewer3DFirstPerson extends React.Component {
     };
 
     this.keyUpEvent = (event) => {
+      if (this.shouldIgnoreKeyboardEvent(event)) return;
+      const hasActiveMovement = moveForward || moveBackward || moveLeft || moveRight;
+      if (!this.isKeyboardWalkEnabled() && !hasActiveMovement) return;
+
       let moveResult = firstPersonOnKeyUp(event, moveForward, moveLeft, moveBackward, moveRight, canJump);
       moveForward = moveResult.moveForward;
       moveLeft = moveResult.moveLeft;
@@ -134,55 +423,17 @@ export default class Viewer3DFirstPerson extends React.Component {
       canJump = moveResult.canJump;
     };
 
+    this.resetKeyboardMovement = () => {
+      moveForward = false;
+      moveBackward = false;
+      moveLeft = false;
+      moveRight = false;
+      canJump = false;
+      velocity.set(0, 0, 0);
+    };
+
     document.addEventListener('keydown', this.keyDownEvent);
     document.addEventListener('keyup', this.keyUpEvent);
-
-    // Add a pointer to the scene
-
-    let pointer = new Three.Object3D();
-    pointer.name = 'pointer';
-
-    let pointerMaterial = new Three.MeshBasicMaterial({depthTest: false, depthWrite: false, color: SharedStyle.COLORS.black});
-    let pointerGeometry1 = new Three.BufferGeometry();
-    const points1 = [
-      new Three.Vector3(-10, 0, 0),
-      new Three.Vector3(10, 0, 0)
-    ];
-    pointerGeometry1.setFromPoints(points1);
-
-    let linePointer1 = new Three.Line(pointerGeometry1, pointerMaterial);
-    linePointer1.position.z -= 100;
-
-    let pointerGeometry2 = new Three.BufferGeometry();
-    const points2 = [
-      new Three.Vector3(0, 10, 0),
-      new Three.Vector3(0, -10, 0)
-    ];
-    pointerGeometry2.setFromPoints(points2);
-
-    let linePointer2 = new Three.Line(pointerGeometry2, pointerMaterial);
-    linePointer2.renderDepth = 1e20;
-    linePointer2.position.z -= 100;
-
-    let pointerGeometry3 = new Three.BufferGeometry();
-    const points3 = [
-      new Three.Vector3(-1, 1, 0),
-      new Three.Vector3(1, 1, 0),
-      new Three.Vector3(1, -1, 0),
-      new Three.Vector3(-1, -1, 0),
-      new Three.Vector3(-1, 1, 0)
-    ];
-    pointerGeometry3.setFromPoints(points3);
-
-    let linePointer3 = new Three.Line(pointerGeometry3, pointerMaterial);
-    linePointer3.position.z -= 100;
-
-    pointer.add(linePointer1);
-    pointer.add(linePointer2);
-    pointer.add(linePointer3);
-
-    camera.add(pointer); // Add the pointer to the camera
-
 
     // OBJECT PICKING
     let toIntersect = [this.planData.plan];
@@ -191,6 +442,10 @@ export default class Viewer3DFirstPerson extends React.Component {
     let raycaster = new Three.Raycaster();
 
     this.firstPersonMouseDown = (event) => {
+
+      if (this.isDragPanControlEnabled()) {
+        return;
+      }
 
       // First of all I check if controls are enabled
 
@@ -215,28 +470,133 @@ export default class Viewer3DFirstPerson extends React.Component {
 
     document.addEventListener('mousedown', this.firstPersonMouseDown, false);
 
+    this.dragPanMouseDown = (event) => {
+      if (!this.isDragPanControlEnabled()) return;
+      if (this.isPointerLocked()) return;
+
+      if (event.button !== 0 && event.button !== 2) return;
+
+      if (event.button === 0) {
+        this.isDirectionDragging = true;
+      }
+
+      if (event.button === 2) {
+        this.isMoveDragging = true;
+      }
+
+      this.lastRenderDragPoint = { x: event.clientX, y: event.clientY };
+
+      this.applyRenderInteractionMode();
+      event.preventDefault();
+    };
+
+    this.dragPanMouseMove = (event) => {
+      if ((!this.isDirectionDragging && !this.isMoveDragging) || !this.controls) return;
+      if (!this.isDragPanControlEnabled()) return;
+
+      const dx = event.clientX - this.lastRenderDragPoint.x;
+      const dy = event.clientY - this.lastRenderDragPoint.y;
+      this.lastRenderDragPoint = { x: event.clientX, y: event.clientY };
+
+      const rotateFactor = 0.005;
+      const moveFactor = 0.45;
+      const pitchFactor = 0.2;
+      const worldUp = new Three.Vector3(0, 1, 0);
+      const object = this.controls.getObject();
+
+      if (this.isDirectionDragging) {
+        object.rotation.y -= dx * rotateFactor;
+        const nextVerticalRotation = Math.max(-80, Math.min(80, this.renderCameraVerticalRotation - (dy * pitchFactor)));
+        this.setRenderCameraVerticalRotation(nextVerticalRotation);
+      }
+
+      if (this.isMoveDragging) {
+        const yaw = object.rotation.y;
+        const cameraRight = new Three.Vector3(1, 0, 0).applyAxisAngle(worldUp, yaw).normalize();
+        const cameraForward = new Three.Vector3(0, 0, -1).applyAxisAngle(worldUp, yaw).normalize();
+
+        object.position.addScaledVector(cameraRight, -dx * moveFactor);
+        object.position.addScaledVector(cameraForward, dy * moveFactor);
+        object.position.y = this.getRenderFloorLevel() + this.renderCameraHeight;
+      }
+
+      this._sceneDirtyForFrame = true;
+    };
+
+    this.dragPanContextMenu = (event) => {
+      if (this.isDragPanControlEnabled()) {
+        event.preventDefault();
+      }
+    };
+
+    this.dragPanMouseUp = () => {
+      if (!this.isDirectionDragging && !this.isMoveDragging) return;
+      this.isDirectionDragging = false;
+      this.isMoveDragging = false;
+      this.applyRenderInteractionMode();
+    };
+
+    this.dragPanMouseWheel = (event) => {
+      if (!this.isDragPanControlEnabled()) return;
+      if (!this.controls?.getObject) return;
+
+      event.preventDefault();
+
+      const object = this.controls.getObject();
+      const worldUp = new Three.Vector3(0, 1, 0);
+      const cameraForward = new Three.Vector3(0, 0, -1).applyAxisAngle(worldUp, object.rotation.y).normalize();
+      const wheelDelta = Number(event.deltaY) || 0;
+      const moveStep = Math.max(20, Math.min(180, Math.abs(wheelDelta) * 0.25));
+      const directionScale = wheelDelta < 0 ? moveStep : -moveStep;
+
+      object.position.addScaledVector(cameraForward, directionScale);
+      object.position.y = this.getRenderFloorLevel() + this.renderCameraHeight;
+      this._sceneDirtyForFrame = true;
+    };
+
+    this.renderer.domElement.addEventListener('mousedown', this.dragPanMouseDown, false);
+    this.renderer.domElement.addEventListener('contextmenu', this.dragPanContextMenu, false);
+    this.renderer.domElement.addEventListener('wheel', this.dragPanMouseWheel, { passive: false });
+    window.addEventListener('mousemove', this.dragPanMouseMove, false);
+    window.addEventListener('mouseup', this.dragPanMouseUp, false);
+
     this.renderer.domElement.style.display = 'block';
 
     // add the output of the renderer to the html element
     canvasWrapper.appendChild(this.renderer.domElement);
     this.renderer.autoClear = false;
 
-    let bb;
-    let yInitialPosition = humanHeight;
     let render = () => {
 
       if (!this.stopRendering) {
-        bb = this.planData.boundingBox || { min: { y: 0 }, max: { y: 0 } };
-        yInitialPosition = bb.min.y + humanHeight;
+        const floorY = this.getRenderFloorLevel();
+        const minWorldY = floorY;
+        const maxWorldY = floorY + this.getRenderCameraHeightLimit();
+        const desiredWorldY = Math.max(minWorldY, Math.min(maxWorldY, floorY + this.renderCameraHeight));
 
         let multiplier = 5;
 
         let time = performance.now();
         let delta = ( time - prevTime ) / 1000 * multiplier;
 
+        if (!this.isKeyboardWalkEnabled()) {
+          moveForward = false;
+          moveBackward = false;
+          moveLeft = false;
+          moveRight = false;
+          canJump = false;
+          velocity.x = 0;
+          velocity.z = 0;
+          velocity.y = 0;
+        }
+
         velocity.x -= velocity.x * 10.0 * delta;
         velocity.z -= velocity.z * 10.0 * delta;
         velocity.y -= 9.8 * 100.0 * delta / multiplier; // 100.0 = mass
+
+        if (Math.abs(velocity.x) < 0.001) velocity.x = 0;
+        if (Math.abs(velocity.z) < 0.001) velocity.z = 0;
+        if (Math.abs(velocity.y) < 0.001) velocity.y = 0;
 
         direction.z = Number( moveForward ) - Number( moveBackward );
         direction.x = Number( moveLeft ) - Number( moveRight );
@@ -249,10 +609,17 @@ export default class Viewer3DFirstPerson extends React.Component {
         this.controls.getObject().translateY(velocity.y * delta);
         this.controls.getObject().translateZ(velocity.z * delta);
 
-        if ( this.controls.getObject().position.y < yInitialPosition ) {
+        if (this.renderInteractionMode === 'walkthrough') {
           velocity.y = 0;
-          this.controls.getObject().position.y = yInitialPosition;
+          this.controls.getObject().position.y = desiredWorldY;
+          canJump = false;
+        } else if ( this.controls.getObject().position.y < desiredWorldY ) {
+          velocity.y = 0;
+          this.controls.getObject().position.y = desiredWorldY;
           canJump = true;
+        } else if (this.controls.getObject().position.y > maxWorldY) {
+          velocity.y = 0;
+          this.controls.getObject().position.y = maxWorldY;
         }
 
         prevTime = time;
@@ -261,9 +628,18 @@ export default class Viewer3DFirstPerson extends React.Component {
         let controlObjectPosition = this.controls.getObject().position;
         pointLight.position.set(controlObjectPosition.x, controlObjectPosition.y, controlObjectPosition.z);
 
-        for (let elemID in this.planData.sceneGraph.LODs) {
-          this.planData.sceneGraph.LODs[elemID].update(camera);
+        if (this._lodDirty) {
+          this._refreshLodEntries(this.planData);
         }
+
+        const cameraChanged = this._didCameraStateChange(camera);
+        if (cameraChanged || this._sceneDirtyForFrame) {
+          for (let index = 0; index < this._lodEntries.length; index++) {
+            this._lodEntries[index].update(camera);
+          }
+          this._sceneDirtyForFrame = false;
+        }
+
 
         this.renderer.clear();                     // clear buffers
         this.renderer.render(scene3D, camera);     // render scene 1
@@ -279,10 +655,17 @@ export default class Viewer3DFirstPerson extends React.Component {
     this.camera = camera;
     this.scene3D = scene3D;
     this.sceneOnTop = sceneOnTop;
+    window.__viewer3D = this;
+    this.applyRenderInteractionMode();
     // this.planData = planData;
   }
 
   componentWillUnmount() {
+
+    if (window.__viewer3D === this) {
+      window.__viewer3D = null;
+    }
+
     this.stopRendering = true;
     this.renderer.autoClear = true;
     document.removeEventListener('mousedown', this.firstPersonMouseDown);
@@ -291,7 +674,17 @@ export default class Viewer3DFirstPerson extends React.Component {
     document.removeEventListener('pointerlockchange', this.pointerlockChangeListener);
     document.removeEventListener('mozpointerlockchange', this.pointerlockChangeListener);
     document.removeEventListener('webkitpointerlockchange', this.pointerlockChangeListener);
+    document.removeEventListener('pointerlockchange', this.renderPointerLockSyncEvent);
+    document.removeEventListener('mozpointerlockchange', this.renderPointerLockSyncEvent);
+    document.removeEventListener('webkitpointerlockchange', this.renderPointerLockSyncEvent);
     this.renderer.domElement.removeEventListener('click', this.requestPointerLockEvent);
+    this.renderer.domElement.removeEventListener('mousedown', this.dragPanMouseDown);
+    this.renderer.domElement.removeEventListener('contextmenu', this.dragPanContextMenu);
+    this.renderer.domElement.removeEventListener('wheel', this.dragPanMouseWheel);
+    window.removeEventListener('mousemove', this.dragPanMouseMove);
+    window.removeEventListener('mouseup', this.dragPanMouseUp);
+    this.renderer.domElement.style.cursor = 'default';
+    this.resetKeyboardMovement?.();
 
     disposeScene(this.scene3D);
 
@@ -300,6 +693,86 @@ export default class Viewer3DFirstPerson extends React.Component {
     this.scene3D = null;
     this.planData = null;
     this.renderer.renderLists.dispose();
+  }
+
+  setRenderInteractionMode(mode = 'default') {
+    if (this.renderInteractionMode === mode) return;
+    this.renderInteractionMode = mode;
+    if (mode !== 'walkthrough') {
+      this.resetKeyboardMovement?.();
+    }
+    this.applyRenderInteractionMode();
+  }
+
+  setRenderControlType(type = 'drag-pan') {
+    if (type !== 'drag-pan' && type !== 'pointer-lock') return;
+    if (this.renderControlType === type) return;
+    this.renderControlType = type;
+    if (type !== 'pointer-lock') {
+      this.resetKeyboardMovement?.();
+    }
+    this.applyRenderInteractionMode();
+  }
+
+  setRenderCameraHeight(heightValue) {
+    if (!this.controls) return;
+
+    const numericHeight = Number(heightValue);
+    if (Number.isNaN(numericHeight)) return;
+
+    const clampedHeight = this.clampRenderCameraHeight(numericHeight);
+    const floorY = this.getRenderFloorLevel();
+    const nextWorldY = floorY + clampedHeight;
+    const currentWorldY = this.controls.getObject().position.y;
+
+    if (Math.abs(this.renderCameraHeight - clampedHeight) < 1e-6 && Math.abs(currentWorldY - nextWorldY) < 1e-6) {
+      return;
+    }
+
+    this.renderCameraHeight = clampedHeight;
+    this.controls.getObject().position.y = nextWorldY;
+    this._sceneDirtyForFrame = true;
+
+  }
+
+  setRenderCameraHeightLimit(heightValue) {
+    const numericHeight = Number(heightValue);
+    if (Number.isNaN(numericHeight)) return;
+
+    const clampedLimit = Math.max(0, numericHeight);
+    if (Math.abs(this.renderCameraHeightLimit - clampedLimit) < 1e-6) {
+      return;
+    }
+
+    this.renderCameraHeightLimit = clampedLimit;
+
+    if (this.renderCameraHeight > this.renderCameraHeightLimit) {
+      this.setRenderCameraHeight(this.renderCameraHeight);
+    }
+  }
+
+  setRenderCameraVerticalRotation(verticalDegrees) {
+    if (!this.controls) return;
+
+    const numericDegrees = Number(verticalDegrees);
+    if (Number.isNaN(numericDegrees)) return;
+
+    const clampedDegrees = Math.max(-80, Math.min(80, numericDegrees));
+    const pitchRadians = Three.MathUtils.degToRad(clampedDegrees);
+
+    const pitchObject = this.getPitchObject();
+    const currentPitchRadians = pitchObject ? pitchObject.rotation.x : Three.MathUtils.degToRad(this.renderCameraVerticalRotation);
+    if (Math.abs(this.renderCameraVerticalRotation - clampedDegrees) < 1e-6 && Math.abs(currentPitchRadians - pitchRadians) < 1e-6) {
+      return;
+    }
+
+    this.renderCameraVerticalRotation = clampedDegrees;
+    if (pitchObject) {
+      pitchObject.rotation.x = pitchRadians;
+    }
+
+    this._sceneDirtyForFrame = true;
+    this.emitRenderCameraVerticalRotationChange(clampedDegrees);
   }
 
   componentDidUpdate(prevProps) {
@@ -317,20 +790,22 @@ export default class Viewer3DFirstPerson extends React.Component {
     this.width = width;
     this.height = height;
 
-    camera.aspect = width / height;
-
-    camera.updateProjectionMatrix();
-
     if (this.props.state.scene !== prevProps.state.scene) {
       let changedValues = diff(prevProps.state.scene, this.props.state.scene);
       updateScene(planData, this.props.state.scene, prevProps.state.scene, changedValues.toJS(), actions, this.context.catalog);
+      this._lodDirty = true;
+      this._sceneDirtyForFrame = true;
+      this.setRenderCameraHeight(this.renderCameraHeight);
     }
 
-    renderer.setSize(width, height);
-    renderer.clear();                     // clear buffers
-    renderer.render(scene3D, camera);     // render scene 1
-    renderer.clearDepth();                // clear depth buffer
-    renderer.render(sceneOnTop, camera);  // render scene 2
+    if (width !== this._lastRendererWidth || height !== this._lastRendererHeight) {
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+      this._lastRendererWidth = width;
+      this._lastRendererHeight = height;
+      this._sceneDirtyForFrame = true;
+    }
 
   }
 

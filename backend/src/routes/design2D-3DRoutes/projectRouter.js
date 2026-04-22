@@ -8,9 +8,9 @@ const router = express.Router();
 
 router.post('/', postProjectController );    /// for project first creation
 router.get('/', getProjectsController );    ///// will be used to fetch all projects of a user, for ex: in the dashboard show all the projects' images
-router.get('/:id', getProjectByIDController );   
-router.put('/:id', updateProjectController );   /// for updating the project, ex: the save button
-router.delete('/:id', deleteProjectController );
+router.get('/:projectId', getProjectByIDController );   
+router.put('/:projectId', updateProjectController );   /// for updating the project, ex: the save button
+router.delete('/:projectId', deleteProjectController );
 
 
 

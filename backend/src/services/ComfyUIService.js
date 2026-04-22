@@ -131,6 +131,34 @@ export class ComfyUIService {
             throw error;
         }
     }
+ // async uploadImageBuffer(imageBuffer, filename = `upload-${Date.now()}.png`, subfolder = '') {
+    //     try {
+    //         const formData = new FormData();
+    //         formData.append('image', imageBuffer, {
+    //             filename
+    //         });
+
+    //         if (subfolder) {
+    //             formData.append('subfolder', subfolder);
+    //         }
+
+    //         const headers = formData.getHeaders();
+    //         if (this.isZrok) {
+    //             headers['skip_zrok_interstitial'] = 'true';
+    //         }
+
+    //         const response = await axios.post(
+    //             `${this.COMFYUI_API_URL}/upload/image`,
+    //             formData,
+    //             { headers }
+    //         );
+
+    //         return response.data.name;
+    //     } catch (error) {
+    //         console.error('Error uploading image buffer to ComfyUI:', error.response?.data || error.message);
+    //         throw error;
+    //     }
+    // }
 
 
 
@@ -167,6 +195,34 @@ export class ComfyUIService {
         }
 
     }
+ // async getImageBuffer(filename, subfolder = '', type = 'output') {
+    //     try {
+    //         const params = new URLSearchParams({
+    //             filename,
+    //             type,
+    //             ...(subfolder && { subfolder })
+    //         });
+
+    //         const headers = {};
+    //         if (this.isZrok) {
+    //             headers['skip_zrok_interstitial'] = 'true';
+    //         }
+
+    //         const response = await axios.get(
+    //             `${this.COMFYUI_API_URL}/view?${params.toString()}`,
+    //             {
+    //                 responseType: 'arraybuffer',
+    //                 headers
+    //             }
+    //         );
+
+    //         return Buffer.from(response.data);
+    //     } catch (error) {
+    //         console.error('Error fetching image buffer from ComfyUI:', error.response?.data || error.message);
+    //         throw error;
+    //     }
+    // }
+
 
 
 

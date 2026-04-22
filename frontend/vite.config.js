@@ -20,6 +20,7 @@ export default defineConfig({
       '@context': path.resolve(__dirname, './src/context'),
       // React-planner alias — catalog elements import from 'react-planner'
       'react-planner': path.resolve(__dirname, './src/planner/index.js'),
+      'gsap/ScrollTrigger': 'gsap/all',
     },
   },
   assetsInclude: ['**/*.glb', '**/*.obj', '**/*.mtl'],

@@ -6,7 +6,7 @@ import Vertex from './vertex';
 import Item from './item';
 import Group from './group';
 
-export default function Layer({ layer, scene, catalog }) {
+export default function Layer({ layer, scene, catalog, drawingItemID, isDrawingItem }) {
 
   let { unit, groups } = scene;
   let { lines, areas, vertices, holes, id: layerID, items, opacity } = layer;
@@ -23,7 +23,15 @@ export default function Layer({ layer, scene, catalog }) {
       }
       {
         items.valueSeq().map(item =>
-          <Item key={item.id} layer={layer} item={item} scene={scene} catalog={catalog} />)
+          <Item
+            key={item.id}
+            layer={layer}
+            item={item}
+            scene={scene}
+            catalog={catalog}
+            drawingItemID={drawingItemID}
+            isDrawingItem={isDrawingItem}
+          />)
       }
       {
         vertices
@@ -45,5 +53,7 @@ export default function Layer({ layer, scene, catalog }) {
 Layer.propTypes = {
   layer: PropTypes.object.isRequired,
   scene: PropTypes.object.isRequired,
-  catalog: PropTypes.object.isRequired
+  catalog: PropTypes.object.isRequired,
+  drawingItemID: PropTypes.string,
+  isDrawingItem: PropTypes.bool
 };

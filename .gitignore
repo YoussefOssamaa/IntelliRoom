@@ -53,4 +53,7 @@ database/backup/
 database/restore/
 
 # .env.prod
+.env
 .env.prod
+.notes and future plans.txt
+*.md

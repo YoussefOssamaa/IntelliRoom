@@ -8,6 +8,11 @@ import _texturePng from './texture.png';
 
 let cached3DWindow = null;
 
+const getAssetDir = (assetUrl) => {
+  const lastSlash = assetUrl.lastIndexOf('/');
+  return lastSlash >= 0 ? assetUrl.slice(0, lastSlash + 1) : '';
+};
+
 const STYLE_HOLE_BASE = { stroke: '#000', strokeWidth: '3px', fill: '#000' };
 const STYLE_HOLE_SELECTED = { stroke: '#0096fd', strokeWidth: '3px', fill: '#0096fd', cursor: 'move' };
 const EPSILON = 3;
@@ -125,7 +130,7 @@ export default {
     let obj = _windowObj;
     let img = _texturePng;
 
-    return loadObjWithMaterial(mtl, obj, path.dirname(img) + '/')
+    return loadObjWithMaterial(mtl, obj, getAssetDir(img))
       .then(object => {
         cached3DWindow = object;
         return onLoadItem(cached3DWindow.clone());

@@ -15,6 +15,7 @@ import {
 } from 'three';
 import {verticesDistance} from '../../utils/geometry';
 import * as SharedStyle from '../../shared-style';
+import { calculateWallMiterOffsets } from './wall-utils';
 
 // Texture cache to avoid reloading
 const textureCache = new Map();
@@ -106,64 +107,6 @@ function createWallBoundaryEdges(distance, height, thickness, miter0, miter1, ho
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new Float32BufferAttribute(vertices, 3));
   return geometry;
-}
-
-/**
- * Calculate miter angle for wall corners
- * Returns extension amount for each end of the wall
- */
-function calculateMiterOffsets(vertex0, vertex1, currentLineID, layer, thickness) {
-  const halfThickness = thickness / 2;
-  const result = { 
-    miter0: { extend: 0, side: 0 }, 
-    miter1: { extend: 0, side: 0 } 
-  };
-  
-  const wallDx = vertex1.x - vertex0.x;
-  const wallDy = vertex1.y - vertex0.y;
-  const wallAngle = Math.atan2(wallDy, wallDx);
-  
-  const calculateVertexMiter = (vertex, isVertex0) => {
-    const vLines = vertex.lines || [];
-    if (vLines.size !== 2) return null;
-    
-    const otherLineID = vLines.find(id => id !== currentLineID);
-    if (!otherLineID) return null;
-    
-    const otherLine = layer.lines.get(otherLineID);
-    if (!otherLine) return null;
-    
-    const otherV0ID = otherLine.vertices.get(0);
-    const otherV1ID = otherLine.vertices.get(1);
-    const adjacentVertex = layer.vertices.get(otherV0ID === vertex.id ? otherV1ID : otherV0ID);
-    if (!adjacentVertex) return null;
-    
-    const adjAngle = Math.atan2(adjacentVertex.y - vertex.y, adjacentVertex.x - vertex.x);
-    const currentDir = isVertex0 ? wallAngle : wallAngle + Math.PI;
-    let angleDiff = adjAngle - currentDir;
-    
-    while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
-    while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
-    
-    // Skip parallel/collinear walls
-    if (Math.abs(angleDiff) < 0.01 || Math.abs(Math.abs(angleDiff) - Math.PI) < 0.01) {
-      return null;
-    }
-    
-    const halfAngle = angleDiff / 2;
-    const extension = halfThickness / Math.tan(Math.abs(halfAngle));
-    let side = angleDiff > 0 ? 1 : -1;
-    if (!isVertex0) side = -side;
-    
-    return { extend: Math.abs(extension), side };
-  };
-  
-  const miter0 = calculateVertexMiter(vertex0, true);
-  const miter1 = calculateVertexMiter(vertex1, false);
-  if (miter0) result.miter0 = miter0;
-  if (miter1) result.miter1 = miter1;
-  
-  return result;
 }
 
 /**
@@ -513,7 +456,7 @@ export function buildWall(element, layer, scene, textures) {
   const distance = verticesDistance(vertex0, vertex1);
   const halfDistance = distance / 2;
   
-  const miterOffsets = calculateMiterOffsets(vertex0, vertex1, element.id, layer, thickness);
+  const miterOffsets = calculateWallMiterOffsets(vertex0, vertex1, element.id, layer, thickness);
   const { miter0, miter1 } = miterOffsets;
 
   const soulColorValue = element.selected ? SharedStyle.MESH_SELECTED : 0xD3D3D3;

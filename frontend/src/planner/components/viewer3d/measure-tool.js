@@ -1,82 +1,70 @@
 /**
  * 3D Measure Tool — two-click point-to-point measurement with strong snapping.
  *
- * Snap priority (highest → lowest):
- *   1. Wall corners (inner / outer, post-thickness vertices)
- *   2. Opening (door / window) edges
- *   3. Wall edges (project onto nearest wall segment centre-line or face)
- *   4. Grid fallback (10 cm)
- *
- * Rendering:
- *   - Thin neutral-grey line (depthTest off, always visible)
- *   - White rounded billboard label with dark text (distance in mm)
- *   - Live update during drag (rubber-band preview)
- *
- * Usage (viewer3d.js):
- *   this.measureTool = new MeasureTool(scene3D, camera, renderer);
- *   measureTool.onMouseMove(mouse, planData.plan, sceneState);
- *   measureTool.onClick();
- *   measureTool.cancel();
- *   measureTool.dispose();
+ * Snap behaviour is driven by the nearest visible target in screen space so the
+ * marker lands where the cursor visually aims, not just where the ground-plane
+ * math happens to be closest.
  */
 
-import * as Three from 'three';
+import * as Three from "three";
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+const POINT_SNAP_RADIUS_PX = 28;
+const EDGE_SNAP_RADIUS_PX = 20;
+const SNAP_RELEASE_RADIUS_PX = 36;
 
-const SNAP_RADIUS       = 30;   // scene-units — vertex / corner snap
-const EDGE_SNAP_RADIUS  = 20;   // scene-units — edge projection snap
-const GRID_SNAP_SIZE    = 10;   // scene-units — grid fallback
+const LINE_COLOR = 0x000000;
+const SNAP_COLOR = 0xf97316;
+const SNAP_CORNER_COLOR = 0x22c55e;
+const MARKER_RADIUS = 3;
 
-const LINE_COLOR        = 0x000000;   // neutral slate-400
-const SNAP_COLOR        = 0xf97316;   // orange snap marker
-const SNAP_CORNER_COLOR = 0x22c55e;   // green when snapped to corner
-const MARKER_RADIUS     = 4;
-
-// ─── Reusable objects ─────────────────────────────────────────────────────────
-
-const _ray   = new Three.Raycaster();
-const _plane = new Three.Plane(new Three.Vector3(0, 1, 0), 0); // ground plane
-
-// ─── Label sprite builder ─────────────────────────────────────────────────────
+const _ray = new Three.Raycaster();
+const _plane = new Three.Plane(new Three.Vector3(0, 1, 0), 0);
+const _box = new Three.Box3();
+const _line3 = new Three.Line3();
+const _projectedPoint = new Three.Vector3();
+const _screenA = new Three.Vector2();
+const _screenB = new Three.Vector2();
+const _screenMouse = new Three.Vector2();
 
 function createLabel(text) {
-  const dpr     = Math.min(window.devicePixelRatio || 1, 2);
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
   const fontSize = 26 * dpr;
-  const padH     = 12 * dpr;
-  const padV     = 8 * dpr;
+  const padH = 12 * dpr;
+  const padV = 8 * dpr;
 
-  const canvas = document.createElement('canvas');
-  const ctx    = canvas.getContext('2d');
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
 
   ctx.font = `600 ${fontSize}px "Inter","Segoe UI",sans-serif`;
-  const tw   = ctx.measureText(text).width;
-  canvas.width  = Math.ceil(tw + padH * 2);
+  const tw = ctx.measureText(text).width;
+  canvas.width = Math.ceil(tw + padH * 2);
   canvas.height = Math.ceil(fontSize + padV * 2);
-  const w = canvas.width, h = canvas.height;
+  const w = canvas.width;
+  const h = canvas.height;
 
-  // Rounded white rect
   const r = 6 * dpr;
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = "#ffffff";
   ctx.beginPath();
-  ctx.moveTo(r, 0); ctx.lineTo(w - r, 0);
-  ctx.quadraticCurveTo(w, 0, w, r); ctx.lineTo(w, h - r);
-  ctx.quadraticCurveTo(w, h, w - r, h); ctx.lineTo(r, h);
-  ctx.quadraticCurveTo(0, h, 0, h - r); ctx.lineTo(0, r);
+  ctx.moveTo(r, 0);
+  ctx.lineTo(w - r, 0);
+  ctx.quadraticCurveTo(w, 0, w, r);
+  ctx.lineTo(w, h - r);
+  ctx.quadraticCurveTo(w, h, w - r, h);
+  ctx.lineTo(r, h);
+  ctx.quadraticCurveTo(0, h, 0, h - r);
+  ctx.lineTo(0, r);
   ctx.quadraticCurveTo(0, 0, r, 0);
   ctx.closePath();
   ctx.fill();
 
-  // Subtle border
-  ctx.strokeStyle = '#cbd5e1';
-  ctx.lineWidth   = 1.5 * dpr;
+  ctx.strokeStyle = "#cbd5e1";
+  ctx.lineWidth = 1.5 * dpr;
   ctx.stroke();
 
-  // Dark text
-  ctx.fillStyle    = '#000000';
-  ctx.font         = `600 ${fontSize}px "Inter","Segoe UI",sans-serif`;
-  ctx.textBaseline = 'middle';
-  ctx.textAlign    = 'center';
+  ctx.fillStyle = "#000000";
+  ctx.font = `600 ${fontSize}px "Inter","Segoe UI",sans-serif`;
+  ctx.textBaseline = "middle";
+  ctx.textAlign = "center";
   ctx.fillText(text, w / 2, h / 2);
 
   const tex = new Three.CanvasTexture(canvas);
@@ -97,12 +85,14 @@ function createLabel(text) {
   return sprite;
 }
 
-// ─── Measurement guide builder ────────────────────────────────────────────────
-
 function buildMeasureLine(p1, p2) {
   const geom = new Three.BufferGeometry().setFromPoints([p1, p2]);
-  const mat  = new Three.LineBasicMaterial({
-    color: LINE_COLOR, depthTest: false, transparent: true, opacity: 0.85, linewidth: 1,
+  const mat = new Three.LineBasicMaterial({
+    color: LINE_COLOR,
+    depthTest: false,
+    transparent: true,
+    opacity: 0.85,
+    linewidth: 1,
   });
   const line = new Three.Line(geom, mat);
   line.renderOrder = 10000;
@@ -110,18 +100,23 @@ function buildMeasureLine(p1, p2) {
 }
 
 function buildTicks(p1, p2, size) {
-  const dir  = new Three.Vector3().subVectors(p2, p1).normalize();
+  const dir = new Three.Vector3().subVectors(p2, p1).normalize();
   const perp = new Three.Vector3(-dir.z, 0, dir.x);
   if (perp.lengthSq() < 0.001) perp.set(0, 1, 0);
   const half = perp.clone().multiplyScalar(size / 2);
   const pts = [
-    p1.clone().sub(half), p1.clone().add(half),
-    p2.clone().sub(half), p2.clone().add(half),
+    p1.clone().sub(half),
+    p1.clone().add(half),
+    p2.clone().sub(half),
+    p2.clone().add(half),
   ];
   const geom = new Three.BufferGeometry().setFromPoints(pts);
   geom.setIndex([0, 1, 2, 3]);
   const mat = new Three.LineBasicMaterial({
-    color: LINE_COLOR, depthTest: false, transparent: true, opacity: 0.85,
+    color: LINE_COLOR,
+    depthTest: false,
+    transparent: true,
+    opacity: 0.85,
   });
   const seg = new Three.LineSegments(geom, mat);
   seg.renderOrder = 10000;
@@ -130,7 +125,7 @@ function buildTicks(p1, p2, size) {
 
 function buildGuide(p1, p2, text) {
   const g = new Three.Group();
-  g.name = 'measureGuide';
+  g.name = "measureGuide";
   g.renderOrder = 10000;
   g.add(buildMeasureLine(p1, p2));
   g.add(buildTicks(p1, p2, 6));
@@ -141,274 +136,388 @@ function buildGuide(p1, p2, text) {
   return g;
 }
 
-// ─── Distance formatter (mm) ─────────────────────────────────────────────────
-
 function formatMM(distCM) {
   const mm = distCM * 10;
   if (mm < 1000) return `${Math.round(mm)} mm`;
   return `${(mm / 1000).toFixed(2)} m`;
 }
 
-// ─── Snap-target extraction ──────────────────────────────────────────────────
-
-/**
- * Collect all snap-worthy positions from the Redux scene.
- * Returns { corners, edges, openings }
- */
-function collectSnapTargets(sceneState) {
-  const corners = [], edges = [], openings = [];
-  if (!sceneState) {
-    console.warn('[MeasureTool.collectSnapTargets] sceneState is null');
-    return { corners, edges, openings };
-  }
-
-  const layerID = sceneState.get('selectedLayer');
-  const layer   = sceneState.getIn(['layers', layerID]);
-  if (!layer) {
-    console.warn('[MeasureTool.collectSnapTargets] no layer for id:', layerID);
-    return { corners, edges, openings };
-  }
-
-  const vertices = layer.get('vertices');
-  const lines    = layer.get('lines');
-  const holes    = layer.get('holes');
-
-  console.log('[MeasureTool.collectSnapTargets] layer:', layerID, {
-    vertexCount: vertices?.size ?? 0,
-    lineCount:   lines?.size   ?? 0,
-    holeCount:   holes?.size   ?? 0,
-  });
-
-  // Floor slab height
-  let slabH = 20;
+function getLayerSlabHeight(layer) {
+  let slabHeight = 20;
   try {
-    layer.get('areas').forEach(area => {
-      const ft = area?.getIn(['properties', 'floorThickness', 'length']);
-      if (ft) { slabH = ft; return false; }
-    });
-  } catch (_) { /* default */ }
-
-  if (!vertices || !lines) return { corners, edges, openings, itemPoints: [] };
-
-  // ── Wall corners + edges ──
-  lines.forEach((line) => {
-    const vIDs = line.get('vertices');
-    if (!vIDs || vIDs.size < 2) return;
-    const v0 = vertices.get(vIDs.get(0));
-    const v1 = vertices.get(vIDs.get(1));
-    if (!v0 || !v1) return;
-
-    const x0 = v0.get('x'), y0 = v0.get('y');
-    const x1 = v1.get('x'), y1 = v1.get('y');
-    const thickness = line.getIn(['properties', 'thickness', 'length']) || 20;
-    const wallH = line.getIn(['properties', 'height', 'length']) || 280;
-    const halfT = thickness / 2;
-    const dx = x1 - x0, dy = y1 - y0;
-    const len = Math.sqrt(dx * dx + dy * dy);
-    if (len < 1) return;
-
-    // Perpendicular normal in plan → 3D
-    const nx = -dy / len, ny = dx / len;
-    const n3x = nx, n3z = -ny;
-    const cx0 = x0, cz0 = -y0;
-    const cx1 = x1, cz1 = -y1;
-
-    // Inner / outer corners at each endpoint — floor (slab top) and ceiling only.
-    // No ground-level (y=0) points and no wall centre-line snapping.
-    for (const [cx, cz] of [[cx0, cz0], [cx1, cz1]]) {
-      for (const s of [-1, 1]) {
-        const px = cx + n3x * halfT * s;
-        const pz = cz + n3z * halfT * s;
-        corners.push(new Three.Vector3(px, slabH, pz));          // wall-floor meeting
-        corners.push(new Three.Vector3(px, slabH + wallH, pz));  // wall-ceiling meeting
+    layer.get("areas")?.forEach?.((area) => {
+      const floorThickness = area?.getIn?.([
+        "properties",
+        "floorThickness",
+        "length",
+      ]);
+      if (floorThickness) {
+        slabHeight = floorThickness;
+        return false;
       }
-    }
-
-    // Inner and outer face edge segments only — no centre-line (s=0 removed)
-    for (const s of [-1, 1]) {
-      const a = new Three.Vector3(cx0 + n3x * halfT * s, slabH, cz0 + n3z * halfT * s);
-      const b = new Three.Vector3(cx1 + n3x * halfT * s, slabH, cz1 + n3z * halfT * s);
-      edges.push({ a, b });
-    }
-  });
-
-  // ── Items ──
-  const itemPoints = [];
-  const items = layer.get('items');
-  if (items) {
-    items.forEach((item) => {
-      const ix = item.get('x');
-      const iy = item.get('y');
-      if (ix !== undefined && iy !== undefined) {
-        itemPoints.push(new Three.Vector3(ix, slabH, -iy));
-      }
+      return undefined;
     });
+  } catch (_) {
+    return slabHeight;
   }
-
-  // ── Openings ──
-  if (holes) {
-    holes.forEach((hole) => {
-      const lineID = hole.get('line');
-      if (!lineID) return;
-      const line = lines.get(lineID);
-      if (!line) return;
-      const vIDs = line.get('vertices');
-      if (!vIDs || vIDs.size < 2) return;
-      const v0 = vertices.get(vIDs.get(0));
-      const v1 = vertices.get(vIDs.get(1));
-      if (!v0 || !v1) return;
-
-      const x0 = v0.get('x'), y0 = v0.get('y');
-      const x1 = v1.get('x'), y1 = v1.get('y');
-      const dx = x1 - x0, dy = y1 - y0;
-      const len = Math.sqrt(dx * dx + dy * dy);
-      if (len < 1) return;
-
-      const offset  = hole.get('offset') || 0;
-      const holeW   = hole.getIn(['properties', 'width', 'length']) || 80;
-      const holeH   = hole.getIn(['properties', 'height', 'length']) || 210;
-      const holeAlt = hole.getIn(['properties', 'altitude', 'length']) || 0;
-      const thickness = line.getIn(['properties', 'thickness', 'length']) || 20;
-      const halfT = thickness / 2;
-      const nx = -dy / len, ny = dx / len;
-      const n3x = nx, n3z = -ny;
-      const halfW = holeW / 2;
-
-      // Centre of hole along wall
-      const hcx = x0 + dx * offset;
-      const hcy = y0 + dy * offset;
-
-      for (const sign of [-1, 1]) {
-        const ex = hcx + (dx / len) * halfW * sign;
-        const ey = hcy + (dy / len) * halfW * sign;
-        const e3x = ex, e3z = -ey;
-
-        for (const ns of [-1, 1]) {
-          const px = e3x + n3x * halfT * ns;
-          const pz = e3z + n3z * halfT * ns;
-          openings.push(new Three.Vector3(px, slabH + holeAlt, pz));
-          openings.push(new Three.Vector3(px, slabH + holeAlt + holeH, pz));
-        }
-      }
-    });
-  }
-
-  console.log('[MeasureTool.collectSnapTargets] done:', { corners: corners.length, edges: edges.length, openings: openings.length, itemPoints: itemPoints.length });
-  return { corners, edges, openings, itemPoints };
+  return slabHeight;
 }
 
+function pushPoint(targets, key, position, type, priority) {
+  if (!position) return;
+  targets.points.push({ key, position, type, priority });
+}
 
-// ═══════════════════════════════════════════════════════════════════════════════
-//  MeasureTool class
-// ═══════════════════════════════════════════════════════════════════════════════
+function pushEdge(targets, key, a, b, type, priority) {
+  if (!a || !b || a.distanceToSquared(b) < 1e-6) return;
+  targets.edges.push({ key, a, b, type, priority });
+}
+
+function projectWorldToScreen(point, camera, renderer, target) {
+  const projected = _projectedPoint.copy(point).project(camera);
+  if (
+    !Number.isFinite(projected.x) ||
+    !Number.isFinite(projected.y) ||
+    !Number.isFinite(projected.z)
+  ) {
+    return null;
+  }
+  if (projected.z < -1.15 || projected.z > 1.15) {
+    return null;
+  }
+
+  const width =
+    renderer?.domElement?.clientWidth || renderer?.domElement?.width || 1;
+  const height =
+    renderer?.domElement?.clientHeight || renderer?.domElement?.height || 1;
+  target.set(
+    (projected.x * 0.5 + 0.5) * width,
+    (-projected.y * 0.5 + 0.5) * height,
+  );
+  return target;
+}
+
+function getScreenDistanceToSegment(point, a, b) {
+  const abx = b.x - a.x;
+  const aby = b.y - a.y;
+  const lenSq = abx * abx + aby * aby;
+
+  if (lenSq < 1e-6) {
+    const dx = point.x - a.x;
+    const dy = point.y - a.y;
+    return { distance: Math.sqrt(dx * dx + dy * dy), t: 0 };
+  }
+
+  const t = Math.max(
+    0,
+    Math.min(1, ((point.x - a.x) * abx + (point.y - a.y) * aby) / lenSq),
+  );
+  const closestX = a.x + abx * t;
+  const closestY = a.y + aby * t;
+  const dx = point.x - closestX;
+  const dy = point.y - closestY;
+  return { distance: Math.sqrt(dx * dx + dy * dy), t };
+}
+
+function collectSnapTargets(sceneState, sceneGraph) {
+  const targets = { points: [], edges: [] };
+  if (!sceneState?.get) return targets;
+
+  const layerID = sceneState.get("selectedLayer");
+  const layer = layerID ? sceneState.getIn(["layers", layerID]) : null;
+  if (!layer?.get) return targets;
+
+  const slabHeight = getLayerSlabHeight(layer);
+  const vertices = layer.get("vertices");
+  const lines = layer.get("lines");
+  const holes = layer.get("holes");
+
+  lines?.forEach?.((line, lineID) => {
+    const vertexIDs = line.get("vertices");
+    if (!vertexIDs || vertexIDs.size < 2) return;
+
+    const v0 = vertices.get(vertexIDs.get(0));
+    const v1 = vertices.get(vertexIDs.get(1));
+    if (!v0 || !v1) return;
+
+    const x0 = v0.get("x");
+    const y0 = v0.get("y");
+    const x1 = v1.get("x");
+    const y1 = v1.get("y");
+    const dx = x1 - x0;
+    const dy = y1 - y0;
+    const length = Math.sqrt(dx * dx + dy * dy);
+    if (length < 1) return;
+
+    const wallHeight = line.getIn(["properties", "height", "length"]) || 280;
+    const thickness = line.getIn(["properties", "thickness", "length"]) || 20;
+    const halfThickness = thickness / 2;
+    const nx = -dy / length;
+    const ny = dx / length;
+    const normalX = nx;
+    const normalZ = -ny;
+
+    const startCenter = new Three.Vector3(x0, slabHeight, -y0);
+    const endCenter = new Three.Vector3(x1, slabHeight, -y1);
+    pushPoint(
+      targets,
+      `wall-center-start-${lineID}`,
+      startCenter.clone(),
+      "corner",
+      0,
+    );
+    pushPoint(
+      targets,
+      `wall-center-end-${lineID}`,
+      endCenter.clone(),
+      "corner",
+      0,
+    );
+
+    [-1, 1].forEach((side) => {
+      const startFloor = new Three.Vector3(
+        x0 + normalX * halfThickness * side,
+        slabHeight,
+        -y0 + normalZ * halfThickness * side,
+      );
+      const endFloor = new Three.Vector3(
+        x1 + normalX * halfThickness * side,
+        slabHeight,
+        -y1 + normalZ * halfThickness * side,
+      );
+      const startCeiling = startFloor.clone().setY(slabHeight + wallHeight);
+      const endCeiling = endFloor.clone().setY(slabHeight + wallHeight);
+
+      pushPoint(
+        targets,
+        `wall-corner-start-floor-${lineID}-${side}`,
+        startFloor,
+        "corner",
+        0,
+      );
+      pushPoint(
+        targets,
+        `wall-corner-end-floor-${lineID}-${side}`,
+        endFloor,
+        "corner",
+        0,
+      );
+      pushPoint(
+        targets,
+        `wall-corner-start-top-${lineID}-${side}`,
+        startCeiling,
+        "corner",
+        1,
+      );
+      pushPoint(
+        targets,
+        `wall-corner-end-top-${lineID}-${side}`,
+        endCeiling,
+        "corner",
+        1,
+      );
+      pushEdge(
+        targets,
+        `wall-floor-edge-${lineID}-${side}`,
+        startFloor,
+        endFloor,
+        "edge",
+        3,
+      );
+    });
+  });
+
+  holes?.forEach?.((hole, holeID) => {
+    const lineID = hole.get("line");
+    const line = lines?.get?.(lineID);
+    if (!line) return;
+
+    const vertexIDs = line.get("vertices");
+    if (!vertexIDs || vertexIDs.size < 2) return;
+
+    const v0 = vertices.get(vertexIDs.get(0));
+    const v1 = vertices.get(vertexIDs.get(1));
+    if (!v0 || !v1) return;
+
+    const x0 = v0.get("x");
+    const y0 = v0.get("y");
+    const x1 = v1.get("x");
+    const y1 = v1.get("y");
+    const dx = x1 - x0;
+    const dy = y1 - y0;
+    const length = Math.sqrt(dx * dx + dy * dy);
+    if (length < 1) return;
+
+    const offset = hole.get("offset") || 0;
+    const holeWidth = hole.getIn(["properties", "width", "length"]) || 80;
+    const holeHeight = hole.getIn(["properties", "height", "length"]) || 210;
+    const holeAltitude = hole.getIn(["properties", "altitude", "length"]) || 0;
+    const thickness = line.getIn(["properties", "thickness", "length"]) || 20;
+    const halfThickness = thickness / 2;
+    const nx = -dy / length;
+    const ny = dx / length;
+    const normalX = nx;
+    const normalZ = -ny;
+    const dirX = dx / length;
+    const dirZ = -dy / length;
+    const halfWidth = holeWidth / 2;
+
+    const centerX = x0 + dx * offset;
+    const centerY = y0 + dy * offset;
+    const bottomY = slabHeight + holeAltitude;
+    const topY = bottomY + holeHeight;
+
+    [-1, 1].forEach((widthSide) => {
+      const edgeCenterX = centerX + dirX * halfWidth * widthSide;
+      const edgeCenterZ = -centerY + dirZ * halfWidth * widthSide;
+
+      [-1, 1].forEach((thicknessSide) => {
+        const baseKey = `opening-${holeID}-${widthSide}-${thicknessSide}`;
+        const bottomPoint = new Three.Vector3(
+          edgeCenterX + normalX * halfThickness * thicknessSide,
+          bottomY,
+          edgeCenterZ + normalZ * halfThickness * thicknessSide,
+        );
+        const topPoint = bottomPoint.clone().setY(topY);
+
+        pushPoint(targets, `${baseKey}-bottom`, bottomPoint, "opening", 1);
+        pushPoint(targets, `${baseKey}-top`, topPoint, "opening", 1);
+        pushEdge(
+          targets,
+          `${baseKey}-vertical`,
+          bottomPoint,
+          topPoint,
+          "opening",
+          1,
+        );
+      });
+    });
+  });
+
+  const sceneLayer = sceneGraph?.layers?.[layerID];
+  if (sceneLayer?.items) {
+    Object.entries(sceneLayer.items).forEach(([itemID, object3D]) => {
+      if (!object3D) return;
+      const box = _box.makeEmpty().setFromObject(object3D);
+      if (box.isEmpty()) return;
+
+      const center = box.getCenter(new Three.Vector3());
+      const { min, max } = box;
+      pushPoint(targets, `item-center-${itemID}`, center, "object", 2);
+
+      const corners = [
+        new Three.Vector3(min.x, min.y, min.z),
+        new Three.Vector3(min.x, min.y, max.z),
+        new Three.Vector3(min.x, max.y, min.z),
+        new Three.Vector3(min.x, max.y, max.z),
+        new Three.Vector3(max.x, min.y, min.z),
+        new Three.Vector3(max.x, min.y, max.z),
+        new Three.Vector3(max.x, max.y, min.z),
+        new Three.Vector3(max.x, max.y, max.z),
+      ];
+
+      corners.forEach((corner, index) => {
+        pushPoint(
+          targets,
+          `item-corner-${itemID}-${index}`,
+          corner,
+          "object",
+          2,
+        );
+      });
+    });
+  }
+
+  return targets;
+}
 
 export default class MeasureTool {
   constructor(scene3D, camera, renderer) {
-    this.scene    = scene3D;
-    this.camera   = camera;
+    this.scene = scene3D;
+    this.camera = camera;
     this.renderer = renderer;
 
     this.root = new Three.Group();
-    this.root.name = '__measureTool__';
+    this.root.name = "__measureTool__";
     this.scene.add(this.root);
 
-    this._firstPoint    = null;
-    this._currentPoint  = null;
-    this._previewGuide  = null;
-    this._resultGuides  = [];
-    this._snapMarker    = null;
-    this._snapType      = null;
-    this._unit          = 'cm';
-    this._cachedScene   = null;
-    this._cachedTargets = null;
+    this._firstPoint = null;
+    this._currentPoint = null;
+    this._previewGuide = null;
+    this._resultGuides = [];
+    this._snapMarker = null;
+    this._snapType = null;
+    this._unit = "cm";
+    this._cachedScene = null;
+    this._cachedSceneGraph = null;
+    this._cachedTargets = { points: [], edges: [] };
+    this._activeSnap = null;
 
     this._initSnapMarker();
     window.__viewer3DMeasureTool = this;
-
-    console.log('[MeasureTool] constructed', {
-      hasScene: !!scene3D,
-      hasCamera: !!camera,
-      cameraType: camera?.type,
-      hasRenderer: !!renderer,
-    });
   }
 
-  // ── Public API ────────────────────────────────────────────────────────────
+  get active() {
+    return this._firstPoint !== null;
+  }
 
-  get active() { return this._firstPoint !== null; }
-  get hasResults() { return this._resultGuides.length > 0; }
-  setUnit(u) { this._unit = u || 'cm'; }
+  get hasResults() {
+    return this._resultGuides.length > 0;
+  }
 
-  onMouseMove(mouse, planMesh, sceneState) {
-    const hit = this._raycastGround(mouse);
+  setUnit(unit) {
+    this._unit = unit || "cm";
+  }
+
+  onMouseMove(mouse, planDataOrPlan, sceneState, sceneGraphOverride) {
+    const planRoot = planDataOrPlan?.plan || planDataOrPlan;
+    const sceneGraph = planDataOrPlan?.sceneGraph || sceneGraphOverride || null;
+    const hit =
+      this._raycastSurface(mouse, planRoot) || this._raycastGround(mouse);
+
     if (!hit) {
-      console.warn('[MeasureTool.onMouseMove] ground-plane raycast returned null', {
-        mouse: { x: mouse?.x, y: mouse?.y },
-        cameraPos: this.camera?.position,
-        planeNormal: _plane.normal,
-        planeConst: _plane.constant,
-      });
       this._snapMarker.visible = false;
+      this._activeSnap = null;
       return;
     }
 
-    const targets = this._getSnapTargets(sceneState);
-    const snapped = this._snap(hit, targets);
+    const targets = this._getSnapTargets(sceneState, sceneGraph);
+    const snapped = this._snap(mouse, hit, targets);
     this._currentPoint = snapped.point.clone();
-    this._snapType     = snapped.type;
-
-    // Log at most every 300 ms to avoid flooding the console
-    const now = Date.now();
-    if (!this._lastMoveLog || now - this._lastMoveLog > 300) {
-      this._lastMoveLog = now;
-      console.log('[MeasureTool.onMouseMove]', {
-        hit: hit.toArray().map(v => +v.toFixed(1)),
-        snapType: snapped.type,
-        snapPt: snapped.point.toArray().map(v => +v.toFixed(1)),
-        corners: targets.corners.length,
-        edges: targets.edges.length,
-        openings: targets.openings.length,
-        items: targets.itemPoints?.length ?? 0,
-        hasFirst: !!this._firstPoint,
-      });
-    }
+    this._snapType = snapped.type;
 
     this._snapMarker.visible = true;
     this._snapMarker.position.copy(snapped.point);
     this._snapMarker.material.color.setHex(
-      snapped.type === 'corner' || snapped.type === 'opening' ? SNAP_CORNER_COLOR : SNAP_COLOR
+      snapped.type === "edge" || snapped.type === "free"
+        ? SNAP_COLOR
+        : SNAP_CORNER_COLOR,
     );
 
-    if (this._firstPoint) this._updatePreview();
+    if (this._firstPoint) {
+      this._updatePreview();
+    }
   }
 
   onClick() {
-    console.log('[MeasureTool.onClick] state:', {
-      hasCurrentPoint: !!this._currentPoint,
-      currentPt: this._currentPoint?.toArray().map(v => +v.toFixed(1)),
-      hasFirstPoint:   !!this._firstPoint,
-      firstPt: this._firstPoint?.toArray().map(v => +v.toFixed(1)),
-    });
     if (!this._currentPoint) {
-      console.warn('[MeasureTool.onClick] no _currentPoint — did onMouseMove run first?');
       return false;
     }
+
     if (!this._firstPoint) {
       this._firstPoint = this._currentPoint.clone();
-      console.log('[MeasureTool.onClick] first point placed', this._firstPoint.toArray().map(v => +v.toFixed(1)));
       return false;
     }
-    const p1 = this._firstPoint, p2 = this._currentPoint.clone();
-    const dist = p1.distanceTo(p2);
-    console.log('[MeasureTool.onClick] second point placed — dist:', dist.toFixed(1), 'label:', formatMM(dist));
-    if (dist > 1) {
-      const guide = buildGuide(p1, p2, formatMM(dist));
+
+    const p1 = this._firstPoint;
+    const p2 = this._currentPoint.clone();
+    const distance = p1.distanceTo(p2);
+    if (distance > 1) {
+      const guide = buildGuide(p1, p2, formatMM(distance));
       this.root.add(guide);
       this._resultGuides.push(guide);
-      console.log('[MeasureTool.onClick] guide added to root. Root children count:', this.root.children.length);
-    } else {
-      console.warn('[MeasureTool.onClick] dist too small (< 1), skipping guide');
     }
+
     this._firstPoint = null;
     this._clearPreview();
     return true;
@@ -417,144 +526,263 @@ export default class MeasureTool {
   cancel() {
     this._firstPoint = null;
     this._currentPoint = null;
+    this._activeSnap = null;
     this._clearPreview();
     if (this._snapMarker) this._snapMarker.visible = false;
   }
 
   clearAll() {
     this.cancel();
-    for (const g of this._resultGuides) {
-      this.root.remove(g);
-      g.traverse(c => {
-        if (c.geometry) c.geometry.dispose();
-        if (c.material) { if (c.material.map) c.material.map.dispose(); c.material.dispose(); }
+    this._resultGuides.forEach((guide) => {
+      this.root.remove(guide);
+      guide.traverse((child) => {
+        if (child.geometry) child.geometry.dispose();
+        if (child.material) {
+          if (child.material.map) child.material.map.dispose();
+          child.material.dispose();
+        }
       });
-    }
+    });
     this._resultGuides = [];
   }
 
   dispose() {
     this.clearAll();
-    if (this._snapMarker) { this._snapMarker.geometry?.dispose(); this._snapMarker.material?.dispose(); }
+    if (this._snapMarker) {
+      this._snapMarker.geometry?.dispose();
+      this._snapMarker.material?.dispose();
+    }
     if (this.scene) this.scene.remove(this.root);
     this.root = null;
-    if (window.__viewer3DMeasureTool === this) window.__viewer3DMeasureTool = null;
+    if (window.__viewer3DMeasureTool === this)
+      window.__viewer3DMeasureTool = null;
   }
 
-  // ── Internals ─────────────────────────────────────────────────────────────
-
   _initSnapMarker() {
-    const geo = new Three.SphereGeometry(MARKER_RADIUS, 16, 16);
-    const mat = new Three.MeshBasicMaterial({
-      color: SNAP_COLOR, depthTest: false, transparent: true, opacity: 0.85,
+    const geometry = new Three.SphereGeometry(MARKER_RADIUS, 18, 18);
+    const material = new Three.MeshBasicMaterial({
+      color: SNAP_COLOR,
+      depthTest: false,
+      transparent: true,
+      opacity: 0.92,
     });
-    this._snapMarker = new Three.Mesh(geo, mat);
+    this._snapMarker = new Three.Mesh(geometry, material);
     this._snapMarker.renderOrder = 10002;
     this._snapMarker.visible = false;
     this.root.add(this._snapMarker);
   }
 
-  _raycastGround(mouse) {
-    if (!this.camera) {
-      console.error('[MeasureTool._raycastGround] camera is null/undefined');
-      return null;
-    }
-    _ray.setFromCamera(mouse, this.camera);
-    const pt = new Three.Vector3();
-    const result = _ray.ray.intersectPlane(_plane, pt);
-    if (!result) {
-      // Only log occasionally to avoid spam
-      if (!this._warnedRaycast) {
-        console.warn('[MeasureTool._raycastGround] ray does not intersect y=0 plane. Camera pos:', this.camera.position, '| ray dir:', _ray.ray.direction);
-        this._warnedRaycast = true;
+  _shouldIgnoreIntersection(object) {
+    let current = object;
+    while (current) {
+      if (current === this.root || current.name === "measureGuide") {
+        return true;
       }
-      return null;
+      if (current.userData?.isPreview || current.userData?.isGhost) {
+        return true;
+      }
+      current = current.parent;
     }
-    this._warnedRaycast = false;
-    return pt;
+    return false;
   }
 
-  _getSnapTargets(sceneState) {
-    if (!sceneState) {
-      console.warn('[MeasureTool._getSnapTargets] sceneState is null/undefined');
-      return { corners: [], edges: [], openings: [] };
+  _raycastSurface(mouse, planRoot) {
+    if (!this.camera || !planRoot) return null;
+
+    _ray.setFromCamera(mouse, this.camera);
+    const intersections = _ray.intersectObject(planRoot, true);
+    for (let index = 0; index < intersections.length; index += 1) {
+      const intersection = intersections[index];
+      if (this._shouldIgnoreIntersection(intersection.object)) continue;
+      return intersection.point.clone();
     }
-    if (sceneState !== this._cachedScene) {
+    return null;
+  }
+
+  _raycastGround(mouse) {
+    if (!this.camera) return null;
+    _ray.setFromCamera(mouse, this.camera);
+    const point = new Three.Vector3();
+    return _ray.ray.intersectPlane(_plane, point) ? point : null;
+  }
+
+  _getMouseScreenPoint(mouse) {
+    const width =
+      this.renderer?.domElement?.clientWidth ||
+      this.renderer?.domElement?.width ||
+      1;
+    const height =
+      this.renderer?.domElement?.clientHeight ||
+      this.renderer?.domElement?.height ||
+      1;
+    return _screenMouse.set(
+      (mouse.x * 0.5 + 0.5) * width,
+      (-mouse.y * 0.5 + 0.5) * height,
+    );
+  }
+
+  _getSnapTargets(sceneState, sceneGraph) {
+    if (
+      sceneState !== this._cachedScene ||
+      sceneGraph !== this._cachedSceneGraph
+    ) {
       this._cachedScene = sceneState;
-      this._cachedTargets = collectSnapTargets(sceneState);
-      const t = this._cachedTargets;
-      console.log('[MeasureTool._getSnapTargets] rebuilt snap targets:', {
-        corners: t.corners.length,
-        edges: t.edges.length,
-        openings: t.openings.length,
-        itemPoints: t.itemPoints?.length ?? 0,
-        selectedLayer: sceneState.get('selectedLayer'),
-      });
+      this._cachedSceneGraph = sceneGraph;
+      this._cachedTargets = collectSnapTargets(sceneState, sceneGraph);
     }
     return this._cachedTargets;
   }
 
-  _snap(raw, targets) {
-    let best;
-    // 1. Wall corners (inner/outer · floor & ceiling meeting points — highest priority)
-    best = this._snapPoints(raw, targets.corners, SNAP_RADIUS);
-    if (best) return { point: best, type: 'corner' };
-    // 2. Opening corners (door / window edges)
-    best = this._snapPoints(raw, targets.openings, SNAP_RADIUS);
-    if (best) return { point: best, type: 'opening' };
-    // 3. Item centres
-    best = this._snapPoints(raw, targets.itemPoints || [], SNAP_RADIUS);
-    if (best) return { point: best, type: 'item' };
-    // 4. Wall face edges (inner + outer only — no centre-line)
-    best = this._snapEdges(raw, targets.edges, EDGE_SNAP_RADIUS);
-    if (best) return { point: best, type: 'edge' };
-    // 5. Grid fallback
-    const gx = Math.round(raw.x / GRID_SNAP_SIZE) * GRID_SNAP_SIZE;
-    const gz = Math.round(raw.z / GRID_SNAP_SIZE) * GRID_SNAP_SIZE;
-    return { point: new Three.Vector3(gx, raw.y, gz), type: 'grid' };
+  _pickBetterCandidate(current, next) {
+    if (!current) return next;
+    if (!next) return current;
+    if (Math.abs(current.score - next.score) > 0.001) {
+      return current.score < next.score ? current : next;
+    }
+    return current.priority <= next.priority ? current : next;
   }
 
-  _snapPoints(raw, pts, radius) {
-    let bd = radius, bp = null;
-    for (let i = 0; i < pts.length; i++) {
-      const p = pts[i];
-      const d = Math.sqrt((raw.x - p.x) ** 2 + (raw.z - p.z) ** 2);
-      if (d < bd) { bd = d; bp = p; }
+  _findBestPointSnap(mousePoint, points) {
+    let best = null;
+
+    for (let index = 0; index < points.length; index += 1) {
+      const target = points[index];
+      const screenPoint = projectWorldToScreen(
+        target.position,
+        this.camera,
+        this.renderer,
+        _screenA,
+      );
+      if (!screenPoint) continue;
+
+      const dx = mousePoint.x - screenPoint.x;
+      const dy = mousePoint.y - screenPoint.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      const limit =
+        this._activeSnap?.key === target.key
+          ? SNAP_RELEASE_RADIUS_PX
+          : POINT_SNAP_RADIUS_PX;
+      if (distance > limit) continue;
+
+      const score =
+        distance +
+        target.priority * 0.35 -
+        (this._activeSnap?.key === target.key ? 2 : 0);
+      best = this._pickBetterCandidate(best, {
+        key: target.key,
+        type: target.type,
+        point: target.position,
+        priority: target.priority,
+        screenDistance: distance,
+        score,
+      });
     }
-    return bp;
+
+    return best;
   }
 
-  _snapEdges(raw, segs, radius) {
-    let bd = radius, bp = null;
-    for (const s of segs) {
-      const dx = s.b.x - s.a.x, dz = s.b.z - s.a.z;
-      const lenSq = dx * dx + dz * dz;
-      if (lenSq < 1) continue;
-      const t = Math.max(0, Math.min(1, ((raw.x - s.a.x) * dx + (raw.z - s.a.z) * dz) / lenSq));
-      const cx = s.a.x + t * dx, cz = s.a.z + t * dz;
-      const d = Math.sqrt((raw.x - cx) ** 2 + (raw.z - cz) ** 2);
-      if (d < bd) { bd = d; bp = new Three.Vector3(cx, s.a.y, cz); }
+  _findBestEdgeSnap(mousePoint, rawPoint, edges) {
+    let best = null;
+
+    for (let index = 0; index < edges.length; index += 1) {
+      const edge = edges[index];
+      const start = projectWorldToScreen(
+        edge.a,
+        this.camera,
+        this.renderer,
+        _screenA,
+      );
+      const end = projectWorldToScreen(
+        edge.b,
+        this.camera,
+        this.renderer,
+        _screenB,
+      );
+      if (!start || !end) continue;
+
+      const { distance } = getScreenDistanceToSegment(mousePoint, start, end);
+      const limit =
+        this._activeSnap?.key === edge.key
+          ? SNAP_RELEASE_RADIUS_PX
+          : EDGE_SNAP_RADIUS_PX;
+      if (distance > limit) continue;
+
+      const point = _line3
+        .set(edge.a, edge.b)
+        .closestPointToPoint(rawPoint, true, new Three.Vector3());
+      const score =
+        distance +
+        edge.priority * 0.35 +
+        0.15 -
+        (this._activeSnap?.key === edge.key ? 2 : 0);
+      best = this._pickBetterCandidate(best, {
+        key: edge.key,
+        type: edge.type,
+        point,
+        priority: edge.priority,
+        screenDistance: distance,
+        score,
+      });
     }
-    return bp;
+
+    return best;
+  }
+
+  _snap(mouse, rawPoint, targets) {
+    const mousePoint = this._getMouseScreenPoint(mouse);
+    const pointCandidate = this._findBestPointSnap(
+      mousePoint,
+      targets.points || [],
+    );
+    const edgeCandidate = this._findBestEdgeSnap(
+      mousePoint,
+      rawPoint,
+      targets.edges || [],
+    );
+    const snappedCandidate = this._pickBetterCandidate(
+      pointCandidate,
+      edgeCandidate,
+    );
+
+    if (!snappedCandidate) {
+      this._activeSnap = null;
+      return { point: rawPoint.clone(), type: "free" };
+    }
+
+    this._activeSnap = {
+      key: snappedCandidate.key,
+      type: snappedCandidate.type,
+    };
+
+    return {
+      point: snappedCandidate.point.clone(),
+      type: snappedCandidate.type,
+    };
   }
 
   _updatePreview() {
     this._clearPreview();
     if (!this._firstPoint || !this._currentPoint) return;
-    const dist = this._firstPoint.distanceTo(this._currentPoint);
-    if (dist < 1) return;
-    this._previewGuide = buildGuide(this._firstPoint, this._currentPoint, formatMM(dist));
+    const distance = this._firstPoint.distanceTo(this._currentPoint);
+    if (distance < 1) return;
+    this._previewGuide = buildGuide(
+      this._firstPoint,
+      this._currentPoint,
+      formatMM(distance),
+    );
     this.root.add(this._previewGuide);
   }
 
   _clearPreview() {
-    if (this._previewGuide) {
-      this.root.remove(this._previewGuide);
-      this._previewGuide.traverse(c => {
-        if (c.geometry) c.geometry.dispose();
-        if (c.material) { if (c.material.map) c.material.map.dispose(); c.material.dispose(); }
-      });
-      this._previewGuide = null;
-    }
+    if (!this._previewGuide) return;
+    this.root.remove(this._previewGuide);
+    this._previewGuide.traverse((child) => {
+      if (child.geometry) child.geometry.dispose();
+      if (child.material) {
+        if (child.material.map) child.material.map.dispose();
+        child.material.dispose();
+      }
+    });
+    this._previewGuide = null;
   }
 }

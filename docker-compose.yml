@@ -1,6 +1,24 @@
 version: "3.8"
 
 services:
+
+
+  orchestrator:
+    build:
+      context: ./ai/VDB-RecommEngine
+      dockerfile: Dockerfile
+    volumes:
+      - ./ai/VDB-RecommEngine:/app
+    environment:
+      - KAGGLE_BASE_URL=${KAGGLE_BASE_URL}
+    ports:
+      - "7860:7860"    
+    networks:
+      - dev-network      
+    depends_on:
+      - mongo
+
+
   ############## Dev Container (Frontend + Backend)
 
 

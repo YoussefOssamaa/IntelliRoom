@@ -39,6 +39,13 @@ export class WallVisibilityManager {
     // Reference to scene elements
     this.planData = null;
     this.camera = null;
+
+    // Reused temporaries to avoid per-frame allocations
+    this._cameraPosition = new Three.Vector3();
+    this._cameraDirection = new Three.Vector3(0, 0, -1);
+    this._toWall = new Three.Vector3();
+    this._visibilityDirty = true;
+    this._hasActiveTransitions = false;
     
     // View settings visibility state
     this.viewSettings = {
@@ -60,6 +67,8 @@ export class WallVisibilityManager {
   init(planData, camera) {
     this.planData = planData;
     this.camera = camera;
+    this._visibilityDirty = true;
+    this._hasActiveTransitions = false;
   }
   
   /**
@@ -124,6 +133,7 @@ export class WallVisibilityManager {
     
     // Ensure materials support transparency
     this.prepareMaterialsForTransparency(mesh);
+    this._visibilityDirty = true;
   }
   
   /**
@@ -136,6 +146,7 @@ export class WallVisibilityManager {
       this.restoreMaterials(state.mesh, state.originalMaterials);
     }
     this.wallStates.delete(wallID);
+    this._visibilityDirty = true;
   }
   
   /**
@@ -218,6 +229,7 @@ export class WallVisibilityManager {
       ceilingOpacity: 1.0,
       floorOpacity: 1.0
     });
+    this._visibilityDirty = true;
   }
 
   /**
@@ -225,22 +237,27 @@ export class WallVisibilityManager {
    */
   unregisterArea(areaID) {
     this.areaStates.delete(areaID);
+    this._visibilityDirty = true;
   }
 
   /**
    * Update wall visibility based on camera position
    * Call this every frame in the render loop
    */
-  update() {
+  update(cameraChanged = true, force = false) {
     if (!this.enabled || !this.camera || !this.planData) return;
     
     // Skip until the camera has been positioned by onBoundingBoxReady.
     if (this.camera.position.length() < 1) return;
-    
-    const cameraPosition = this.camera.position.clone();
+
+    if (!cameraChanged && !force && !this._visibilityDirty && !this._hasActiveTransitions) {
+      return false;
+    }
+
+    const cameraPosition = this._cameraPosition.copy(this.camera.position);
 
     // --- Camera look-direction for ceiling / floor logic ---
-    const camDir = new Three.Vector3(0, 0, -1).applyQuaternion(this.camera.quaternion);
+    const camDir = this._cameraDirection.set(0, 0, -1).applyQuaternion(this.camera.quaternion);
     // camDir.y < 0  →  looking down  →  hide ceiling
     // camDir.y > 0  →  looking up    →  hide floor
     const lookDownFactor = -camDir.y; // positive when looking down
@@ -248,6 +265,8 @@ export class WallVisibilityManager {
     // ---------- Walls (+ associated holes) ----------
     this.hiddenWallMeshes.clear();
     this.hiddenHoleIDs.clear();
+    let didMutate = false;
+    let hasActiveTransitions = false;
     
     this.wallStates.forEach((state, wallID) => {
       const shouldHide = this.shouldHideWall(state, cameraPosition);
@@ -255,13 +274,15 @@ export class WallVisibilityManager {
       state.targetOpacity = shouldHide ? this.minOpacity : this.maxOpacity;
       
       if (Math.abs(state.currentOpacity - state.targetOpacity) > 0.01) {
+        hasActiveTransitions = true;
         if (state.currentOpacity < state.targetOpacity) {
           state.currentOpacity = Math.min(state.currentOpacity + this.fadeSpeed, state.targetOpacity);
         } else {
           state.currentOpacity = Math.max(state.currentOpacity - this.fadeSpeed, state.targetOpacity);
         }
-        
+
         this.setMeshOpacity(state.mesh, state.currentOpacity);
+        didMutate = true;
       }
       
       // Track hidden walls so raycasting / hover can skip them
@@ -303,12 +324,14 @@ export class WallVisibilityManager {
       const ceiling = mesh.getObjectByName('ceiling');
       if (ceiling) {
         if (Math.abs(aState.ceilingOpacity - ceilTarget) > 0.01) {
+          hasActiveTransitions = true;
           if (aState.ceilingOpacity < ceilTarget) {
             aState.ceilingOpacity = Math.min(aState.ceilingOpacity + this.fadeSpeed, ceilTarget);
           } else {
             aState.ceilingOpacity = Math.max(aState.ceilingOpacity - this.fadeSpeed, ceilTarget);
           }
           this.setMeshOpacity(ceiling, aState.ceilingOpacity);
+          didMutate = true;
         }
       }
 
@@ -316,15 +339,21 @@ export class WallVisibilityManager {
       const floor = mesh.getObjectByName('floor');
       if (floor) {
         if (Math.abs(aState.floorOpacity - floorTarget) > 0.01) {
+          hasActiveTransitions = true;
           if (aState.floorOpacity < floorTarget) {
             aState.floorOpacity = Math.min(aState.floorOpacity + this.fadeSpeed, floorTarget);
           } else {
             aState.floorOpacity = Math.max(aState.floorOpacity - this.fadeSpeed, floorTarget);
           }
           this.setMeshOpacity(floor, aState.floorOpacity);
+          didMutate = true;
         }
       }
     });
+
+    this._visibilityDirty = false;
+    this._hasActiveTransitions = hasActiveTransitions;
+    return didMutate;
   }
   
   /**
@@ -341,9 +370,9 @@ export class WallVisibilityManager {
     }
     
     const { center, normalin } = state;
-    
+
     // Vector from camera to wall center
-    const toWall = center.clone().sub(cameraPosition);
+    const toWall = this._toWall.copy(center).sub(cameraPosition);
     const distanceToWall = toWall.length();
     toWall.normalize();
     
@@ -374,13 +403,34 @@ export class WallVisibilityManager {
    * Set opacity for all materials in a mesh
    */
   setMeshOpacity(mesh, opacity) {
+    const normalizedOpacity = Math.max(0, Math.min(1, Number(opacity) || 0));
+
     mesh.traverse((child) => {
       if (child.isMesh && child.material) {
         const materials = Array.isArray(child.material) ? child.material : [child.material];
         materials.forEach(mat => {
-          mat.opacity = opacity;
-          // Disable depth write when transparent to prevent z-fighting
-          mat.depthWrite = opacity > 0.9;
+          if (mat.userData.__plannerBaseOpacity === undefined) {
+            mat.userData.__plannerBaseOpacity = typeof mat.opacity === 'number' ? mat.opacity : 1;
+          }
+          if (mat.userData.__plannerBaseTransparent === undefined) {
+            mat.userData.__plannerBaseTransparent = Boolean(mat.transparent);
+          }
+          if (mat.userData.__plannerBaseDepthWrite === undefined) {
+            mat.userData.__plannerBaseDepthWrite = mat.depthWrite !== false;
+          }
+
+          const baseOpacity = mat.userData.__plannerBaseOpacity;
+          const effectiveOpacity = Math.max(0, Math.min(1, baseOpacity * normalizedOpacity));
+
+          mat.opacity = effectiveOpacity;
+          mat.transparent = mat.userData.__plannerBaseTransparent || effectiveOpacity < 0.999;
+
+          // Keep original depthWrite=false materials (for glass) from turning opaque white.
+          if (mat.userData.__plannerBaseDepthWrite === false) {
+            mat.depthWrite = false;
+          } else {
+            mat.depthWrite = effectiveOpacity > 0.9;
+          }
           mat.needsUpdate = true;
         });
       }
@@ -394,7 +444,7 @@ export class WallVisibilityManager {
     });
     
     // Update visibility flag for fully hidden walls
-    mesh.visible = opacity > 0.01;
+    mesh.visible = normalizedOpacity > 0.01;
   }
   
   /**
@@ -402,8 +452,12 @@ export class WallVisibilityManager {
    */
   setViewSetting(category, visible) {
     if (this.viewSettings.hasOwnProperty(category)) {
+      if (this.viewSettings[category] === visible) {
+        return;
+      }
       this.viewSettings[category] = visible;
-      
+      this._visibilityDirty = true;
+
       // Apply immediate changes for non-wall categories
       if (category !== 'walls') {
         this.applyViewSettings();
@@ -472,6 +526,8 @@ export class WallVisibilityManager {
     });
     this.hiddenWallMeshes.clear();
     this.hiddenHoleIDs.clear();
+    this._visibilityDirty = false;
+    this._hasActiveTransitions = false;
     
     // Also restore ceiling visibility
     this.areaStates.forEach((aState) => {
@@ -490,9 +546,14 @@ export class WallVisibilityManager {
    */
   setEnabled(enabled) {
     this.enabled = enabled;
+    this._visibilityDirty = true;
     if (!enabled) {
       this.showAllWalls();
     }
+  }
+
+  hasActiveTransitions() {
+    return this._hasActiveTransitions;
   }
   
   /**
@@ -509,6 +570,8 @@ export class WallVisibilityManager {
     this.areaStates.clear();
     this.planData = null;
     this.camera = null;
+    this._visibilityDirty = true;
+    this._hasActiveTransitions = false;
   }
 }
 

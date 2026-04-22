@@ -42,3 +42,4 @@ logs/
 .env
 .env.prod
 .notes and future plans.txt
+*.md

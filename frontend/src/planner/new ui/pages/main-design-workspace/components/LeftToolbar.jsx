@@ -9,6 +9,7 @@ const LeftToolbar = ({ activeTab, onTabChange }) => {
     { id: 'floorplan', icon: 'LayoutGrid', label: 'Floor Plan' },
     { id: 'models', icon: 'Box', label: 'Models' },
     { id: 'gallery', icon: 'Image', label: 'Gallery' },
+    { id: 'gestures', icon: 'Hand', label: 'Hand Gestures' },
     { id: 'render', icon: 'Eye', label: 'Render' },
     { id: 'advanced', icon: 'Settings', label: 'Advanced Tools' }
   ];

@@ -36,13 +36,24 @@ import ViewSettingsPanel, { DEFAULT_SETTINGS } from "./view-settings-panel";
 import SelectionGizmoManager from "./selection-gizmo-manager";
 import HoleMeasurementGuides from "./hole-measurement-guides";
 import MeasureTool from "./measure-tool";
+import HandGestureController from "./hand-gesture-controller";
 import PlannerContext from "../../context/PlannerContext";
 
 export default class Scene3DViewer extends React.Component {
   constructor(props) {
     super(props);
 
+    this.state = {
+      gestureUi: {
+        enabled: false,
+        ready: false,
+        error: null,
+        debug: "",
+      },
+    };
+
     this.canvasWrapperRef = React.createRef();
+    this.gesturePreviewRef = React.createRef();
     this.lastMousePosition = {};
     this.width = props.width;
     this.height = props.height;
@@ -130,6 +141,11 @@ export default class Scene3DViewer extends React.Component {
 
     // Bind view settings handler
     this.handleViewSettingsChange = this.handleViewSettingsChange.bind(this);
+    this.applyGestureInput = this.applyGestureInput.bind(this);
+    this.syncGesturePreview = this.syncGesturePreview.bind(this);
+    this.handleExternalViewSettingsChange =
+      this.handleExternalViewSettingsChange.bind(this);
+    this.updateGestureDebug = this.updateGestureDebug.bind(this);
 
     // Render-loop optimization caches (no quality/feature changes)
     this._lodEntries = [];
@@ -143,9 +159,241 @@ export default class Scene3DViewer extends React.Component {
     this._lastRendererWidth = this.width;
     this._lastRendererHeight = this.height;
     this._viewerActive = false;
+    this.gestureSessionState = null;
+    this._lastGestureDebugUpdate = 0;
 
     this._renderFrame = this._renderFrame.bind(this);
     this._markSceneDirty = this._markSceneDirty.bind(this);
+  }
+
+  isGestureControlMode(mode = this.props.state.get("mode")) {
+    return [
+      MODE_3D_VIEW,
+      MODE_DRAWING_ITEM_3D,
+      MODE_DRAGGING_ITEM_3D,
+      MODE_DRAWING_HOLE_3D,
+      MODE_DRAGGING_HOLE_3D,
+      MODE_APPLYING_TEXTURE,
+      MODE_3D_MEASURE,
+    ].includes(mode);
+  }
+
+  async setGestureZoomEnabled(enabled) {
+    if (!this.handGestureController) {
+      this.handGestureController = new HandGestureController({
+        onStatusChange: (gestureUi) =>
+          this.setState(
+            (previousState) => ({
+              gestureUi: {
+                ...gestureUi,
+                debug: previousState.gestureUi.debug,
+              },
+            }),
+            this.syncGesturePreview,
+          ),
+      });
+    }
+
+    if (!enabled) {
+      this.handGestureController.stop();
+      this.gestureSessionState = null;
+      this.syncGesturePreview();
+      this._markSceneDirty();
+      return;
+    }
+
+    try {
+      await this.handGestureController.start();
+      this.syncGesturePreview();
+      this._markSceneDirty();
+    } catch (error) {
+      this.setState(
+        {
+          gestureUi: {
+            enabled: false,
+            ready: false,
+            error: error.message || "Failed to start hand gestures.",
+            debug: "",
+          },
+        },
+        this.syncGesturePreview,
+      );
+    }
+  }
+
+  syncGesturePreview() {
+    const previewRoot = this.gesturePreviewRef.current;
+    if (!previewRoot) return;
+
+    previewRoot.replaceChildren();
+
+    if (!this.viewSettings?.gestureCameraPreview) return;
+    if (!this.handGestureController) return;
+
+    const video = this.handGestureController.getVideoElement();
+    if (!video) return;
+
+    Object.assign(video.style, {
+      width: "100%",
+      height: "100%",
+      objectFit: "cover",
+      transform: "scaleX(-1)",
+      borderRadius: "14px",
+      display: "block",
+    });
+
+    previewRoot.appendChild(video);
+  }
+
+  handleExternalViewSettingsChange(event) {
+    const nextSettings = event?.detail;
+    if (!nextSettings || typeof nextSettings !== "object") return;
+
+    this.handleViewSettingsChange({
+      ...DEFAULT_SETTINGS,
+      ...nextSettings,
+    });
+  }
+
+  updateGestureDebug(gestureFrame, details = null) {
+    const now = performance.now();
+    if (now - this._lastGestureDebugUpdate < 120) return;
+    this._lastGestureDebugUpdate = now;
+
+    const debug = gestureFrame?.detected
+      ? `mode=${gestureFrame.twoHandZoomActive ? "zoom-2h" : gestureFrame.rotationActive ? "rotate-1h" : gestureFrame.pinchActive ? "hold-1h" : "idle"} hands=${gestureFrame.handsDetected || 0} track=${gestureFrame.trackingHeld ? "held" : "live"} hold=${Math.round(
+          gestureFrame.holdMs || 0,
+        )}ms pinchDist=${Number(gestureFrame.pinchDistance || 0).toFixed(3)} zoomDist=${Number(gestureFrame.zoomDistance || 0).toFixed(3)} session=${gestureFrame.sessionId || 0}${details ? ` ${details}` : ""}`
+      : "no hand detected";
+
+    this.setState((previousState) => ({
+      gestureUi: {
+        ...previousState.gestureUi,
+        debug,
+      },
+    }));
+  }
+
+  applyGestureInput() {
+    if (!this.viewSettings?.gestureZoom || !this.handGestureController) return;
+    if (!this.handGestureController.ready || !this.handGestureController.enabled)
+      return;
+    if (!this.isGestureControlMode()) return;
+    if (!this.orbitControls || !this.camera) return;
+
+    const gestureFrame = this.handGestureController.update();
+    if (!gestureFrame?.detected) {
+      this.gestureSessionState = null;
+      this.updateGestureDebug(gestureFrame);
+      return;
+    }
+
+    if (!gestureFrame.pinchActive && !gestureFrame.twoHandZoomActive) {
+      this.gestureSessionState = null;
+      this.updateGestureDebug(gestureFrame);
+      return;
+    }
+
+    const currentOffset = new Three.Vector3().subVectors(
+      this.camera.position,
+      this.orbitControls.target,
+    );
+    const currentSpherical = new Three.Spherical().setFromVector3(
+      currentOffset,
+    );
+    const currentDistance = Math.max(currentOffset.length(), 0.001);
+
+    let nextDistance = currentDistance;
+    let nextTheta = currentSpherical.theta;
+    let nextPhi = currentSpherical.phi;
+    let debugDetails = null;
+
+    if (gestureFrame.twoHandZoomActive) {
+      if (
+        !this.gestureSessionState ||
+        this.gestureSessionState.sessionId !== gestureFrame.sessionId ||
+        this.gestureSessionState.mode !== "two-hand-zoom"
+      ) {
+        this.gestureSessionState = {
+          sessionId: gestureFrame.sessionId,
+          mode: "two-hand-zoom",
+          baseDistance: currentDistance,
+          baseZoomDistance: Math.max(gestureFrame.zoomDistance || 0.001, 0.001),
+        };
+      }
+
+      const gestureState = this.gestureSessionState;
+      const zoomSpreadRatio =
+        Math.max(gestureFrame.zoomDistance || 0.001, 0.001) /
+        Math.max(gestureState.baseZoomDistance, 0.001);
+      const zoomFactor = Math.pow(
+        Three.MathUtils.clamp(zoomSpreadRatio, 0.35, 2.8),
+        1.85,
+      );
+      const targetDistance = Three.MathUtils.clamp(
+        gestureState.baseDistance / zoomFactor,
+        80,
+        12000,
+      );
+      nextDistance = Three.MathUtils.lerp(
+        currentDistance,
+        targetDistance,
+        0.14,
+      );
+      debugDetails = `spread=${zoomSpreadRatio.toFixed(3)} zoom=${zoomFactor.toFixed(3)}`;
+    } else {
+      if (
+        !this.gestureSessionState ||
+        this.gestureSessionState.sessionId !== gestureFrame.sessionId ||
+        this.gestureSessionState.mode !== "single-hand-rotate"
+      ) {
+        this.gestureSessionState = {
+          sessionId: gestureFrame.sessionId,
+          mode: "single-hand-rotate",
+          baseTheta: currentSpherical.theta,
+          basePhi: currentSpherical.phi,
+          baseCenter: gestureFrame.handCenter
+            ? { ...gestureFrame.handCenter }
+            : { x: 0.5, y: 0.5 },
+        };
+      }
+
+      const gestureState = this.gestureSessionState;
+
+      if (gestureFrame.rotationActive && gestureFrame.handCenter) {
+        const deltaX = gestureFrame.handCenter.x - gestureState.baseCenter.x;
+        const deltaY = gestureFrame.handCenter.y - gestureState.baseCenter.y;
+        const targetTheta = gestureState.baseTheta + deltaX * 20;
+        const targetPhi = Three.MathUtils.clamp(
+          gestureState.basePhi - deltaY * 14,
+          0.25,
+          Math.PI - 0.25,
+        );
+
+        nextTheta = Three.MathUtils.lerp(
+          currentSpherical.theta,
+          targetTheta,
+          0.12,
+        );
+        nextPhi = Three.MathUtils.lerp(
+          currentSpherical.phi,
+          targetPhi,
+          0.12,
+        );
+        debugDetails = `dx=${deltaX.toFixed(3)} dy=${deltaY.toFixed(3)}`;
+      }
+    }
+
+    this.updateGestureDebug(gestureFrame, debugDetails);
+
+    const nextOffset = new Three.Vector3().setFromSpherical(
+      new Three.Spherical(nextDistance, nextPhi, nextTheta),
+    );
+
+    this.camera.position.copy(this.orbitControls.target).add(nextOffset);
+    this.camera.lookAt(this.orbitControls.target);
+    this.orbitControls.update();
+    this._sceneDirtyForFrame = true;
   }
 
   _refreshLodEntries(planData) {
@@ -256,6 +504,8 @@ export default class Scene3DViewer extends React.Component {
       return;
     }
 
+    this.applyGestureInput();
+
     const orbitUpdated =
       typeof this.orbitControls.update === "function"
         ? this.orbitControls.update() === true
@@ -311,7 +561,10 @@ export default class Scene3DViewer extends React.Component {
       this._viewerActive &&
       (this._sceneDirtyForFrame ||
         wallVisibilityManager.hasActiveTransitions() ||
-        (this.gizmoManager && this.gizmoManager.hasActiveAnimations()))
+        (this.gizmoManager && this.gizmoManager.hasActiveAnimations()) ||
+        (this.viewSettings?.gestureZoom &&
+          this.handGestureController?.enabled &&
+          this.handGestureController?.ready))
     ) {
       this._ensureRenderLoop();
     }
@@ -1390,12 +1643,24 @@ export default class Scene3DViewer extends React.Component {
 
     // Expose for mini-preview viewport
     window.__viewer3D = this;
+    window.addEventListener(
+      "planner:view-settings-change",
+      this.handleExternalViewSettingsChange,
+    );
 
     // Initialize wall visibility manager
     wallVisibilityManager.init(planData, camera);
 
     // Apply initial view settings
     this.applyViewSettings(this.viewSettings);
+    this.setGestureZoomEnabled(this.viewSettings.gestureZoom);
+
+    if (window.__plannerViewSettings) {
+      this.handleViewSettingsChange({
+        ...DEFAULT_SETTINGS,
+        ...window.__plannerViewSettings,
+      });
+    }
 
     // Initial gizmo sync — if anything is already selected when switching to 3D
     if (this.gizmoManager) {
@@ -1410,6 +1675,11 @@ export default class Scene3DViewer extends React.Component {
 
   componentWillUnmount() {
     this._stopRenderLoop();
+
+    window.removeEventListener(
+      "planner:view-settings-change",
+      this.handleExternalViewSettingsChange,
+    );
 
     if (this.orbitControls) {
       if (this._onOrbitStart)
@@ -1428,6 +1698,11 @@ export default class Scene3DViewer extends React.Component {
       domElement.removeEventListener("mousemove", this.mouseMoveEvent, true);
     }
     window.removeEventListener("keydown", this.keyDownEvent);
+
+    if (this.handGestureController) {
+      this.handGestureController.dispose();
+      this.handGestureController = null;
+    }
 
     // Clean up window-level drag mouseup listener
     if (this._endDragOnWindowMouseUp) {
@@ -2406,6 +2681,8 @@ export default class Scene3DViewer extends React.Component {
   handleViewSettingsChange(newSettings) {
     this.viewSettings = newSettings;
     this.applyViewSettings(newSettings);
+    this.setGestureZoomEnabled(newSettings.gestureZoom);
+    this.syncGesturePreview();
     this._markSceneDirty();
   }
 
@@ -2486,10 +2763,75 @@ export default class Scene3DViewer extends React.Component {
   }
 
   render() {
-    return React.createElement("div", {
-      ref: this.canvasWrapperRef,
-      style: { position: "relative", width: "100%", height: "100%" },
-    });
+    const { gestureUi } = this.state;
+    const showGestureBadge = this.viewSettings?.gestureZoom || gestureUi.error;
+    const showGesturePreview =
+      this.viewSettings?.gestureZoom && this.viewSettings?.gestureCameraPreview;
+
+    return React.createElement(
+      "div",
+      {
+        ref: this.canvasWrapperRef,
+        style: { position: "relative", width: "100%", height: "100%" },
+      },
+      showGestureBadge
+        ? React.createElement(
+            "div",
+            {
+              style: {
+                position: "absolute",
+                top: "16px",
+                right: "332px",
+                zIndex: 6,
+                padding: "10px 14px",
+                borderRadius: "12px",
+                background: "rgba(8, 17, 31, 0.82)",
+                color: "#ffffff",
+                fontSize: "12px",
+                lineHeight: 1.4,
+                boxShadow: "0 10px 30px rgba(0, 0, 0, 0.18)",
+                pointerEvents: "none",
+              },
+            },
+            gestureUi.error
+              ? `Hand gestures error: ${gestureUi.error}`
+              : gestureUi.ready
+                ? "Hand gestures active: use one pinched hand to rotate, and two hands to zoom."
+                : "Starting hand gestures... allow camera access.",
+            gestureUi.debug
+              ? React.createElement(
+                  "div",
+                  {
+                    style: {
+                      marginTop: "6px",
+                      opacity: 0.82,
+                      fontSize: "11px",
+                    },
+                  },
+                  gestureUi.debug,
+                )
+              : null,
+          )
+        : null,
+      showGesturePreview
+        ? React.createElement("div", {
+            ref: this.gesturePreviewRef,
+            style: {
+              position: "absolute",
+              top: "64px",
+              right: "332px",
+              width: "220px",
+              aspectRatio: "4 / 3",
+              zIndex: 5,
+              overflow: "hidden",
+              borderRadius: "14px",
+              background: "rgba(8, 17, 31, 0.9)",
+              border: "1px solid rgba(255, 255, 255, 0.12)",
+              boxShadow: "0 10px 30px rgba(0, 0, 0, 0.2)",
+            },
+          })
+        : null,
+    );
   }
 }
 

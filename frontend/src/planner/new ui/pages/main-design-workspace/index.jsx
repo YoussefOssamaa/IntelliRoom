@@ -14,6 +14,7 @@ import LeftToolbar from "./components/LeftToolbar";
 import FloorPlanSidebar from "./components/FloorPlanSidebar";
 import ModelsSidebar from "./components/ModelsSidebar";
 import GallerySidebar from "./components/GallerySidebar";
+import GestureControlsSidebar from "./components/GestureControlsSidebar";
 import AdvancedToolsSidebar from "./components/AdvancedToolsSidebar";
 import WorkspaceCanvas from "./components/WorkspaceCanvas";
 import PropertiesPanel from "./components/PropertiesPanel";
@@ -282,6 +283,8 @@ const MainDesignWorkspaceInner = ({
     markers: true,
     guides: true,
     boundingBoxes: false,
+    gestureZoom: false,
+    gestureCameraPreview: false,
   });
   const fileInputRef = useRef(null);
   const viewMenuRef = useRef(null);
@@ -547,6 +550,8 @@ const MainDesignWorkspaceInner = ({
         return 600;
       case "gallery":
         return 384;
+      case "gestures":
+        return 340;
       case "advanced":
         return 320;
       case "render":
@@ -555,6 +560,36 @@ const MainDesignWorkspaceInner = ({
         return 0;
     }
   };
+
+  const applyViewSettings = useCallback((updater) => {
+    setViewSettings((currentSettings) => {
+      const nextSettings =
+        typeof updater === "function" ? updater(currentSettings) : updater;
+
+      window.__plannerViewSettings = nextSettings;
+      window.dispatchEvent(
+        new CustomEvent("planner:view-settings-change", {
+          detail: nextSettings,
+        }),
+      );
+
+      if (window.__viewer3D?.handleViewSettingsChange) {
+        window.__viewer3D.handleViewSettingsChange(nextSettings);
+      }
+
+      return nextSettings;
+    });
+  }, []);
+
+  const handleToggleViewSetting = useCallback(
+    (key) => {
+      applyViewSettings((currentSettings) => ({
+        ...currentSettings,
+        [key]: !currentSettings[key],
+      }));
+    },
+    [applyViewSettings],
+  );
 
   useEffect(() => {
     if (!isRenderTabActive) return;
@@ -1331,19 +1366,7 @@ const MainDesignWorkspaceInner = ({
       <div
         className="vd-item"
         key={key}
-        onClick={() =>
-          setViewSettings((s) => {
-            const next = { ...s, [key]: !s[key] };
-            // Push change to the 3D viewer's applyViewSettings
-            if (
-              window.__viewer3D &&
-              window.__viewer3D.handleViewSettingsChange
-            ) {
-              window.__viewer3D.handleViewSettingsChange(next);
-            }
-            return next;
-          })
-        }
+        onClick={() => handleToggleViewSetting(key)}
         style={{ cursor: "pointer" }}
       >
         <input
@@ -1355,7 +1378,7 @@ const MainDesignWorkspaceInner = ({
         <span>{label}</span>
       </div>
     ),
-    [viewSettings],
+    [handleToggleViewSetting, viewSettings],
   );
 
   return (
@@ -1435,6 +1458,13 @@ const MainDesignWorkspaceInner = ({
         <GallerySidebar
           isOpen={activeTab === "gallery"}
           onClose={handleCloseSidebar}
+        />
+        <GestureControlsSidebar
+          isOpen={activeTab === "gestures"}
+          onClose={handleCloseSidebar}
+          workspaceMode={workspaceMode}
+          viewSettings={viewSettings}
+          onToggleSetting={handleToggleViewSetting}
         />
         <AdvancedToolsSidebar
           isOpen={activeTab === "advanced"}
@@ -1617,6 +1647,16 @@ const MainDesignWorkspaceInner = ({
                   {renderViewToggle("markers", t("📍 Markers"))}
                   {renderViewToggle("guides", t("📏 Guides"))}
                   {renderViewToggle("boundingBoxes", t("⬜ Bounding Boxes"))}
+                  <div className="vd-divider" />
+                  <div className="vd-section-title">{t("Hand Gestures")}</div>
+                  {renderViewToggle(
+                    "gestureZoom",
+                    t("👋 Enable Gesture Control"),
+                  )}
+                  {renderViewToggle(
+                    "gestureCameraPreview",
+                    t("📷 Show Camera Preview"),
+                  )}
                 </div>
               )}
             </div>

@@ -16,9 +16,10 @@ const DEFAULT_OPTIONS = {
   releaseThreshold: 0.34,
   pinchSmoothing: 0.42,
   scaleSmoothing: 0.36,
-  twoHandDistanceSmoothing: 0.3,
-  centerSmoothing: 0.58,
-  rotateActivationDelayMs: 70,
+  twoHandDistanceSmoothing: 0.44,
+  centerSmoothing: 0.66,
+  rotateActivationDelayMs: 55,
+  twoHandActivationDelayMs: 110,
   trackingGraceMs: 420,
 };
 
@@ -98,6 +99,7 @@ export default class HandGestureController {
     this.lastDetectedAt = 0;
     this.lastHandedness = 'Unknown';
     this.activeMode = 'idle';
+    this.twoHandHoldStartedAt = 0;
 
     this.onStatusChange = options.onStatusChange || null;
   }
@@ -235,7 +237,11 @@ export default class HandGestureController {
         const holdMs =
           this.activeMode === 'single-hand-rotate' && this.pinchStartedAt
             ? now - this.pinchStartedAt
-            : 0;
+            : (this.activeMode === 'two-hand-zoom' ||
+                this.activeMode === 'two-hand-hold') &&
+              this.twoHandHoldStartedAt
+              ? now - this.twoHandHoldStartedAt
+              : 0;
 
         this.lastFrame = {
           ...this.lastFrame,
@@ -265,6 +271,9 @@ export default class HandGestureController {
         detectedHands[0].palmCenter,
         detectedHands[1].palmCenter,
       );
+      const bothHandsPinched = detectedHands.every(
+        (hand) => hand.normalizedPinchDistance <= this.options.pinchThreshold,
+      );
       const twoHandCenter = averagePoints([
         detectedHands[0].palmCenter,
         detectedHands[1].palmCenter,
@@ -285,29 +294,54 @@ export default class HandGestureController {
       this.smoothedPinchDistance = null;
       this.smoothedHandScale = null;
       this.smoothedCenter = null;
+      if (bothHandsPinched) {
+        if (!this.twoHandHoldStartedAt) {
+          this.twoHandHoldStartedAt = now;
+        }
+      } else {
+        this.twoHandHoldStartedAt = 0;
+      }
 
-      if (this.activeMode !== 'two-hand-zoom') {
-        this.activeMode = 'two-hand-zoom';
+      const holdMs = this.twoHandHoldStartedAt
+        ? now - this.twoHandHoldStartedAt
+        : 0;
+      const twoHandZoomActive =
+        bothHandsPinched && holdMs >= this.options.twoHandActivationDelayMs;
+
+      const nextMode = twoHandZoomActive
+        ? 'two-hand-zoom'
+        : bothHandsPinched
+          ? 'two-hand-hold'
+          : 'two-hand-idle';
+
+      if (
+        nextMode === 'two-hand-zoom' &&
+        this.activeMode !== 'two-hand-zoom'
+      ) {
         this.gestureSessionId += 1;
       }
+      this.activeMode = nextMode;
 
       this.lastFrame = {
         detected: true,
         trackingHeld: false,
         pinchActive: false,
         rotationActive: false,
-        twoHandZoomActive: true,
+        twoHandZoomActive,
+        twoHandHoldActive: bothHandsPinched,
         pinchDistance: 0,
         handScale: 0,
         zoomDistance: this.smoothedTwoHandDistance,
         handCenter: twoHandCenter,
         sessionId: this.gestureSessionId,
-        holdMs: 0,
+        holdMs,
         handedness: this.lastHandedness,
         handsDetected: detectedHands.length,
       };
       return this.lastFrame;
     }
+
+    this.twoHandHoldStartedAt = 0;
 
     const primaryHand = detectedHands[0];
     const pinchSmoothing = clamp(this.options.pinchSmoothing, 0.01, 0.95);
@@ -384,12 +418,14 @@ export default class HandGestureController {
     this.smoothedCenter = null;
     this.lastDetectedAt = 0;
     this.activeMode = 'idle';
+    this.twoHandHoldStartedAt = 0;
     this.lastFrame = {
       detected: false,
       trackingHeld: false,
       pinchActive: false,
       rotationActive: false,
       twoHandZoomActive: false,
+      twoHandHoldActive: false,
       pinchDistance: 0,
       handScale: 0,
       zoomDistance: 0,

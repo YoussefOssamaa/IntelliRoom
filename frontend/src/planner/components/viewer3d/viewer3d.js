@@ -261,7 +261,7 @@ export default class Scene3DViewer extends React.Component {
     this._lastGestureDebugUpdate = now;
 
     const debug = gestureFrame?.detected
-      ? `mode=${gestureFrame.twoHandZoomActive ? "zoom-2h" : gestureFrame.rotationActive ? "rotate-1h" : gestureFrame.pinchActive ? "hold-1h" : "idle"} hands=${gestureFrame.handsDetected || 0} track=${gestureFrame.trackingHeld ? "held" : "live"} hold=${Math.round(
+      ? `mode=${gestureFrame.twoHandZoomActive ? "zoom-2h" : gestureFrame.twoHandHoldActive ? "hold-2h" : gestureFrame.rotationActive ? "rotate-1h" : gestureFrame.pinchActive ? "hold-1h" : "idle"} hands=${gestureFrame.handsDetected || 0} track=${gestureFrame.trackingHeld ? "held" : "live"} hold=${Math.round(
           gestureFrame.holdMs || 0,
         )}ms pinchDist=${Number(gestureFrame.pinchDistance || 0).toFixed(3)} zoomDist=${Number(gestureFrame.zoomDistance || 0).toFixed(3)} session=${gestureFrame.sessionId || 0}${details ? ` ${details}` : ""}`
       : "no hand detected";
@@ -338,7 +338,7 @@ export default class Scene3DViewer extends React.Component {
       nextDistance = Three.MathUtils.lerp(
         currentDistance,
         targetDistance,
-        0.14,
+        0.24,
       );
       debugDetails = `spread=${zoomSpreadRatio.toFixed(3)} zoom=${zoomFactor.toFixed(3)}`;
     } else {
@@ -373,12 +373,12 @@ export default class Scene3DViewer extends React.Component {
         nextTheta = Three.MathUtils.lerp(
           currentSpherical.theta,
           targetTheta,
-          0.12,
+          0.18,
         );
         nextPhi = Three.MathUtils.lerp(
           currentSpherical.phi,
           targetPhi,
-          0.12,
+          0.18,
         );
         debugDetails = `dx=${deltaX.toFixed(3)} dy=${deltaY.toFixed(3)}`;
       }
@@ -2796,7 +2796,7 @@ export default class Scene3DViewer extends React.Component {
             gestureUi.error
               ? `Hand gestures error: ${gestureUi.error}`
               : gestureUi.ready
-                ? "Hand gestures active: use one pinched hand to rotate, and two hands to zoom."
+                ? "Hand gestures active: use one pinched hand to rotate, and pinch-hold with both hands to zoom."
                 : "Starting hand gestures... allow camera access.",
             gestureUi.debug
               ? React.createElement(

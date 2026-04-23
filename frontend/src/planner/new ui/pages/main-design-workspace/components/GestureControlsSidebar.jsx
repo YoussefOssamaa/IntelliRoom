@@ -20,7 +20,7 @@ const GestureControlsSidebar = ({
       icon: 'ZoomIn',
       title: 'Enable Gesture Control',
       description:
-        'Use one pinched hand to rotate the 3D room. Use two hands and change the distance between them to zoom.',
+        'Use one pinched hand to rotate the 3D room. Pinch and hold with both hands, then change the distance between them to zoom.',
     },
     {
       key: 'gestureCameraPreview',
@@ -60,7 +60,7 @@ const GestureControlsSidebar = ({
                     'The gesture controller only affects the 3D viewer. Change to 3D mode, then enable it here.',
                   )
                 : t(
-                    'Turn on gesture control, allow camera access, then use one pinched hand to rotate and two hands to zoom.',
+                    'Turn on gesture control, allow camera access, then use one pinched hand to rotate and pinch-hold with both hands to zoom.',
                   )}
             </p>
           </div>
@@ -109,7 +109,7 @@ const GestureControlsSidebar = ({
                 'Keep that pinch held and move your hand left, right, up, or down to rotate the model.',
               )}
             </li>
-            <li>{t('Show both hands to the camera and move them farther apart or closer together to zoom.')}</li>
+            <li>{t('Pinch and hold with both hands, then move them farther apart or closer together to zoom.')}</li>
           </ol>
         </div>
       </div>

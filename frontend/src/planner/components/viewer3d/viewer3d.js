@@ -261,9 +261,9 @@ export default class Scene3DViewer extends React.Component {
     this._lastGestureDebugUpdate = now;
 
     const debug = gestureFrame?.detected
-      ? `mode=${gestureFrame.twoHandZoomActive ? "zoom-2h" : gestureFrame.twoHandHoldActive ? "hold-2h" : gestureFrame.rotationActive ? "rotate-1h" : gestureFrame.pinchActive ? "hold-1h" : "idle"} hands=${gestureFrame.handsDetected || 0} track=${gestureFrame.trackingHeld ? "held" : "live"} hold=${Math.round(
+      ? `mode=${gestureFrame.rotationActive ? "control-1h" : gestureFrame.pinchActive ? "hold-1h" : "idle"} hands=${gestureFrame.handsDetected || 0} track=${gestureFrame.trackingHeld ? "held" : "live"} hold=${Math.round(
           gestureFrame.holdMs || 0,
-        )}ms pinchDist=${Number(gestureFrame.pinchDistance || 0).toFixed(3)} zoomDist=${Number(gestureFrame.zoomDistance || 0).toFixed(3)} session=${gestureFrame.sessionId || 0}${details ? ` ${details}` : ""}`
+        )}ms pinchDist=${Number(gestureFrame.pinchDistance || 0).toFixed(3)} scale=${Number(gestureFrame.handScale || 0).toFixed(3)} session=${gestureFrame.sessionId || 0}${details ? ` ${details}` : ""}`
       : "no hand detected";
 
     this.setState((previousState) => ({
@@ -288,7 +288,7 @@ export default class Scene3DViewer extends React.Component {
       return;
     }
 
-    if (!gestureFrame.pinchActive && !gestureFrame.twoHandZoomActive) {
+    if (!gestureFrame.pinchActive) {
       this.gestureSessionState = null;
       this.updateGestureDebug(gestureFrame);
       return;
@@ -308,80 +308,70 @@ export default class Scene3DViewer extends React.Component {
     let nextPhi = currentSpherical.phi;
     let debugDetails = null;
 
-    if (gestureFrame.twoHandZoomActive) {
-      if (
-        !this.gestureSessionState ||
-        this.gestureSessionState.sessionId !== gestureFrame.sessionId ||
-        this.gestureSessionState.mode !== "two-hand-zoom"
-      ) {
-        this.gestureSessionState = {
-          sessionId: gestureFrame.sessionId,
-          mode: "two-hand-zoom",
-          baseDistance: currentDistance,
-          baseZoomDistance: Math.max(gestureFrame.zoomDistance || 0.001, 0.001),
-        };
-      }
+    if (
+      !this.gestureSessionState ||
+      this.gestureSessionState.sessionId !== gestureFrame.sessionId ||
+      this.gestureSessionState.mode !== "single-hand-control"
+    ) {
+      this.gestureSessionState = {
+        sessionId: gestureFrame.sessionId,
+        mode: "single-hand-control",
+        baseDistance: currentDistance,
+        baseHandScale: Math.max(gestureFrame.handScale || 0.001, 0.001),
+        baseTheta: currentSpherical.theta,
+        basePhi: currentSpherical.phi,
+        baseCenter: gestureFrame.handCenter
+          ? { ...gestureFrame.handCenter }
+          : { x: 0.5, y: 0.5 },
+      };
+    }
 
-      const gestureState = this.gestureSessionState;
-      const zoomSpreadRatio =
-        Math.max(gestureFrame.zoomDistance || 0.001, 0.001) /
-        Math.max(gestureState.baseZoomDistance, 0.001);
-      const zoomFactor = Math.pow(
-        Three.MathUtils.clamp(zoomSpreadRatio, 0.35, 2.8),
-        1.85,
+    const gestureState = this.gestureSessionState;
+    const scaleRatio =
+      Math.max(gestureState.baseHandScale, 0.001) /
+      Math.max(gestureFrame.handScale || 0.001, 0.001);
+    const normalizedScaleRatio =
+      Math.abs(scaleRatio - 1) < 0.035 ? 1 : scaleRatio;
+    const zoomFactor = Math.pow(
+      Three.MathUtils.clamp(normalizedScaleRatio, 0.72, 1.42),
+      1.28,
+    );
+    const targetDistance = Three.MathUtils.clamp(
+      gestureState.baseDistance * zoomFactor,
+      80,
+      12000,
+    );
+    nextDistance = Three.MathUtils.lerp(
+      currentDistance,
+      targetDistance,
+      0.2,
+    );
+
+    if (gestureFrame.rotationActive && gestureFrame.handCenter) {
+      const rawDeltaX = gestureFrame.handCenter.x - gestureState.baseCenter.x;
+      const rawDeltaY = gestureFrame.handCenter.y - gestureState.baseCenter.y;
+      const deltaX = Math.abs(rawDeltaX) < 0.012 ? 0 : rawDeltaX;
+      const deltaY = Math.abs(rawDeltaY) < 0.012 ? 0 : rawDeltaY;
+      const targetTheta = gestureState.baseTheta + deltaX * 12;
+      const targetPhi = Three.MathUtils.clamp(
+        gestureState.basePhi - deltaY * 8,
+        0.25,
+        Math.PI - 0.25,
       );
-      const targetDistance = Three.MathUtils.clamp(
-        gestureState.baseDistance / zoomFactor,
-        80,
-        12000,
+
+      nextTheta = Three.MathUtils.lerp(
+        currentSpherical.theta,
+        targetTheta,
+        0.12,
       );
-      nextDistance = Three.MathUtils.lerp(
-        currentDistance,
-        targetDistance,
-        0.24,
+      nextPhi = Three.MathUtils.lerp(
+        currentSpherical.phi,
+        targetPhi,
+        0.12,
       );
-      debugDetails = `spread=${zoomSpreadRatio.toFixed(3)} zoom=${zoomFactor.toFixed(3)}`;
+      debugDetails = `dx=${deltaX.toFixed(3)} dy=${deltaY.toFixed(3)} zoom=${zoomFactor.toFixed(3)}`;
     } else {
-      if (
-        !this.gestureSessionState ||
-        this.gestureSessionState.sessionId !== gestureFrame.sessionId ||
-        this.gestureSessionState.mode !== "single-hand-rotate"
-      ) {
-        this.gestureSessionState = {
-          sessionId: gestureFrame.sessionId,
-          mode: "single-hand-rotate",
-          baseTheta: currentSpherical.theta,
-          basePhi: currentSpherical.phi,
-          baseCenter: gestureFrame.handCenter
-            ? { ...gestureFrame.handCenter }
-            : { x: 0.5, y: 0.5 },
-        };
-      }
-
-      const gestureState = this.gestureSessionState;
-
-      if (gestureFrame.rotationActive && gestureFrame.handCenter) {
-        const deltaX = gestureFrame.handCenter.x - gestureState.baseCenter.x;
-        const deltaY = gestureFrame.handCenter.y - gestureState.baseCenter.y;
-        const targetTheta = gestureState.baseTheta + deltaX * 20;
-        const targetPhi = Three.MathUtils.clamp(
-          gestureState.basePhi - deltaY * 14,
-          0.25,
-          Math.PI - 0.25,
-        );
-
-        nextTheta = Three.MathUtils.lerp(
-          currentSpherical.theta,
-          targetTheta,
-          0.18,
-        );
-        nextPhi = Three.MathUtils.lerp(
-          currentSpherical.phi,
-          targetPhi,
-          0.18,
-        );
-        debugDetails = `dx=${deltaX.toFixed(3)} dy=${deltaY.toFixed(3)}`;
-      }
+      debugDetails = `zoom=${zoomFactor.toFixed(3)}`;
     }
 
     this.updateGestureDebug(gestureFrame, debugDetails);
@@ -2796,7 +2786,7 @@ export default class Scene3DViewer extends React.Component {
             gestureUi.error
               ? `Hand gestures error: ${gestureUi.error}`
               : gestureUi.ready
-                ? "Hand gestures active: use one pinched hand to rotate, and pinch-hold with both hands to zoom."
+                ? "Hand gestures active: pinch with one hand, move sideways to rotate, and move closer or farther to zoom."
                 : "Starting hand gestures... allow camera access.",
             gestureUi.debug
               ? React.createElement(

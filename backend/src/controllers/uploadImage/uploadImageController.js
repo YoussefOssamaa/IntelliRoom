@@ -4,7 +4,7 @@ import fs from 'fs';
 import { comfyUIServiceInstance } from '../../server.js';
 import { setTimeout } from 'node:timers/promises';
 import { escape } from 'node:querystring';
-import { buildComfyWorkflow, COMFYUI_OUTPUT_NODE } from '../../../../ai/ComfyUI_Workflows/API_Format/Final_workflow_API.mjs';
+import { buildComfyWorkflow, COMFYUI_OUTPUT_NODE } from '../../../ai/ComfyUI_Workflows/API_Format/Final_workflow_API.mjs';
 import axios from 'axios';
 
 
@@ -78,7 +78,7 @@ export const postImageController = async (req, res) => {
         try {
             const backendContainer = process.env.NODE_ENV === 'production' ? 'backend' : 'dev';
             const absoluteImageUrl = `http://${backendContainer}:5000${fullImagePath}`;
-            
+
             const response = await axios.post('http://orchestrator:7860/search', {
                 image_url: absoluteImageUrl
             });

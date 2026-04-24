@@ -30,7 +30,6 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-        
 
   orchestrator:
     build:
@@ -40,25 +39,23 @@ services:
     environment:
       - KAGGLE_BASE_URL=${KAGGLE_BASE_URL}
     networks:
-      - intelliroom-network 
-    deploy: 
-      resources: 
-        limits: 
-          cpus: "0.5" 
-          memory: 512M 
-        reservations: 
-          cpus: "0.25" 
-          memory: 256M 
-    logging: 
-      driver: "json-file" 
-      options: 
-        max-size: "10m" 
-        max-file: "3" 
+      - intelliroom-network
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     depends_on:
       mongo:
         condition: service_healthy
-
-
 
   frontend:
     build:
@@ -69,6 +66,8 @@ services:
       - intelliroom-network
     expose:
       - "80"
+    env_file:
+      - ./frontend/.env.prod
     deploy:
       resources:
         limits:
@@ -98,6 +97,8 @@ services:
       - intelliroom-network
     expose:
       - "5000"
+    env_file:
+      - ./backend/.env.prod
     environment:
       - NODE_ENV=production
       - DATABASE_URL=mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongo:27017/${MONGO_DB}?authSource=admin
@@ -130,7 +131,18 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-
+        
+##  cloudflared:
+##    image: cloudflare/cloudflared:latest
+##    restart: unless-stopped
+##    environment:
+##      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+##    command: tunnel --no-autoupdate run
+##    networks:
+##      - intelliroom-network
+##    depends_on:
+##      - nginx
+      
   mongo:
     image: mongo:7
     container_name: intelliroom-mongo-prod
@@ -173,14 +185,7 @@ services:
 
 
 
-  # # cloudflared:
-  # #   image: cloudflare/cloudflared:latest
-  # #   restart: unless-stopped
-  # #   environment:
-  # #     - CLOUDFLARE_TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
-  # #   command: tunnel run
-  # #   networks:
-  # #     - intelliroom-network
+
 
 
 

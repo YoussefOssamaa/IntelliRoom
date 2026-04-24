@@ -13,7 +13,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const keysFolder = process.env.KEYS_PATH;
+const keysFolder = process.env.KEYS_PATH || path.join(__dirname, "../../utils/src/keys");
 const authPrivateKey = fs.readFileSync(path.join(keysFolder, "AuthPrivate.pem"), 'utf8');
 const authPublicKey = fs.readFileSync(path.join(keysFolder, "AuthPublic.pem"), 'utf8');
 const refreshPrivateKey = fs.readFileSync(path.join(keysFolder, "RefreshPrivate.pem"), 'utf8');

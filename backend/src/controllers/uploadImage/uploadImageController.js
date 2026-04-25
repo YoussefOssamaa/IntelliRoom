@@ -4,7 +4,7 @@ import fs from 'fs';
 import { comfyUIServiceInstance } from '../../server.js';
 import { setTimeout } from 'node:timers/promises';
 import { escape } from 'node:querystring';
-import { buildComfyWorkflow, COMFYUI_OUTPUT_NODE } from '../../../ai/ComfyUI_Workflows/API_Format/Final_workflow_API.mjs';
+import { buildComfyWorkflow, COMFYUI_OUTPUT_NODE } from '../../../../ai/ComfyUI_Workflows/API_Format/Final_workflow_API.mjs';
 import axios from 'axios';
 
 

@@ -42,13 +42,11 @@ const adminSchema = new mongoose.Schema({
 
 // Middleware لتشفير الباسورد قبل الحفظ
 adminSchema.pre('save', async function (next) {
-    // لو الباسورد ماتعدلش، كمل عادي وماتعملش هاش تاني
-    if (!this.isModified('password')) return next();
+    if (!this.isModified('password')) return;
 
     // تشفير الباسورد
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
-    next();
 });
 
 // دالة عشان نقارن الباسورد اللي اليوزر دخله باللي متسجل في الداتا بيز

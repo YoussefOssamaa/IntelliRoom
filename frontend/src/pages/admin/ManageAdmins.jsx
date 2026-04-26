@@ -22,7 +22,7 @@ const ManageAdmins = () => {
   const fetchAdmins = async () => {
     try {
       setLoading(true);
-      const response = await axios.get("/api/admin/all");
+      const response = await axios.get("/admin/all");
       setAdmins(response.data.data || []);
       setError(null);
     } catch (err) {
@@ -51,7 +51,7 @@ const ManageAdmins = () => {
     e.preventDefault();
     try {
       setIsSubmitting(true);
-      await axios.post("/api/admin/addAdmin", formData);
+      await axios.post("/admin/addAdmin", formData);
       alert("Admin added successfully");
       setFormData({ name: "", email: "", password: "", role: "admin" });
       fetchAdmins();
@@ -67,7 +67,7 @@ const ManageAdmins = () => {
       return;
 
     try {
-      const response = await axios.patch(`/api/admin/unlock/${adminId}`);
+      const response = await axios.patch(`/admin/unlock/${adminId}`);
       alert(response.data.message || "Account unlocked successfully");
     } catch (err) {
       alert(err.response?.data?.message || "Failed to unlock account");

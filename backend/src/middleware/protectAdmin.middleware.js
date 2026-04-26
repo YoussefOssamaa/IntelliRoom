@@ -6,8 +6,11 @@ import { authCookieSchema } from "../validations/login.validator.js";
 
 const protectAdmin = async (req, res, next) => {
   try {
+    // console.log(req.cookies);
+    
     const validation = authCookieSchema.safeParse(req.cookies);
-
+    // console.log(validation);
+    
     if (!validation.success || !validation.data.Authentication) {
       return res
         .status(401)
@@ -15,7 +18,8 @@ const protectAdmin = async (req, res, next) => {
     }
 
     const token = validation.data.Authentication;
-
+    // console.log(token);
+    
     const payload = jwt.verify(token, adminAuthPublicKey, {
       algorithms: ["RS256"],
     });

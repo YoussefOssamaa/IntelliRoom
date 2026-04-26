@@ -1,9 +1,9 @@
-import Subscription from '../../models/Subscription.js';
-import Plan from '../../models/plan.js';
-import Usage from '../../models/usage.js';
+import Subscription from '../../models/billing system/Subscription.js';
+import Plan from '../../models/billing system/plan.js';
+import Payment from '../../models/billing system/payments.js';
+import Usage from '../../models/billing system/usage.js';
 import User from '../../models/user.js';
 import crypto from 'crypto';
-import Payment from '../../models/payments.js';
 
 export const getMySubscription = async (req, res) => {
     try {
@@ -187,7 +187,7 @@ export const changePlan = async (req, res) => {
     try {
         const { newPlanId } = req.body;
         const user = req.user;
-
+        
         const newPlan = await Plan.findById(newPlanId);
         if (!newPlan) {
             return res.status(404).json({ success: false, message: "New plan not found" });

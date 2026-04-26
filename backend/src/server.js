@@ -24,7 +24,7 @@ import design2D3Dndex from './routes/design2D-3DRoutes/design2D3DIndex.js'
 import healthcontroller from './controllers/healthcontroller.js'
 import adminRoutes from './routes/adminRoutes/adminIndex.js';
 import adminDashboardRoutes from './routes/adminRoutes/dashboardIndex.js';
-import subscribtionRoutes from './routes/subscriptionRoutes/subscriptionIndex.js';
+import subscribtionRoutes from './routes/subscribtionRoutes/subscribtionIndex.js';
 
 const __dirname = path.resolve();
 

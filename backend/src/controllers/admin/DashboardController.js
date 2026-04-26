@@ -1,7 +1,7 @@
 import User from "../../models/user.js";
-import Subscription from "../../models/Subscription.js";
-import Plan from "../../models/plan.js";
-import Usage from "../../models/usage.js";
+import Subscription from "../../models/billing system/Subscription.js";
+import Plan from "../../models/billing system/plan.js";
+import Usage from "../../models/billing system/usage.js";
 
 export const getUsersWithSubscriptions = async (req, res) => {
   try {
@@ -122,63 +122,103 @@ export const suspendUserSubscription = async (req, res) => {
 export const changeUserPlan = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { newPlanId } = req.body;
+    const { planName } = req.body;
 
-    const newPlan = await Plan.findById(newPlanId);
-    if (!newPlan) {
-      return res
-        .status(404)
-        .json({ success: false, message: "New plan not found" });
+    if (!planName) {
+      return res.status(400).json({ success: false, message: "Plan name is required" });
     }
 
-    const currentSubscription = await Subscription.findOne({
-      userId,
-      status: { $in: ["active", "trial", "paused"] },
-    }).populate("planId");
+    // ==========================================
+    // 1. الحالة الوحيدة للـ 404: لو المستخدم مش موجود
+    // ==========================================
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
 
-    if (!currentSubscription) {
-      return res.status(404).json({
-        success: false,
-        message: "No current subscription found to change.",
+    const normalizedPlanName = planName.toLowerCase();
+
+    let planDetails = await Plan.findOne({ name: normalizedPlanName });
+    
+    if (!planDetails) {
+      planDetails = await Plan.create({
+        name: normalizedPlanName,
+        price: 0,
+        renderLimit: normalizedPlanName === 'free' ? 0 : 50, 
+        model3DLimit: normalizedPlanName === 'free' ? 0 : 10,
       });
     }
 
-    if (currentSubscription.planId._id.toString() === newPlanId) {
-      return res
-        .status(400)
-        .json({ success: false, message: "User is already on this plan." });
+    const now = new Date();
+    const nextMonth = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+    // ==========================================
+    // 3. Upsert للـ Subscription
+    // ==========================================
+    let subscription = await Subscription.findOne({ userId: userId });
+
+    if (!subscription) {
+      // مش موجود؟ اعمل Create
+      subscription = await Subscription.create({
+        userId: userId,
+        planId: planDetails._id,
+        status: "active",
+        billingCycle: "monthly",
+        startDate: now,
+        endDate: nextMonth
+      });
+    } else {
+      // موجود؟ اعمل Update
+      subscription.planId = planDetails._id;
+      subscription.status = "active";
+      subscription.startDate = now;
+      subscription.endDate = nextMonth;
+      await subscription.save();
     }
 
-    currentSubscription.planId = newPlanId;
+    // ==========================================
+    // 4. Upsert للـ Usage
+    // ==========================================
+    let usage = await Usage.findOne({ userId: userId });
 
-    currentSubscription.status = "active";
-    await currentSubscription.save();
-
-    const currentUsage = await Usage.findOne({
-      subscriptionId: currentSubscription._id,
-      periodEnd: { $gte: new Date() },
-    });
-
-    if (currentUsage) {
-      currentUsage.remainingRenders = newPlan.renderLimit;
-      await currentUsage.save();
+    if (!usage) {
+      // مش موجود؟ اعمل Create
+      usage = await Usage.create({
+        userId: userId,
+        subscriptionId: subscription._id,
+        remainingRenders: planDetails.renderLimit,
+        consumedRenders: 0,
+        periodStart: subscription.startDate,
+        periodEnd: subscription.endDate
+      });
+    } else {
+      // موجود؟ اعمل Update
+      usage.subscriptionId = subscription._id;
+      usage.remainingRenders = planDetails.renderLimit;
+      usage.periodStart = subscription.startDate;
+      usage.periodEnd = subscription.endDate;
+      await usage.save();
     }
 
-    await User.findByIdAndUpdate(userId, { plan: newPlan.name });
-    await logAdminAction(
-      req.admin._id, 
-      "CHANGE_PLAN",
-      userId, 
-      `Changed plan to ${newPlan.name}`,
-    );
-    
-    res.status(200).json({
+    // ==========================================
+    // 5. Update لبيانات المستخدم
+    // ==========================================
+    user.plan = planDetails.name;
+    await user.save();
+
+    // تسجيل العملية (لو دالة الـ log موجودة)
+    if (typeof logAdminAction === 'function') {
+      await logAdminAction(req.admin._id, "CHANGE_PLAN", userId, `Upserted records for plan ${planDetails.name}`);
+    }
+
+    return res.status(200).json({
       success: true,
-      message: `Successfully changed user's plan to ${newPlan.name}`,
-      data: currentSubscription,
+      message: `Upsert successful. User is now on ${planDetails.name} plan.`,
+      data: { subscription, usage }
     });
+
   } catch (error) {
     console.error("Error in changeUserPlan:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };

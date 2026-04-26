@@ -1,14 +1,13 @@
 import express from 'express';
-import { protect } from '../../middleware/protect.middleware';
-import { getSubscribtion, subscribePlan, unsubscribePlan, changePlan, createPaymobCheckout, paymobWebhook } from '../../controllers/subscribtion/subscribtionController.js';
-
+import  protect  from '../../middleware/protect.middleware.js';
+import { getMySubscription, subscribePlan, unsubscribePlan, changePlan, createPaymobCheckout, paymobWebhook } from '../../controllers/subscribtion/subscribtionController.js';
 const router = express.Router();
 
 router.post('/webhook', paymobWebhook);
 
 router.use(protect)
 
-router.get('/me', getSubscribtion)
+router.get('/me', getMySubscription)
 
 router.post('/subscribe', subscribePlan)
 

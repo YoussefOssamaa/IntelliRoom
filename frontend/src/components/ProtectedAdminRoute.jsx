@@ -8,7 +8,7 @@ const ProtectedAdminRoute = () => {
     useEffect(() => {
         const checkAdminAuth = async () => {
             try {
-                const res = await axios.get('/api/admin/me'); 
+                const res = await axios.get('/admin/me'); 
                 if (res?.data?.success) {
                     setStatus('authorized');
                 } else {
@@ -16,9 +16,9 @@ const ProtectedAdminRoute = () => {
                 }
             } catch (error) {
                 try {
-                    const res1 = await axios.post('/api/admin/refresh');
+                    const res1 = await axios.post('/admin/refresh');
                     if (res1?.data?.success) {
-                        const res2 = await axios.get('/api/admin/me');
+                        const res2 = await axios.get('/admin/me');
                         if (res2?.data?.success) {
                             setStatus('authorized');
                         } else {

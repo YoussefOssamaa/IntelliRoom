@@ -16,7 +16,7 @@ const AdminLogs = () => {
     const fetchLogs = async (page = 1) => {
         try {
             setLoading(true);
-            const response = await axios.get(`/api/admin/logs?page=${page}&limit=20`);
+            const response = await axios.get(`/admin/logs?page=${page}&limit=20`);
             
             if (response.data.success) {
                 setLogs(response.data.data || []);

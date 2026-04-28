@@ -26,6 +26,7 @@ import adminRoutes from './routes/adminRoutes/adminIndex.js';
 import adminDashboardRoutes from './routes/adminRoutes/dashboardIndex.js';
 import subscribtionRoutes from './routes/subscribtionRoutes/subscribtionIndex.js';
 
+import render3DIndex from './routes/render3DRoutes/render3DIndex.js'
 const __dirname = path.resolve();
 
 export const PORT = process.env.PORT || 5000;
@@ -70,7 +71,7 @@ app.use('/api/dashboard', dashboardIndex);
 app.use('/api/updateProfile', updateProfileIndex)
 app.use('/api/community', communityIndex)
 app.use('/api/generatedImage', generatedImageIndex)
-
+app.use('/api/render3d', render3DIndex) 
 
 app.use('/health', healthcontroller)
 

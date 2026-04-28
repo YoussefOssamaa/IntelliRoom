@@ -101,6 +101,24 @@ const Icons = {
       <path d="M16 3.13a4 4 0 0 1 0 7.75" />
     </svg>
   ),
+  Plus: ({ size = 16, style }) => (
+    <svg width={size} height={size} style={style} viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+  ),
+  Bedroom: ({ size = 36 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 11V7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4" />
+      <path d="M2 15h20" />
+      <path d="M2 11v8" />
+      <path d="M22 11v8" />
+      <path d="M6 11V9" />
+      <path d="M18 11V9" />
+      <rect x="8" y="7" width="8" height="4" rx="1" />
+    </svg>
+  ),
 };
 
 /* ── Social platform colours ───────────────────────────────── */
@@ -176,7 +194,7 @@ const SHARE_PLATFORMS = [
 /* ══════════════════════════════════════════════════════════════
    UPLOAD ZONE sub-component
    ══════════════════════════════════════════════════════════════ */
-function UploadZone({ preview, fileName, onFile, onClear, label, optional, disabled, inputRef }) {
+function UploadZone({ preview, fileName, onFile, onClear, label, optional, disabled, inputRef, icon: IconComponent }) {
   const [dragging, setDragging] = useState(false);
 
   const handleDrop = useCallback((e) => {
@@ -187,13 +205,13 @@ function UploadZone({ preview, fileName, onFile, onClear, label, optional, disab
   }, [disabled, onFile]);
 
   return (
-    <div className={styles.uploadImage_inputGroup}>
-      <label className={styles.uploadImage_label}>
+    <div className={styles.textAreaContainer} style={{ flex: 1 }}>
+      <label className={styles.eyebrow}>
         {label}
-        {optional && <span className={styles.uploadImage_labelBadge}>optional</span>}
+        {optional && <span style={{ opacity: 0.6, fontSize: '0.9em', marginLeft: 4 }}>(Optional)</span>}
       </label>
       <div
-        className={`${styles.uploadImage_uploadZone} ${preview ? styles.uploadImage_hasImage : ""} ${dragging ? styles.uploadImage_dragActive : ""}`}
+        className={`${styles.squareUploadZone} ${preview ? styles.hasImage : ""} ${dragging ? styles.uploadImage_dragActive : ""}`}
         onClick={() => !preview && inputRef.current?.click()}
         onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
         onDragLeave={() => setDragging(false)}
@@ -209,30 +227,24 @@ function UploadZone({ preview, fileName, onFile, onClear, label, optional, disab
         />
 
         {preview ? (
-          <div className={styles.uploadImage_previewWrapper}>
-            <div className={styles.uploadImage_previewContainer}>
-              <img src={preview} alt="Preview" className={styles.uploadImage_previewImage} />
-              {fileName && (
-                <div className={styles.uploadImage_previewMeta}>{fileName}</div>
-              )}
-              {!disabled && (
-                <button type="button" className={styles.uploadImage_clearButton}
-                  onClick={(e) => { e.stopPropagation(); onClear(); }}>
-                  <Icons.X size={13} />
-                </button>
-              )}
-            </div>
-          </div>
+          <>
+            <img src={preview} alt="Preview" className={styles.squarePreviewImage} />
+            {!disabled && (
+              <button type="button" className={styles.uploadImage_clearButton}
+                onClick={(e) => { e.stopPropagation(); onClear(); }}>
+                <Icons.X size={13} />
+              </button>
+            )}
+          </>
         ) : (
-          <div className={styles.uploadImage_uploadPlaceholder}>
-            <div className={styles.uploadImage_uploadIconWrapper}>
-              <Icons.Upload size={20} />
+          <>
+            <div className={styles.squareUploadZoneIcon}>
+              {IconComponent ? <IconComponent size={24} /> : <Icons.Upload size={24} />}
             </div>
-            <p className={styles.uploadImage_uploadText}>
-              <span className={styles.uploadImage_uploadTextPrimary}>Click to upload</span> or drag & drop
-            </p>
-            <p className={styles.uploadImage_uploadHint}>PNG · JPG · JPEG · WebP · max 10 MB</p>
-          </div>
+            <span className={styles.squareUploadText}>
+              {label === "Room Image" ? "Upload Current Space" : "Upload Inspiration"}
+            </span>
+          </>
         )}
       </div>
     </div>
@@ -325,6 +337,9 @@ function UploadImagePage() {
   const [shareOpen, setShareOpen] = useState(false);
   const [toast, setToast] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [matchedProducts, setMatchedProducts] = useState([]);
+
 
   const mainRef = useRef(null);
   const referenceRef = useRef(null);
@@ -394,6 +409,27 @@ function UploadImagePage() {
     } catch { window.open(resultPreview, "_blank"); }
   };
 
+
+  const handleFeaturedProducts = async () => {
+    try {
+      const res = await axios.get(`${BACKEND_URL}/products/featuredProducts`);
+      setFeaturedProducts(res.data);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+
+  const handleMatchedProducts = async () => {
+    try {
+      const res = await axios.get(`${BACKEND_URL}/products/matchedProducts`);
+      setMatchedProducts(res.data);
+    } catch (err) {
+      console.log(err);
+    }
+
+  }
+
   /* ── step indicator ────────────────────────────────────── */
   const step = !imageFile ? 1 : !inputPrompt.trim() ? 2 : 3;
 
@@ -414,191 +450,297 @@ function UploadImagePage() {
 
       <Header />
 
-      <div className={styles.uploadImage_pageWrapper}>
-
-        {/* ── Left strip ───────────────────────────────────── */}
-        <aside className={styles.uploadImage_sideStrip}>
-          <div className={styles.uploadImage_stripDot} />
-          <div className={styles.uploadImage_stripLine} />
-          <span className={styles.uploadImage_stripVertical}>AI Room Design</span>
-          <div className={styles.uploadImage_stripLine} />
-          <div className={styles.uploadImage_stripDot} />
-        </aside>
-
-        {/* ── Main content ─────────────────────────────────── */}
-        <div className={styles.uploadImage_center}>
-          <div className={styles.uploadImage_container}>
-
-            {/* ═══ LEFT PANEL ══════════════════════════════════ */}
-            <div className={styles.uploadImage_controls}>
-              <h1 className={styles.uploadImage_heading}>
-                Room <span className={styles.uploadImage_headingAccent}>Enhancer</span>
-              </h1>
-              <p className={styles.uploadImage_subheading}>
-                Upload a photo, describe your vision, and let AI reimagine the space.
+      <main className={styles.pageMainContainer}>
+        <section className={styles.editorialGrid}>
+          {/* Left Side: Room Enhancer Controls */}
+          <div className={styles.gridCol5}>
+            <div>
+              <span className={styles.eyebrow}>POWERED BY INTELLIGENCE</span>
+              <h1 className={styles.heroHeading}>Room Enhancer</h1>
+              <p className={styles.heroSubtext}>
+                Transform your living space with editorial-grade AI visualization. Upload your vision, define your style.
               </p>
+            </div>
 
-              {/* Steps */}
-              <div className={styles.uploadImage_steps}>
-                {[["1", "Upload"], ["2", "Describe"], ["3", "Generate"]].map(([n, lbl], i) => (
-                  <React.Fragment key={n}>
-                    <div className={`${styles.uploadImage_step} ${step >= i + 1 ? styles.active : ""}`}>
-                      <span className={styles.uploadImage_stepNum}>{step > i + 1 ? "✓" : n}</span>
-                      {lbl}
-                    </div>
-                    {i < 2 && <div className={styles.uploadImage_stepLine} />}
-                  </React.Fragment>
-                ))}
-              </div>
-
-              <div className={styles.uploadImage_divider} />
-
+            <div className={`${styles.cardContainer} ${styles.editorialShadow}`}>
               {/* Feedback */}
               {error && (
                 <div className={styles.uploadImage_errorMessage}>
                   <Icons.Alert /> {error}
                 </div>
               )}
-              {isSuccess && (
+              {isSuccess && !error && (
                 <div className={styles.uploadImage_successMessage}>
-                  <Icons.Check /> Image generated successfully!
+                  <Icons.Check /> Image generated successfully.
                 </div>
               )}
 
-              {/* Room image upload */}
-              <UploadZone
-                label="Room Image"
-                optional={false}
-                preview={imagePreview}
-                fileName={imageName}
-                inputRef={mainRef}
-                disabled={loading}
-                onFile={(e) => processFile(e.target.files[0], setImageFile, setImagePreview, setImageName, true)}
-                onClear={() => { setImageFile(null); setImagePreview(null); setImageName(""); setIsSuccess(false); setResultPreview(null); }}
-              />
+              {/* Upload Slots */}
+              <div className={styles.uploadSquaresGrid}>
+                <UploadZone
+                  label="Room Image"
+                  optional={false}
+                  preview={imagePreview}
+                  fileName={imageName}
+                  inputRef={mainRef}
+                  disabled={loading}
+                  icon={Icons.Image}
+                  onFile={(e) => processFile(e.target.files[0], setImageFile, setImagePreview, setImageName, true)}
+                  onClear={() => { setImageFile(null); setImagePreview(null); setImageName(""); setIsSuccess(false); setResultPreview(null); }}
+                />
 
-              {/* Reference image upload */}
-              <UploadZone
-                label="Reference Style"
-                optional={true}
-                preview={referencePreview}
-                fileName={referenceName}
-                inputRef={referenceRef}
-                disabled={loading}
-                onFile={(e) => processFile(e.target.files[0], setReferenceImageFile, setReferencePreview, setReferenceName)}
-                onClear={() => { setReferenceImageFile(null); setReferencePreview(null); setReferenceName(""); }}
-              />
+                <UploadZone
+                  label="Reference Style"
+                  optional={true}
+                  preview={referencePreview}
+                  fileName={referenceName}
+                  inputRef={referenceRef}
+                  disabled={loading}
+                  icon={Icons.Community}
+                  onFile={(e) => processFile(e.target.files[0], setReferenceImageFile, setReferencePreview, setReferenceName)}
+                  onClear={() => { setReferenceImageFile(null); setReferencePreview(null); setReferenceName(""); }}
+                />
+              </div>
 
-              {/* Prompt */}
-              <div className={styles.uploadImage_inputGroup}>
-                <label className={styles.uploadImage_label}>Prompt</label>
+              {/* Text Prompt Area */}
+              <div className={styles.textAreaContainer}>
+                <label className={styles.eyebrow}>Enhancement Prompt</label>
                 <textarea
-                  placeholder="e.g. Arabian living room with warm lighting, oak furniture, and linen curtains…"
+                  className={styles.enhancePrompt}
+                  placeholder="e.g., 'A Scandinavian minimalist living room with warm oak textures, floor-to-ceiling linen curtains, and soft afternoon sunlight...'"
                   value={inputPrompt}
                   onChange={(e) => setInputPrompt(e.target.value)}
-                  className={styles.uploadImage_textarea}
                   disabled={loading}
                 />
               </div>
 
-              {/* Generate */}
-              <div className={styles.uploadImage_buttonGroup}>
-                <button
-                  onClick={handleSubmit}
-                  disabled={loading || !imageFile || !inputPrompt.trim()}
-                  className={styles.uploadImage_primaryButton}
-                >
-                  {loading
-                    ? <><Icons.Loader size={16} /> Generating…</>
-                    : <><Icons.Sparkles size={16} /> Generate Image</>
-                  }
-                </button>
-              </div>
+              {/* Generate Button */}
+              <button
+                className={styles.generateBtn}
+                onClick={handleSubmit}
+                disabled={loading || !imageFile || !inputPrompt.trim()}
+              >
+                <Icons.Sparkles size={20} />
+                {loading ? "Generating Image..." : "Generate Image"}
+              </button>
             </div>
+          </div>
 
-            {/* ═══ RIGHT PANEL ═════════════════════════════════ */}
-            <div className={styles.uploadImage_previewSection}>
-              <div className={styles.uploadImage_resultCard}>
-                {resultPreview ? (
-                  <div className={styles.uploadImage_largePreviewWrapper}>
-                    {/* Full-bleed result image */}
-                    <div className={styles.uploadImage_largePreviewImageWrap}>
-                      <img
-                        src={resultPreview}
-                        alt="Generated result"
-                        className={styles.uploadImage_largePreviewImage}
-                      />
-                    </div>
-
-                    {/* Action bar */}
-                    <div className={styles.uploadImage_resultActions}>
-                      <span className={styles.uploadImage_resultLabel}>
-                        <span className={styles.uploadImage_resultDot} />
-                        Generated
-                      </span>
-
-                      {/* Share with dropdown */}
-                      <div className={styles.uploadImage_shareWrap}>
-                        <button
-                          className={styles.uploadImage_actionBtn}
-                          onClick={() => setShareOpen(o => !o)}
-                        >
-                          <Icons.Share size={13} /> Share
-                        </button>
-                        {shareOpen && (
-                          <ShareDropdown
-                            url={resultPreview}
-                            onClose={() => setShareOpen(false)}
-                          />
-                        )}
-                      </div>
-
-                      {/* Download */}
-                      <button
-                        className={`${styles.uploadImage_actionBtn} ${styles.uploadImage_actionBtnAccent}`}
-                        onClick={handleDownload}
-                      >
-                        <Icons.Download size={13} /> Download
-                      </button>
-                    </div>
+          {/* Right Side: Awaiting Your Creation / Result */}
+          <div className={styles.gridCol7}>
+            <div className={styles.canvasContainer}>
+              {resultPreview ? (
+                <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+                  <img src={resultPreview} alt="Generated result" className={styles.canvasResultImage} style={{ position: 'absolute' }} />
+                  <div style={{ position: "absolute", bottom: "1.5rem", right: "1.5rem", display: "flex", gap: "0.5rem", zIndex: 10 }}>
+                    <button className={styles.uploadImage_actionBtn} onClick={() => setShareOpen(o => !o)}>
+                      <Icons.Share size={13} /> Share
+                    </button>
+                    <button className={`${styles.uploadImage_actionBtn} ${styles.uploadImage_actionBtnAccent}`} onClick={handleDownload} style={{ background: 'var(--accent)', color: 'white', borderColor: 'transparent' }}>
+                      <Icons.Download size={13} /> Download
+                    </button>
+                    {shareOpen && (
+                      <ShareDropdown url={resultPreview} onClose={() => setShareOpen(false)} />
+                    )}
                   </div>
-                ) : (
-                  <div className={styles.uploadImage_emptyState}>
-                    <div className={styles.uploadImage_emptyStateIcon}>
-                      <Icons.Image size={26} />
+                </div>
+              ) : (
+                <>
+                  <div className={styles.canvasEmpty}>
+                    <div className={styles.canvasIconShell}>
+                      <Icons.Bedroom />
                     </div>
-                    <p className={styles.uploadImage_emptyTitle}>Awaiting your creation</p>
-                    <p className={styles.uploadImage_emptyText}>
-                      Upload a room photo and describe your desired transformation to get started.
+                    <h3 className={styles.canvasEmptyTitle}>Awaiting your creation</h3>
+                    <p className={styles.canvasEmptyText}>
+                      Once you hit generate, your AI-enhanced room will materialize here with pixel-perfect lighting and texture.
                     </p>
                   </div>
-                )}
+
+                  {/* Decorative elements */}
+                  <div className={styles.canvasDecoTop}>
+                    <div className={styles.canvasDecoLine} />
+                    <span className={styles.canvasDecoText}>Canvas-01</span>
+                  </div>
+                  <div className={styles.canvasDecoBottom}>
+                    INTELLIROOM V4.2
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </section>
+
+
+
+        {/* Recommended for Your Space - Only show on success */}
+        {isSuccess == false && (
+          <section className={styles.recommendedSection}>
+            <div className={styles.recommendedHeader}>
+              <div>
+                <span className={styles.recommendedEyebrow}>CURATED COLLECTION</span>
+                <h2 className={styles.recommendedTitle}>Featured Products</h2>
+                <p className={styles.heroSubtext} style={{ fontSize: '1rem', margin: 0 }}>
+                  Discover the latest trends in home decor and furniture.
+                </p>
+              </div>
+              <div className={styles.navArrows}>
+                <button className={styles.navArrow}><Icons.Plus size={16} style={{ transform: "rotate(45deg)" }} /></button>
+                <button className={styles.navArrow}><Icons.Plus size={16} /></button>
               </div>
             </div>
 
-          </div>
-        </div>
+            <div className={styles.productGrid}>
+              <div className={styles.productCard}>
+                <div className={styles.productImageWrap}>
+                  <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuArw3Y8nseY4_hNfFn_K41TUmDGlLSE7wtL4ni56cojJUKEKYFz6tyhMfqzI5I3ZB6WbY9VzK0E1fDvQSM4Z4yshGuEYc__NwGmOz0RC_wIyx7NkzQBjBB1yDtBhIj3cUKRQAIY_Ny-b94jr__PadEkgEj8sd2Vcr5zTfdUbjXxa24EO_NU3XOxn18qLOD_ytkj4Jexv7_TzmzQ8BpuIQ8A0JJOOtkq6YxS9eFLfB9k0kjdy252YFR1vF2OhX7JFRu91I-3Hr8g1mY" alt="Modern Velvet Sofa" className={styles.productImage} />
+                  <div className={styles.productBadge}>New Arrival</div>
+                </div>
+                <div className={styles.productInfo}>
+                  <div>
+                    <h4 className={styles.productName}>Modern Velvet Sofa</h4>
+                    <span className={styles.productDesc}>Deep Emerald, Solid Oak</span>
+                  </div>
+                  <span className={styles.productPrice}>$2,450</span>
+                </div>
+                <div className={styles.productActions}>
+                  <button className={styles.viewDetailsBtn}>View Details</button>
+                  <button className={styles.addToCartBtn}><Icons.Plus size={16} /></button>
+                </div>
+              </div>
 
-        {/* ── Right strip ──────────────────────────────────── */}
-        <aside className={styles.uploadImage_sideStrip}>
-          <div className={styles.uploadImage_stripDot} />
-          <div className={styles.uploadImage_stripLine} />
-          <span className={styles.uploadImage_stripVertical}>Powered by IntelliRoomAI</span>
-          <div className={styles.uploadImage_stripLine} />
-          <div className={styles.uploadImage_stripDot} />
-        </aside>
+              <div className={styles.productCard}>
+                <div className={styles.productImageWrap}>
+                  <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuApXzEKn3A_DQ5tG4VC7pg8lSkeMVWPx5ODKnfTbNJYS25_vRY-4D34WjYuJJ6QrwgwWs5q045agmXfyAK2folhYp-4u7IwjOiZwcvwsy_9KrrnmuxzhEnmfBI0O0RzRDFZVj8SGOJ2zK9DFM2Q48cbNglt1RGvL8A9eY03W6J5bveaMU1GKfgHfx1abje7tqsBZiA8uLJR4gYH354wXLKljke25HdW3fWP4ed7LZ2TDeZisvsgQgDy0eLGzIgR1TbGFRGHSqqCbYU" alt="Minimalist Floor Lamp" className={styles.productImage} />
+                  <div className={styles.productBadge}>Editor's Pick</div>
+                </div>
+                <div className={styles.productInfo}>
+                  <div>
+                    <h4 className={styles.productName}>Minimalist Lamp</h4>
+                    <span className={styles.productDesc}>Matte Black, Warm</span>
+                  </div>
+                  <span className={styles.productPrice}>$420</span>
+                </div>
+                <div className={styles.productActions}>
+                  <button className={styles.viewDetailsBtn}>View Details</button>
+                  <button className={styles.addToCartBtn}><Icons.Plus size={16} /></button>
+                </div>
+              </div>
 
-      </div>
+              <div className={styles.productCard}>
+                <div className={styles.productImageWrap}>
+                  <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEDvMHnFhpvYSxefHGYrjC2xNYvUmX8DSYkZi8GrflZW_NyoWuGOZ3shT8zlRsoiorpqb-Vx7wkPeR7bb-MT_iYn4hWJyByNqiDcGBw4tIzDE2lD_wQgaqhLFoNbGSVSyxtZWYM5bpFwVmpQN2dKbmd2Tkl8OPsTVj13YFNonrmXoJSKwIvu5PdCma1ZaJyX6UJlxgNmM2kxn8N_S0t6-zMAu92sVEO2MXODmkyOYlIlKVd1jR4Y0SbQLyyzj9AALzmSQuf0D0BMg" alt="Abstract Wool Rug" className={styles.productImage} />
+                  <div className={styles.productBadge}>Limited</div>
+                </div>
+                <div className={styles.productInfo}>
+                  <div>
+                    <h4 className={styles.productName}>Abstract Wool Rug</h4>
+                    <span className={styles.productDesc}>Organic Shape, Hand-Tufted</span>
+                  </div>
+                  <span className={styles.productPrice}>$1,200</span>
+                </div>
+                <div className={styles.productActions}>
+                  <button className={styles.viewDetailsBtn}>View Details</button>
+                  <button className={styles.addToCartBtn}><Icons.Plus size={16} /></button>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+
+
+        {/* Recommended for Your Space - Only show on success */}
+        {isSuccess && (
+          <section className={styles.recommendedSection}>
+            <div className={styles.recommendedHeader}>
+              <div>
+                <span className={styles.recommendedEyebrow}>CURATED COLLECTION</span>
+                <h2 className={styles.recommendedTitle}>Recommended for Your Space</h2>
+                <p className={styles.heroSubtext} style={{ fontSize: '1rem', margin: 0 }}>
+                  AI-matched furniture and decor items that complement your generated room aesthetic.
+                </p>
+              </div>
+              <div className={styles.navArrows}>
+                <button className={styles.navArrow}><Icons.Plus size={16} style={{ transform: "rotate(45deg)" }} /></button>
+                <button className={styles.navArrow}><Icons.Plus size={16} /></button>
+              </div>
+            </div>
+
+            <div className={styles.productGrid}>
+              <div className={styles.productCard}>
+                <div className={styles.productImageWrap}>
+                  <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuArw3Y8nseY4_hNfFn_K41TUmDGlLSE7wtL4ni56cojJUKEKYFz6tyhMfqzI5I3ZB6WbY9VzK0E1fDvQSM4Z4yshGuEYc__NwGmOz0RC_wIyx7NkzQBjBB1yDtBhIj3cUKRQAIY_Ny-b94jr__PadEkgEj8sd2Vcr5zTfdUbjXxa24EO_NU3XOxn18qLOD_ytkj4Jexv7_TzmzQ8BpuIQ8A0JJOOtkq6YxS9eFLfB9k0kjdy252YFR1vF2OhX7JFRu91I-3Hr8g1mY" alt="Modern Velvet Sofa" className={styles.productImage} />
+                  <div className={styles.productBadge}>New Arrival</div>
+                </div>
+                <div className={styles.productInfo}>
+                  <div>
+                    <h4 className={styles.productName}>Modern Velvet Sofa</h4>
+                    <span className={styles.productDesc}>Deep Emerald, Solid Oak</span>
+                  </div>
+                  <span className={styles.productPrice}>$2,450</span>
+                </div>
+                <div className={styles.productActions}>
+                  <button className={styles.viewDetailsBtn}>View Details</button>
+                  <button className={styles.addToCartBtn}><Icons.Plus size={16} /></button>
+                </div>
+              </div>
+
+              <div className={styles.productCard}>
+                <div className={styles.productImageWrap}>
+                  <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuApXzEKn3A_DQ5tG4VC7pg8lSkeMVWPx5ODKnfTbNJYS25_vRY-4D34WjYuJJ6QrwgwWs5q045agmXfyAK2folhYp-4u7IwjOiZwcvwsy_9KrrnmuxzhEnmfBI0O0RzRDFZVj8SGOJ2zK9DFM2Q48cbNglt1RGvL8A9eY03W6J5bveaMU1GKfgHfx1abje7tqsBZiA8uLJR4gYH354wXLKljke25HdW3fWP4ed7LZ2TDeZisvsgQgDy0eLGzIgR1TbGFRGHSqqCbYU" alt="Minimalist Floor Lamp" className={styles.productImage} />
+                  <div className={styles.productBadge}>Editor's Pick</div>
+                </div>
+                <div className={styles.productInfo}>
+                  <div>
+                    <h4 className={styles.productName}>Minimalist Lamp</h4>
+                    <span className={styles.productDesc}>Matte Black, Warm</span>
+                  </div>
+                  <span className={styles.productPrice}>$420</span>
+                </div>
+                <div className={styles.productActions}>
+                  <button className={styles.viewDetailsBtn}>View Details</button>
+                  <button className={styles.addToCartBtn}><Icons.Plus size={16} /></button>
+                </div>
+              </div>
+
+              <div className={styles.productCard}>
+                <div className={styles.productImageWrap}>
+                  <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEDvMHnFhpvYSxefHGYrjC2xNYvUmX8DSYkZi8GrflZW_NyoWuGOZ3shT8zlRsoiorpqb-Vx7wkPeR7bb-MT_iYn4hWJyByNqiDcGBw4tIzDE2lD_wQgaqhLFoNbGSVSyxtZWYM5bpFwVmpQN2dKbmd2Tkl8OPsTVj13YFNonrmXoJSKwIvu5PdCma1ZaJyX6UJlxgNmM2kxn8N_S0t6-zMAu92sVEO2MXODmkyOYlIlKVd1jR4Y0SbQLyyzj9AALzmSQuf0D0BMg" alt="Abstract Wool Rug" className={styles.productImage} />
+                  <div className={styles.productBadge}>Limited</div>
+                </div>
+                <div className={styles.productInfo}>
+                  <div>
+                    <h4 className={styles.productName}>Abstract Wool Rug</h4>
+                    <span className={styles.productDesc}>Organic Shape, Hand-Tufted</span>
+                  </div>
+                  <span className={styles.productPrice}>$1,200</span>
+                </div>
+                <div className={styles.productActions}>
+                  <button className={styles.viewDetailsBtn}>View Details</button>
+                  <button className={styles.addToCartBtn}><Icons.Plus size={16} /></button>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+      </main>
+
+
 
       <Footer />
 
+
+
+
       {/* Toast */}
-      {toast && (
-        <div className={styles.uploadImage_toast}>
-          <Icons.Check size={13} /> Link copied to clipboard
-        </div>
-      )}
-    </div>
+      {
+        toast && (
+          <div className={styles.uploadImage_toast}>
+            <Icons.Check size={13} /> Link copied to clipboard
+          </div>
+        )
+      }
+    </div >
   );
 }
 

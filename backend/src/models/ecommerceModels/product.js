@@ -5,16 +5,16 @@ const productSchema = new mongoose.Schema({
     sku: { type: String, required: true, unique: true, trim: true },
     name: { type: String, required: true, trim: true },
     slug: { type: String, required: true, unique: true, lowercase: true },
-    shortDescription: { type: String, required: true, maxLength: 200 },
-    longDescription: { type: String, required: true },
+    description: { type: String, required: true },
     brand: { type: String, required: true },
-
+    is_featured: { type: Boolean, required: false, default: false },
     // 2. Pricing & Economics
     pricing: {
         originalPrice: { type: Number, required: true },
         currentPrice: { type: Number, required: true },
         isOnSale: { type: Boolean, default: false },
-        costPerItem: { type: Number, required: true, select: false } // select: false hides this from the frontend automatically!
+        costPerItem: { type: Number, required: true, select: false }, // select: false hides this from the frontend automatically!
+        currency: { type: String, required: true, default: 'USD' }
     },
 
     // 3. Categorization & Discovery
@@ -53,20 +53,21 @@ const productSchema = new mongoose.Schema({
             width: Number, height: Number, depth: Number, weight: Number
         }
     },
-
+    aiStyleTags: [{ type: String }],
     // 7. Social Proof & Community
     social: {
         averageRating: { type: Number, default: 0, min: 0, max: 5 },
         reviewCount: { type: Number, default: 0 },
         // Links this product to community AI designs that feature it
         featuredInDesigns: [{ type: mongoose.Schema.Types.ObjectId, ref: 'CommunityDesign' }]
-    }
-}, { 
+    },
+    vendorUrl: { type: String, default: "IntelliRoom Store" }
+}, {
     timestamps: true // Automatically adds createdAt and updatedAt dates
 });
 
 // Pre-save middleware: Automatically update 'inStock' based on 'stockQuantity'
-productSchema.pre('save', function(next) {
+productSchema.pre('save', function (next) {
     this.inventory.inStock = this.inventory.stockQuantity > 0;
     next();
 });

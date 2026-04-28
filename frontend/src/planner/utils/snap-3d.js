@@ -1,20 +1,3 @@
-/**
- * Enhanced 3D Snapping utilities for item placement and dragging.
- *
- * Key improvements over the original implementation:
- *  - Hysteresis (snap-in distance < release distance) prevents flickering at
- *    threshold boundaries.
- *  - SnapState class tracks the active snap target between frames.
- *  - Wall normal calculation so items can be offset to sit *against* a wall
- *    rather than on its center-line.
- *  - Distance-weighted scoring chooses better candidates than pure priority.
- *  - Grid snap has a minimum-distance guard so stationary cursors are not
- *    needlessly re-positioned.
- *  - Caches wall / item lists per frame to avoid repeated Immutable traversals
- *    during the same mouse-move event.
- *
- * Uses geometry helpers from ./geometry where possible.
- */
 
 import * as Three from 'three';
 import {
@@ -528,6 +511,70 @@ function _edgeSnap(x, z, dragFP, target, targetFP, snapDistance) {
   return candidates[0];
 }
 
+function _surfaceAllowsSnapType(surfaceHint, snapType) {
+  if (!surfaceHint?.type) return true;
+  if (surfaceHint.type === 'floor') return snapType !== SNAP_3D_WALL;
+  return surfaceHint.type === snapType;
+}
+
+function _resolveItemCollisions(x, z, items, dragFootprint, sceneGraph, dragRotation = 0) {
+  if (!dragFootprint || !items?.length) {
+    return { x, z, moved: false };
+  }
+
+  const dragWorld = rotatedFootprint(dragFootprint, dragRotation);
+  let resolvedX = x;
+  let resolvedZ = z;
+  let moved = false;
+
+  for (let pass = 0; pass < 8; pass++) {
+    let overlapFound = false;
+
+    for (const item of items) {
+      const otherFP = _getOtherFootprint(item, sceneGraph);
+      const dx = resolvedX - item.x;
+      const dz = resolvedZ - item.z;
+      const overlapX = dragWorld.halfWidth + otherFP.halfWidth - Math.abs(dx);
+      const overlapZ = dragWorld.halfDepth + otherFP.halfDepth - Math.abs(dz);
+
+      if (overlapX > 0 && overlapZ > 0) {
+        overlapFound = true;
+        moved = true;
+
+        if (overlapX <= overlapZ) {
+          resolvedX += (dx < 0 ? -1 : 1) * (overlapX + 0.01);
+        } else {
+          resolvedZ += (dz < 0 ? -1 : 1) * (overlapZ + 0.01);
+        }
+      }
+    }
+
+    if (!overlapFound) break;
+  }
+
+  return { x: resolvedX, z: resolvedZ, moved };
+}
+
+function _priorityWeight(type, surfaceHint) {
+  if (surfaceHint?.type === SNAP_3D_WALL) {
+    if (type === SNAP_3D_WALL) return 0.02;
+    if (type === SNAP_3D_ITEM) return 0.4;
+    if (type === SNAP_3D_GRID) return 0.85;
+  }
+
+  if (surfaceHint?.type === 'floor') {
+    if (type === SNAP_3D_ITEM) return 0.2;
+    if (type === SNAP_3D_GRID) return 0.7;
+    if (type === SNAP_3D_WALL) return 0.95;
+  }
+
+  return {
+    [SNAP_3D_WALL]: 0.15,
+    [SNAP_3D_ITEM]: 0.45,
+    [SNAP_3D_GRID]: 0.75,
+  }[type] ?? 0.5;
+}
+
 // ─── Hysteresis helper ────────────────────────────────────────────────────────
 
 /**
@@ -535,7 +582,9 @@ function _edgeSnap(x, z, dragFP, target, targetFP, snapDistance) {
  * *keep* snapping (with the larger release distance).  Returns the updated
  * snap result or null if we should release.
  */
-function _tryMaintainSnap(x, z, scene, config, snapState, dragFP = null) {
+function _tryMaintainSnap(x, z, scene, config, snapState, dragFP = null, surfaceHint = null) {
+  if (!_surfaceAllowsSnapType(surfaceHint, snapState.activeType)) return null;
+
   if (snapState.activeType === SNAP_3D_WALL && snapState.activeTarget != null) {
     const walls = getWallsFromScene(scene);
     const targetWall = walls.find(w => w.lineID === snapState.activeTarget);
@@ -655,10 +704,12 @@ export function applySnapping(
   const dragFP = dragContext?.footprint || null;
   const sceneGraph = dragContext?.sceneGraph || null;
   const dragRot = dragContext?.currentRotation || 0;
+  const surfaceHint = dragContext?.surfaceHint || null;
+  const items = getItemsFromScene(scene, excludeItemID);
 
   // ── 1. Hysteresis: try to keep the current snap ──────────────────────────
   if (snapState && snapState.activeType !== SNAP_3D_NONE) {
-    const maintained = _tryMaintainSnap(x, z, scene, config, snapState, dragFP);
+    const maintained = _tryMaintainSnap(x, z, scene, config, snapState, dragFP, surfaceHint);
     if (maintained) return maintained;
     snapState.update(SNAP_3D_NONE, null, null);
   }
@@ -666,14 +717,16 @@ export function applySnapping(
   // ── 2. Collect candidates ────────────────────────────────────────────────
   const candidates = [];
 
-  if (config.snapTypes[SNAP_3D_WALL]) {
+  if (config.snapTypes[SNAP_3D_WALL] && surfaceHint?.type !== 'floor') {
     const walls = getWallsFromScene(scene);
-    const wallSnap = snapToWalls(x, z, walls, config.wallSnapDistance, config.wallOffset || 0, dragFP);
+    const candidateWalls = surfaceHint?.type === SNAP_3D_WALL && surfaceHint.wallLineID
+      ? walls.filter((wall) => wall.lineID === surfaceHint.wallLineID)
+      : walls;
+    const wallSnap = snapToWalls(x, z, candidateWalls, config.wallSnapDistance, config.wallOffset || 0, dragFP);
     if (wallSnap) candidates.push(wallSnap);
   }
 
   if (config.snapTypes[SNAP_3D_ITEM]) {
-    const items = getItemsFromScene(scene, excludeItemID);
     const itemSnap = snapToItems(x, z, items, config.itemSnapDistance, dragFP, sceneGraph, dragRot);
     if (itemSnap) candidates.push(itemSnap);
   }
@@ -683,50 +736,74 @@ export function applySnapping(
     if (gridSnap) candidates.push(gridSnap);
   }
 
+  let snapResult;
+
   if (candidates.length === 0) {
-    if (snapState) snapState.update(SNAP_3D_NONE, null, null);
-    return { x, z, snapped: false, snapType: null, snapInfo: null };
+    snapResult = { x, z, snapped: false, snapType: null, snapInfo: null };
+  } else {
+    let bestSnap = candidates[0];
+    let bestScore = Infinity;
+
+    for (const snap of candidates) {
+      const normDist = snap.distance / _threshold(snap.type, config);
+      const score = normDist * 0.7 + _priorityWeight(snap.type, surfaceHint) * 0.3;
+      if (score < bestScore) {
+        bestScore = score;
+        bestSnap = snap;
+      }
+    }
+
+    snapResult = {
+      x: bestSnap.x,
+      z: bestSnap.z,
+      snapped: true,
+      snapType: bestSnap.type,
+      snapInfo: bestSnap,
+    };
   }
 
-  // ── 3. Score-based selection ─────────────────────────────────────────────
-  //   score = normalizedDistance * 0.7 + priorityWeight * 0.3
-  //   Lower is better.
-  const PRIORITY_WEIGHT = {
-    [SNAP_3D_WALL]: 0.15,
-    [SNAP_3D_ITEM]: 0.45,
-    [SNAP_3D_GRID]: 0.75,
-  };
+  if (dragFP) {
+    const collisionResolution = _resolveItemCollisions(snapResult.x, snapResult.z, items, dragFP, sceneGraph, dragRot);
+    if (collisionResolution.moved) {
+      snapResult.x = collisionResolution.x;
+      snapResult.z = collisionResolution.z;
 
-  let bestSnap = candidates[0];
-  let bestScore = Infinity;
-
-  for (const snap of candidates) {
-    const normDist = snap.distance / _threshold(snap.type, config);
-    const pw = PRIORITY_WEIGHT[snap.type] ?? 0.5;
-    const score = normDist * 0.7 + pw * 0.3;
-    if (score < bestScore) {
-      bestScore = score;
-      bestSnap = snap;
+      if (snapResult.snapType === SNAP_3D_WALL && snapResult.snapInfo?.wall) {
+        const wallSnap = snapToWalls(
+          collisionResolution.x,
+          collisionResolution.z,
+          [snapResult.snapInfo.wall],
+          Number.MAX_SAFE_INTEGER,
+          config.wallOffset || 0,
+          dragFP
+        );
+        if (wallSnap) {
+          snapResult.x = wallSnap.x;
+          snapResult.z = wallSnap.z;
+          snapResult.snapInfo = { ...wallSnap, collisionResolved: true };
+        }
+      } else if (snapResult.snapInfo) {
+        snapResult.snapInfo = { ...snapResult.snapInfo, collisionResolved: true };
+      } else {
+        snapResult.snapInfo = { collisionResolved: true };
+      }
     }
   }
 
-  // ── 4. Update state & return ─────────────────────────────────────────────
   if (snapState) {
-    const target = bestSnap.type === SNAP_3D_WALL
-      ? bestSnap.wall?.lineID
-      : bestSnap.type === SNAP_3D_ITEM
-        ? bestSnap.item?.itemID
-        : null;
-    snapState.update(bestSnap.type, target, bestSnap);
+    if (snapResult.snapped) {
+      const target = snapResult.snapType === SNAP_3D_WALL
+        ? snapResult.snapInfo?.wall?.lineID
+        : snapResult.snapType === SNAP_3D_ITEM
+          ? snapResult.snapInfo?.item?.itemID
+          : null;
+      snapState.update(snapResult.snapType, target, snapResult.snapInfo);
+    } else {
+      snapState.update(SNAP_3D_NONE, null, null);
+    }
   }
 
-  return {
-    x: bestSnap.x,
-    z: bestSnap.z,
-    snapped: true,
-    snapType: bestSnap.type,
-    snapInfo: bestSnap,
-  };
+  return snapResult;
 }
 
 // ─── Visual indicators ────────────────────────────────────────────────────────

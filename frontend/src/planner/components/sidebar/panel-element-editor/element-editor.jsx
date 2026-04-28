@@ -4,34 +4,12 @@ import PlannerContext from '../../../context/PlannerContext';
 import {Map, fromJS} from 'immutable';
 import AttributesEditor from './attributes-editor/attributes-editor';
 import { GeometryUtils, MathUtils } from '../../../utils/export';
-import * as SharedStyle from '../../../shared-style';
 import convert from 'convert-units';
-import {MdContentCopy, MdContentPaste} from 'react-icons/md';
 import { computeInsetPolygon, polygonAreaShoelace, formatAreaM2 } from '../../../catalog/factories/area-utils';
+import { getWallEdgeMetrics } from '../../../catalog/factories/wall-utils';
 
 const PRECISION = 2;
-
-const attrPorpSeparatorStyle = {
-  margin: '0.5em 0.25em 0.5em 0',
-  border: '2px solid ' + SharedStyle.SECONDARY_COLOR.alt,
-  position:'relative',
-  height:'2.5em',
-  borderRadius:'2px'
-};
-
-const headActionStyle = {
-  position:'absolute',
-  right:'0.5em',
-  top:'0.5em'
-};
-
-const iconHeadStyle = {
-  float:'right',
-  margin:'-3px 4px 0px 0px',
-  padding:0,
-  cursor:'pointer',
-  fontSize:'1.4em'
-};
+const GEOMETRY_PRECISION = 6;
 
 export default class ElementEditor extends Component {
 
@@ -72,6 +50,69 @@ export default class ElementEditor extends Component {
     });
   }
 
+  buildLengthMeasure(length, displayUnit) {
+    const convertedLength = convert(length).from(this.context.catalog.unit).to(displayUnit);
+    return new Map({
+      length: MathUtils.toFixedFloat(length, PRECISION),
+      _length: MathUtils.toFixedFloat(convertedLength, PRECISION),
+      _unit: displayUnit,
+    });
+  }
+
+  buildLineMetricDisplays(element, layer, vertexOne, vertexTwo, displayUnit) {
+    const metrics = getWallEdgeMetrics(element, layer, { vertex0: vertexOne, vertex1: vertexTwo });
+    if (!metrics) {
+      return {
+        innerLength: this.buildLengthMeasure(0, displayUnit),
+        outerLength: this.buildLengthMeasure(0, displayUnit),
+      };
+    }
+
+    return {
+      innerLength: this.buildLengthMeasure(metrics.outerEdge.length, displayUnit),
+      outerLength: this.buildLengthMeasure(metrics.innerEdge.length, displayUnit),
+    };
+  }
+
+  buildLineLengthMeasure(length, displayUnit) {
+    const safeLength = Math.max(0, Number(length) || 0);
+    return new Map({
+      length: MathUtils.toFixedFloat(safeLength, PRECISION),
+      _length: MathUtils.toFixedFloat(convert(safeLength).from(this.context.catalog.unit).to(displayUnit), PRECISION),
+      _unit: displayUnit,
+    });
+  }
+
+  updateLineAttributesWithLength(attributesFormData, value) {
+    let v_0 = attributesFormData.get('vertexOne');
+    let v_1 = attributesFormData.get('vertexTwo');
+    const nextUnit = value.get('_unit') || attributesFormData.getIn(['lineLength', '_unit']) || this.context.catalog.unit;
+    const requestedLength = Math.max(0, Number(value.get('length')) || 0);
+
+    let [v_a, v_b] = GeometryUtils.orderVertices([v_0, v_1]);
+    let v_b_new = GeometryUtils.extendLine(v_a.x, v_a.y, v_b.x, v_b.y, requestedLength, GEOMETRY_PRECISION);
+
+    return attributesFormData.withMutations(attr => {
+      const nextVertexOne = attr.get('vertexOne');
+      const nextVertexTwo = attr.get('vertexTwo');
+      const updatedVertexOne = v_0 === v_a ? nextVertexOne : nextVertexOne.merge(v_b_new);
+      const updatedVertexTwo = v_0 === v_a ? nextVertexTwo.merge(v_b_new) : nextVertexTwo;
+      const nextLineLengthValue = GeometryUtils.verticesDistance(updatedVertexOne, updatedVertexTwo);
+      const nextMetrics = this.buildLineMetricDisplays(
+        this.props.element,
+        this.props.layer,
+        updatedVertexOne,
+        updatedVertexTwo,
+        nextUnit
+      );
+
+      attr.set(v_0 === v_a ? 'vertexTwo' : 'vertexOne', v_b.merge(v_b_new));
+      attr.set('lineLength', this.buildLineLengthMeasure(nextLineLengthValue, nextUnit));
+      attr.set('innerLength', nextMetrics.innerLength);
+      attr.set('outerLength', nextMetrics.outerLength);
+    });
+  }
+
   initAttrData(element, layer, state) {
 
     element = typeof element.misc === 'object' ? element.set('misc', new Map(element.misc)) : element;
@@ -87,11 +128,14 @@ export default class ElementEditor extends Component {
         let distance = GeometryUtils.pointsDistance(v_a.x, v_a.y, v_b.x, v_b.y);
         let _unit = element.misc.get('_unitLength') || this.context.catalog.unit;
         let _length = convert(distance).from(this.context.catalog.unit).to(_unit);
+        const lineMetricDisplays = this.buildLineMetricDisplays(element, layer, v_a, v_b, _unit);
 
         return new Map({
           vertexOne: v_a,
           vertexTwo: v_b,
           lineLength: new Map({length: distance, _length, _unit}),
+          innerLength: lineMetricDisplays.innerLength,
+          outerLength: lineMetricDisplays.outerLength,
         });
       }
       case 'holes': {
@@ -228,17 +272,31 @@ export default class ElementEditor extends Component {
         {
           case 'lineLength':
           {
-            let v_0 = attributesFormData.get('vertexOne');
-            let v_1 = attributesFormData.get('vertexTwo');
-
-            let [v_a, v_b] = GeometryUtils.orderVertices([v_0, v_1]);
-
-            let v_b_new = GeometryUtils.extendLine(v_a.x, v_a.y, v_b.x, v_b.y, value.get('length'), PRECISION);
-
-            attributesFormData = attributesFormData.withMutations(attr => {
-              attr.set(v_0 === v_a ? 'vertexTwo' : 'vertexOne', v_b.merge(v_b_new));
-              attr.set('lineLength', value);
+            attributesFormData = this.updateLineAttributesWithLength(attributesFormData, value);
+            break;
+          }
+          case 'innerLength':
+          case 'outerLength':
+          {
+            const desiredEdgeLength = Number(value.get('length'));
+            const edgeUnit = value.get('_unit') || attributesFormData.getIn([attributeName, '_unit']) || this.context.catalog.unit;
+            const vertexOne = attributesFormData.get('vertexOne');
+            const vertexTwo = attributesFormData.get('vertexTwo');
+            const metrics = getWallEdgeMetrics(this.props.element, this.props.layer, {
+              vertex0: vertexOne,
+              vertex1: vertexTwo,
             });
+
+            if (!metrics || !Number.isFinite(desiredEdgeLength)) {
+              break;
+            }
+
+            const selectedEdge = attributeName === 'innerLength' ? metrics.innerEdge : metrics.outerEdge;
+            const edgeOffset = selectedEdge.length - metrics.length;
+            const nextLength = Math.max(0, desiredEdgeLength - edgeOffset);
+            const nextLineLength = this.buildLineLengthMeasure(nextLength, edgeUnit);
+
+            attributesFormData = this.updateLineAttributesWithLength(attributesFormData, nextLineLength);
             break;
           }
           case 'vertexOne':
@@ -248,11 +306,21 @@ export default class ElementEditor extends Component {
               attr.set(attributeName, attr.get(attributeName).merge(value));
 
               let newDistance = GeometryUtils.verticesDistance(attr.get('vertexOne'), attr.get('vertexTwo'));
+              const nextUnit = attr.get('lineLength').get('_unit');
+              const nextMetrics = this.buildLineMetricDisplays(
+                this.props.element,
+                this.props.layer,
+                attr.get('vertexOne'),
+                attr.get('vertexTwo'),
+                nextUnit
+              );
 
               attr.mergeIn(['lineLength'], attr.get('lineLength').merge({
                 'length': newDistance,
                 '_length': convert(newDistance).from(this.context.catalog.unit).to(attr.get('lineLength').get('_unit'))
               }));
+              attr.set('innerLength', nextMetrics.innerLength);
+              attr.set('outerLength', nextMetrics.outerLength);
             });
             break;
           }
@@ -414,19 +482,11 @@ export default class ElementEditor extends Component {
     }
   }
 
-  copyProperties( properties ) {
-    this.context.projectActions.copyProperties( properties );
-  }
-
-  pasteProperties() {
-    this.context.projectActions.pasteProperties();
-  }
-
   render() {
     let {
       state: {propertiesFormData, attributesFormData},
-      context: {projectActions, catalog, translator},
-      props: {state: appState, element},
+      context: {catalog},
+      props: {state: appState, element}
     } = this;
 
     return (
@@ -440,16 +500,6 @@ export default class ElementEditor extends Component {
             state={appState}
           />
         )}
-
-        <div style={attrPorpSeparatorStyle}>
-          <div style={headActionStyle}>
-            <div title={translator.t('Copy')} style={iconHeadStyle} onClick={ e => this.copyProperties(element.properties) }><MdContentCopy /></div>
-            {
-              appState.get('clipboardProperties') && appState.get('clipboardProperties').size ?
-                <div title={translator.t('Paste')} style={iconHeadStyle} onClick={ e => this.pasteProperties() }><MdContentPaste /></div> : null
-            }
-          </div>
-        </div>
 
         {propertiesFormData.entrySeq()
           .map(([propertyName, data]) => {

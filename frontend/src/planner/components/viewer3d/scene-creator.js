@@ -641,11 +641,14 @@ function addHole(sceneData, planData, layer, holeID, catalog, holesActions) {
     pivot.add(object);
 
     const holeTypeLower = (holeData.type || '').toLowerCase();
+    const holeCatalogElement = catalog.getElement(holeData.type);
+    const displayName = String(holeCatalogElement?.info?.title || holeData.type || 'hole').trim();
     pivot.userData = {
       elementType: 'holes',
       elementID: holeID,
       layerID: layer.id,
       catalogType: holeData.type,
+      displayName,
       holeType: holeTypeLower.includes('window') ? 'window'
               : holeTypeLower.includes('door')   ? 'door'
               : 'hole',
@@ -887,8 +890,20 @@ function updateArea(sceneData, oldSceneData, planData, layer, areaID, difference
 }
 
 function addItem(sceneData, planData, layer, itemID, catalog, itemsActions) {
+  const busy = planData.sceneGraph.busyResources.layers[layer.id].items[itemID];
+  if (busy) {
+    setTimeout(() => addItem(sceneData, planData, layer, itemID, catalog, itemsActions), 100);
+    return Promise.resolve();
+  }
+
+  planData.sceneGraph.busyResources.layers[layer.id].items[itemID] = true;
 
   let item = layer.getIn(['items', itemID]);
+
+  if (!item || !item.type) {
+    planData.sceneGraph.busyResources.layers[layer.id].items[itemID] = false;
+    return Promise.resolve();
+  }
 
   return catalog.getElement(item.type).render3D(item, layer, sceneData).then(item3D => {
 
@@ -907,10 +922,19 @@ function addItem(sceneData, planData, layer, itemID, catalog, itemsActions) {
       if (b.material) b.material.dispose();
     });
 
+    const catalogElement = catalog.getElement(item.type);
+    const displayName = String(catalogElement?.info?.title || item.type || 'item').trim();
+
     let pivot = new Three.Object3D();
     pivot.name = 'pivot';
     pivot.add(item3D);
-    pivot.userData = { elementType: 'items', elementID: itemID, layerID: layer.id, catalogType: item.type };
+    pivot.userData = {
+      elementType: 'items',
+      elementID: itemID,
+      layerID: layer.id,
+      catalogType: item.type,
+      displayName,
+    };
 
     // Find floor slab height (same approach as holes/walls) so altitude=0 means top-of-slab
     let itemSlabHeight = 20;
@@ -943,8 +967,18 @@ function addItem(sceneData, planData, layer, itemID, catalog, itemsActions) {
 
     applyOpacity(pivot, opacity);
 
+    const existingPivot = planData.sceneGraph.layers[layer.id].items[itemID];
+    if (existingPivot && existingPivot !== pivot) {
+      planData.plan.remove(existingPivot);
+      disposeObject(existingPivot);
+    }
+
     planData.plan.add(pivot);
-    planData.sceneGraph.layers[layer.id].items[item.id] = pivot;
+    planData.sceneGraph.layers[layer.id].items[itemID] = pivot;
+    planData.sceneGraph.busyResources.layers[layer.id].items[itemID] = false;
+    updateBoundingBox(planData);
+  }).catch(() => {
+    planData.sceneGraph.busyResources.layers[layer.id].items[itemID] = false;
   });
 
 }

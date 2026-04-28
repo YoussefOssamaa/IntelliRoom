@@ -1,7 +1,8 @@
-import React, {Component} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
+import { Map } from 'immutable';
 import { usePlanner } from '../../../../context/PlannerContext';
-import { FormNumberInput, FormTextInput } from '../../../style/export';
+import { FormTextInput } from '../../../style/export';
 import { PropertyLengthMeasure } from '../../../../catalog/properties/export';
 
 const tableStyle = { width: '100%' };
@@ -10,11 +11,11 @@ const inputStyle = { textAlign: 'left' };
 
 export default function LineAttributesEditor({element, onUpdate, attributeFormData, state, ...rest}) {
   const { translator } = usePlanner();
+  const defaultUnit = state.getIn(['scene', 'unit']);
 
   let name = attributeFormData.has('name') ? attributeFormData.get('name') : element.name;
-  let vertexOne = attributeFormData.has('vertexOne') ? attributeFormData.get('vertexOne') : null;
-  let vertexTwo = attributeFormData.has('vertexTwo') ? attributeFormData.get('vertexTwo') : null;
-  let lineLength = attributeFormData.has('lineLength') ? attributeFormData.get('lineLength') : null;
+  let innerLength = attributeFormData.has('innerLength') ? attributeFormData.get('innerLength') : new Map({ length: 0, _length: 0, _unit: defaultUnit });
+  let outerLength = attributeFormData.has('outerLength') ? attributeFormData.get('outerLength') : new Map({ length: 0, _length: 0, _unit: defaultUnit });
 
   return (
     <div>
@@ -30,66 +31,20 @@ export default function LineAttributesEditor({element, onUpdate, attributeFormDa
               />
             </td>
           </tr>
-          <tr>
-            <td style={firstTdStyle}>X1</td>
-            <td>
-              <FormNumberInput
-                value={vertexOne.get('x')}
-                onChange={event => onUpdate('vertexOne', {'x': event.target.value})}
-                style={inputStyle}
-                state={state}
-                precision={2}
-                {...rest}
-              />
-            </td>
-          </tr>
-          <tr>
-            <td style={firstTdStyle}>Y1</td>
-            <td>
-              <FormNumberInput
-                value={vertexOne.get('y')}
-                onChange={event => onUpdate('vertexOne', {'y': event.target.value})}
-                style={inputStyle}
-                state={state}
-                precision={2}
-                {...rest}
-              />
-            </td>
-          </tr>
-          <tr>
-            <td style={firstTdStyle}>X2</td>
-            <td>
-              <FormNumberInput
-                value={vertexTwo.get('x')}
-                onChange={event => onUpdate('vertexTwo', {'x': event.target.value})}
-                style={inputStyle}
-                state={state}
-                precision={2}
-                {...rest}
-              />
-            </td>
-          </tr>
-          <tr>
-            <td style={firstTdStyle}>Y2</td>
-            <td>
-              <FormNumberInput
-                value={vertexTwo.get('y')}
-                onChange={event => onUpdate('vertexTwo', {'y': event.target.value})}
-                style={inputStyle}
-                state={state}
-                precision={2}
-                {...rest}
-              />
-            </td>
-          </tr>
         </tbody>
       </table>
-      <PropertyLengthMeasure
-        value={ lineLength }
-        onUpdate={mapped => onUpdate('lineLength', mapped)}
-        configs={{label: translator.t('Length'), min: 0, max: Infinity, precision: 2}}
-        state={state}
-      />
+        <PropertyLengthMeasure
+          value={innerLength}
+          onUpdate={mapped => onUpdate('innerLength', mapped)}
+          configs={{label: translator.t('Inner Length'), min: 0, max: Infinity, precision: 2}}
+          state={state}
+        />
+        <PropertyLengthMeasure
+          value={outerLength}
+          onUpdate={mapped => onUpdate('outerLength', mapped)}
+          configs={{label: translator.t('Outer Length'), min: 0, max: Infinity, precision: 2}}
+          state={state}
+        />
     </div>
   );
 }

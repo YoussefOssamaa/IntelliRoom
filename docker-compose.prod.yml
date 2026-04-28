@@ -32,6 +32,35 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+        
+
+  orchestrator:
+    build:
+      context: ./ai/VDB-RecommEngine
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      - KAGGLE_BASE_URL=${KAGGLE_BASE_URL}
+    networks:
+      - intelliroom-network 
+    deploy: 
+      resources: 
+        limits: 
+          cpus: "0.5" 
+          memory: 512M 
+        reservations: 
+          cpus: "0.25" 
+          memory: 256M 
+    logging: 
+      driver: "json-file" 
+      options: 
+        max-size: "10m" 
+        max-file: "3" 
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+
 
   frontend:
     build:

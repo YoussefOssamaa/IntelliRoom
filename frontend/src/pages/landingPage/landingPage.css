@@ -1,0 +1,142 @@
+@import url('https://fonts.googleapis.com/css2?family=Pinyon+Script&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&family=League+Spartan:wght@700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --background: 36 20% 94%;
+        --foreground: 24 12% 8%;
+        --card: 36 20% 94%;
+        --card-foreground: 24 12% 8%;
+        --popover: 36 20% 94%;
+        --popover-foreground: 24 12% 8%;
+        --primary: 24 12% 8%;
+        --primary-foreground: 36 20% 94%;
+        --secondary: 30 8% 40%;
+        --secondary-foreground: 36 20% 94%;
+        --muted: 30 10% 85%;
+        --muted-foreground: 30 8% 40%;
+        --accent: 17 100% 62%;
+        --accent-foreground: 24 12% 8%;
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 30 10% 80%;
+        --input: 30 10% 80%;
+        --ring: 24 12% 8%;
+        --radius: 0.625rem;
+    }
+
+    body {
+        background-color: hsl(var(--background));
+        color: hsl(var(--foreground));
+        font-family: 'Inter', sans-serif;
+        overflow-x: hidden;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        font-family: 'League Spartan', sans-serif;
+    }
+}
+
+@layer components {
+    .font-display {
+        font-family: 'League Spartan', sans-serif;
+    }
+
+    .font-body {
+        font-family: 'Inter', sans-serif;
+    }
+
+    .font-mono {
+        font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .image-card {
+        border-radius: 28px;
+        border: 6px solid rgba(255, 255, 255, 0.92);
+        box-shadow: 0 22px 70px rgba(0, 0, 0, 0.18);
+        overflow: hidden;
+    }
+
+    .image-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .micro-label {
+        font-family: 'IBM Plex Mono', monospace;
+        font-weight: 500;
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .noise-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 9999;
+        opacity: 0.04;
+        mix-blend-mode: multiply;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    }
+
+    .stage {
+        min-height: 100vh;
+        width: 100%;
+    }
+}
+
+@layer utilities {
+    .text-balance {
+        text-wrap: balance;
+    }
+}
+
+/* Smooth scroll behavior */
+html {
+    scroll-behavior: auto;
+}
+
+/* Image card breathing animation */
+@keyframes cardBreathe {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.01);
+    }
+}
+
+.card-breathe {
+    animation: cardBreathe 6s ease-in-out infinite;
+}
+
+/* Progress line animation */
+.progress-line {
+    height: 1px;
+    background: rgba(20, 18, 16, 0.15);
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-line-fill {
+    height: 100%;
+    background: rgba(20, 18, 16, 0.6);
+    transform-origin: left;
+}

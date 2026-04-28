@@ -7,6 +7,8 @@ const checkboxStyle = {margin: 0};
 
 export default function PropertyCheckbox({value, onUpdate, configs, sourceElement, internalState, state}) {
 
+  const isChecked = value === true || value === 'true' || value === 'yes' || value === 1 || value === '1';
+
   let update = (val) => {
 
     if (configs.hook) {
@@ -24,7 +26,7 @@ export default function PropertyCheckbox({value, onUpdate, configs, sourceElemen
       <tr>
         <td style={PropertyStyle.firstTdStyle}><FormLabel>{configs.label}</FormLabel></td>
         <td>
-          <input style={checkboxStyle} type="checkbox" checked={value} onChange={e => update(!value)}/>
+          <input style={checkboxStyle} type="checkbox" checked={isChecked} onChange={() => update(!isChecked)}/>
         </td>
       </tr>
       </tbody>

@@ -4,7 +4,7 @@ import Content from '../../../../components/content';
 import { useTranslator } from '../../../../translator/TranslatorContext';
 import './WorkspaceCanvas.css';
 
-const WorkspaceCanvas = ({ mode, onObjectSelect, plannerState }) => {
+const WorkspaceCanvas = ({ mode, onObjectSelect, plannerState, isRenderMode = false, capturePulseActive = false }) => {
   const { t } = useTranslator();
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
@@ -58,14 +58,16 @@ const WorkspaceCanvas = ({ mode, onObjectSelect, plannerState }) => {
   }, []);
 
   return (
-    <div className="workspace-canvas" ref={containerRef}>
+    <div className={`workspace-canvas ${capturePulseActive ? 'render-capture-pulse' : ''}`} ref={containerRef}>
       {/* Mode Indicator */}
-      <div className="mode-indicator">
-        <Icon name={mode === '3d' ? 'Box' : 'LayoutGrid'} size={20} className="mode-icon" />
-        <span className="mode-text">
-          {mode === '3d' ? t('3D View') : t('2D Floor Plan')}
-        </span>
-      </div>
+      {!isRenderMode && (
+        <div className="mode-indicator">
+          <Icon name={mode === '3d' ? 'Box' : 'LayoutGrid'} size={20} className="mode-icon" />
+          <span className="mode-text">
+            {mode === '3d' ? t('3D View') : t('2D Floor Plan')}
+          </span>
+        </div>
+      )}
 
       {/* React Planner Content Area */}
       <div className="canvas-area" ref={canvasRef}>

@@ -558,6 +558,8 @@ class Line{
     delete lAttr['vertexOne'];
     delete lAttr['vertexTwo'];
     delete lAttr['lineLength'];
+    delete lAttr['innerLength'];
+    delete lAttr['outerLength'];
 
     state = state
       .mergeIn(['scene', 'layers', layerID, 'lines', lineID], fromJS(lAttr))

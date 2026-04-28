@@ -255,6 +255,8 @@ export default class SelectionGizmoManager {
 
     // ── Clock for animation deltas ────────────────────────────────────────────
     this._clock = new Three.Clock(true);
+    this._hasActiveAnimations = false;
+    this._lastGizmoScale = null;
   }
 
 
@@ -792,21 +794,33 @@ export default class SelectionGizmoManager {
    * Call once per frame inside the render loop.
    * Handles fade animations and screen-size scaling.
    */
-  update() {
+  update(cameraChanged = true, force = false) {
+    const hasVisuals = !!(this.hoverBox || this.selectionBox || this.selectedTarget);
+    if (!hasVisuals && !this.isDragging) {
+      this._hasActiveAnimations = false;
+      return false;
+    }
+
     const dt = Math.min(this._clock.getDelta(), 0.1); // cap wild spikes
+    let didMutate = false;
+    const selectionAnimating = !!(
+      this.selectionBox && Math.abs(this._selOpacity - this._selOpacityTarget) > 0.001
+    );
 
     // ── Hover box sync ──
-    if (this.hoverBox) {
+    if (this.hoverBox && (force || cameraChanged || this.isDragging)) {
       this.hoverBox.update();
+      didMutate = true;
     }
 
     // ── Selection box fade ──
-    if (this.selectionBox) {
+    if (this.selectionBox && (force || cameraChanged || selectionAnimating || this.isDragging)) {
       const speed = (this._selOpacityTarget > this._selOpacity)
         ? FADE_IN_SPEED : FADE_OUT_SPEED;
       this._selOpacity = approach(this._selOpacity, this._selOpacityTarget, speed * dt);
       this.selectionBox.material.opacity = this._selOpacity;
       this.selectionBox.update();
+      didMutate = true;
 
       // Dispose once fully invisible and target is 0
       if (this._selOpacityTarget === 0 && this._selOpacity < 0.01 && !this.selectedTarget) {
@@ -815,24 +829,37 @@ export default class SelectionGizmoManager {
     }
 
     // ── Gizmo constant screen-size ──
-    if (this.selectedTarget && this.translationGroup.visible) {
+    if (this.selectedTarget && this.translationGroup.visible && (force || cameraChanged || this.isDragging)) {
       const dist  = this.camera.position.distanceTo(this.translationGroup.position);
       const scale = clamp(dist * SCREEN_FACTOR, MIN_GIZMO_SCALE, MAX_GIZMO_SCALE);
-      this.translationGroup.scale.setScalar(scale);
-      this.rotationGroup.scale.setScalar(scale);
+      if (scale !== this._lastGizmoScale) {
+        this.translationGroup.scale.setScalar(scale);
+        this.rotationGroup.scale.setScalar(scale);
+        this._lastGizmoScale = scale;
+        didMutate = true;
+      }
     }
 
     // ── Gizmo opacity (fade gizmos in with selection box) ──
-    if (this.translationGroup.visible) {
+    if (this.translationGroup.visible && selectionAnimating) {
       const targetOp = this._selOpacityTarget > 0 ? 1 : 0;
       setGroupOpacity(this.translationGroup, approach(
         getGroupOpacity(this.translationGroup), targetOp, FADE_IN_SPEED * dt));
+      didMutate = true;
     }
-    if (this.rotationGroup.visible) {
+    if (this.rotationGroup.visible && selectionAnimating) {
       const targetOp = this._selOpacityTarget > 0 ? 1 : 0;
       setGroupOpacity(this.rotationGroup, approach(
         getGroupOpacity(this.rotationGroup), targetOp, FADE_IN_SPEED * dt));
+      didMutate = true;
     }
+
+    this._hasActiveAnimations = selectionAnimating;
+    return didMutate;
+  }
+
+  hasActiveAnimations() {
+    return this._hasActiveAnimations;
   }
 
 
@@ -856,6 +883,8 @@ export default class SelectionGizmoManager {
     this.selectedInfo   = null;
     this.translationGroup.visible = false;
     this.rotationGroup.visible    = false;
+    this._hasActiveAnimations = false;
+    this._lastGizmoScale = null;
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -883,6 +912,8 @@ export default class SelectionGizmoManager {
     });
 
     this.scene.remove(this.root);
+    this._hasActiveAnimations = false;
+    this._lastGizmoScale = null;
   }
 }
 

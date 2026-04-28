@@ -1,14 +1,77 @@
-/* ─── Smart Preview Panel ─── */
+.smart-preview-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.smart-preview-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.smart-preview-toolbar-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #97a8bc;
+}
+
+.smart-preview-toggle {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px;
+  border-radius: 999px;
+  background: #0f1723;
+  border: 1px solid #263246;
+}
+
+.smart-preview-toggle-btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: transparent;
+  color: #8da1b8;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.smart-preview-toggle-btn.active {
+  background: linear-gradient(135deg, #3b82f6, #60a5fa);
+  color: #f8fbff;
+}
+
+.smart-preview-stage {
+  position: relative;
+  height: 188px;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid #263246;
+  background: linear-gradient(180deg, #dae3ec 0%, #cfdbe7 100%);
+}
 
 .smart-preview {
   position: relative;
   width: 100%;
+  min-width: 0;
   height: 200px;
   flex-shrink: 0;
   overflow: hidden;
   background: #f0f2f5;
   border-bottom: 1px solid #d1d5db;
   border-left: 1px solid #e5e7eb;
+}
+
+.smart-preview-stage .smart-preview {
+  height: 100%;
+  border: 0;
+  background: transparent;
 }
 
 .smart-preview canvas {
@@ -19,16 +82,17 @@
 
 .preview-label {
   position: absolute;
-  top: 6px;
-  left: 8px;
-  font-size: 10px;
-  font-weight: 600;
-  color: #fff;
-  background: rgba(0,0,0,0.45);
-  padding: 1px 7px;
-  border-radius: 4px;
-  pointer-events: none;
+  top: 10px;
+  left: 10px;
   z-index: 2;
-  letter-spacing: 0.3px;
+  pointer-events: none;
   user-select: none;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(10, 17, 28, 0.68);
+  color: #f8fbff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }

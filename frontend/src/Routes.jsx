@@ -4,7 +4,7 @@ import {
   Routes,
   Route,
   Outlet,
-  Navigate // Fixed missing import
+  Navigate
 } from "react-router-dom";
 
 import MarketplacePage from "./screens/PluginMarketplace";
@@ -27,8 +27,9 @@ import { ShopProvider } from "./context/ShopContext";
 import CartPage from "./pages/marketplace/CartPage";
 import MarketHeader from "./pages/marketplace/MarketHeader";
 import FavoritesPage from "./pages/marketplace/FavoritesPage";
-// import RoomPage from "./pages/marketplace/RoomPage"; // Add correct path to RoomPage
+import RoomPage from "./pages/marketplace/RoomPage"; // تم إرجاع استدعاء الملف من كود زمايلك
 
+// استدعاءات لوحة تحكم الأدمن (كودك)
 import AdminLogin from "./pages/admin/AdminLogin";
 import UsersDashboard from "./pages/admin/UsersDashboard";
 import ManageAdmins from "./pages/admin/ManageAdmins";
@@ -48,6 +49,7 @@ const MarketplaceLayout = () => {
 const AppRoutes = () => {
   const hostname = window.location.hostname;
 
+  // فحص النطاق الفرعي للأدمن
   const isAdminSubdomain = hostname.split(".")[0] === "admin" || hostname === "admin.localhost";
   
   if (isAdminSubdomain) {
@@ -104,7 +106,6 @@ const AppRoutes = () => {
             path="/ecomm/wishlist"
             element={<FavoritesPage user={null} />}
           />
-          {/* Ensure RoomPage is imported at the top */}
           <Route path="/marketplace/room/:roomName" element={<RoomPage />} />
         </Route>
 

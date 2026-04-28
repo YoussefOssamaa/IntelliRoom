@@ -1,304 +1,357 @@
-import React, { useState, useMemo } from 'react';
-import Icon from '../../../components/AppIcon';
-import Image from '../../../components/AppImage';
+import React, { useMemo, useRef, useState } from "react";
+import Icon from "../../../components/AppIcon";
+import Image from "../../../components/AppImage";
 import {
-  MODE_3D_VIEW, MODE_3D_FIRST_PERSON, MODE_APPLYING_TEXTURE,
-  MODE_DRAWING_ITEM_3D, MODE_DRAGGING_ITEM_3D,
-  MODE_DRAWING_HOLE_3D, MODE_DRAGGING_HOLE_3D,
-} from '../../../../constants';
-import './ModelsSidebar.css';
+  MODE_3D_VIEW,
+  MODE_3D_FIRST_PERSON,
+  MODE_APPLYING_TEXTURE,
+  MODE_DRAWING_ITEM_3D,
+  MODE_DRAGGING_ITEM_3D,
+  MODE_DRAWING_HOLE_3D,
+  MODE_DRAGGING_HOLE_3D,
+} from "../../../../constants";
+import "./ModelsSidebar.css";
 
-const ModelsSidebar = ({ isOpen, onClose, catalog, itemsActions, holesActions, textureActions, plannerState }) => {
-  const [selectedCategory, setSelectedCategory] = useState('office');
+const FALLBACK_CATALOG_ITEMS = [
+  { id: "kitchen", label: "Kitchen Furniture", icon: "UtensilsCrossed" },
+  { id: "bathroom", label: "Bathroom", icon: "Bath" },
+  { id: "livingRoom", label: "Living Room", icon: "Sofa" },
+  { id: "bedroom", label: "Bedroom", icon: "Bed" },
+  { id: "office", label: "Office", icon: "Briefcase" },
+  { id: "lighting", label: "Lighting", icon: "Lightbulb" },
+  { id: "decorations", label: "Decorations", icon: "Flower" },
+  { id: "storage", label: "Storage", icon: "Archive" },
+  { id: "electronics", label: "Electronics", icon: "Tv" },
+];
+
+const CONSTRUCTION_ITEM = {
+  id: "construction",
+  label: "Construction",
+  icon: "HardHat",
+  hasSubcategories: true,
+  subcategories: [
+    { id: "doors", label: "Doors", icon: "DoorOpen" },
+    { id: "windows", label: "Windows", icon: "RectangleHorizontal" },
+    { id: "textures", label: "Textures", icon: "Paintbrush" },
+  ],
+};
+
+const EMPTY_CATALOG_DATA = {
+  items: [],
+  holes: { doors: [], windows: [] },
+  textures: { wall: [], floor: [] },
+  categories: [],
+};
+
+const EMPTY_MODEL_SECTIONS = new Set([
+  "recentlyUsed",
+  "favorites",
+  "recommended",
+  "hot",
+]);
+const THREE_D_PLACEMENT_MODES = new Set([
+  MODE_3D_VIEW,
+  MODE_3D_FIRST_PERSON,
+  MODE_DRAWING_ITEM_3D,
+  MODE_DRAGGING_ITEM_3D,
+  MODE_DRAWING_HOLE_3D,
+  MODE_DRAGGING_HOLE_3D,
+  MODE_APPLYING_TEXTURE,
+]);
+
+function getCategoryIcon(category) {
+  const iconMap = {
+    kitchen: "UtensilsCrossed",
+    bathroom: "Bath",
+    livingroom: "Sofa",
+    bedroom: "Bed",
+    office: "Briefcase",
+    lighting: "Lightbulb",
+    decoration: "Flower",
+    storage: "Archive",
+    electronics: "Tv",
+    furniture: "Armchair",
+    furnishings: "Armchair",
+    furnishing: "Armchair",
+    table: "Table",
+    security: "Shield",
+    telecomunication: "Wifi",
+    metal: "HardDrive",
+    wood: "Trees",
+    text: "Type",
+    image: "Image",
+    other: "Package",
+  };
+
+  return iconMap[String(category || "").toLowerCase()] || "Package";
+}
+
+function formatCategoryLabel(category) {
+  const normalizedCategory = String(category || "").trim();
+  if (!normalizedCategory) return "Other";
+
+  return normalizedCategory
+    .replace(/([A-Z])/g, " $1")
+    .replace(/[_-]+/g, " ")
+    .trim()
+    .replace(/^./, (character) => character.toUpperCase());
+}
+
+const ModelsSidebar = ({
+  isOpen,
+  onClose,
+  catalog,
+  itemsActions,
+  holesActions,
+  textureActions,
+  plannerState,
+  personalModels = [],
+  onPersonalModelUpload,
+}) => {
+  const [selectedCategory, setSelectedCategory] = useState("office");
   const [selectedSubcategory, setSelectedSubcategory] = useState(null);
-  const [expandedSection, setExpandedSection] = useState('catalog');
+  const [expandedSection, setExpandedSection] = useState("catalog");
+  const [uploadErrorMessage, setUploadErrorMessage] = useState("");
+  const [isUploadingPersonalModel, setIsUploadingPersonalModel] =
+    useState(false);
+  const personalUploadInputRef = useRef(null);
 
-  // Get active texture from planner state
-  const mode = plannerState ? plannerState.get('mode') : null;
-  const textureApplication = plannerState ? plannerState.get('textureApplication') : null;
-  const activeTextureKey = mode === MODE_APPLYING_TEXTURE && textureApplication ? textureApplication.get('textureKey') : null;
-  const activeTextureTargetType = mode === MODE_APPLYING_TEXTURE && textureApplication ? textureApplication.get('targetType') : null;
+  const mode = plannerState ? plannerState.get("mode") : null;
+  const textureApplication = plannerState
+    ? plannerState.get("textureApplication")
+    : null;
+  const activeTextureKey =
+    mode === MODE_APPLYING_TEXTURE && textureApplication
+      ? textureApplication.get("textureKey")
+      : null;
+  const activeTextureTargetType =
+    mode === MODE_APPLYING_TEXTURE && textureApplication
+      ? textureApplication.get("targetType")
+      : null;
+  const isIn3DView = THREE_D_PLACEMENT_MODES.has(mode);
 
-  // Get catalog items and organize them by category
-  const catalogItems = useMemo(() => {
-    if (!catalog || !catalog.elements) return [];
-    
+  const catalogData = useMemo(() => {
+    if (!catalog?.elements) return EMPTY_CATALOG_DATA;
+
     const items = [];
-    const elements = catalog.elements;
-    
-    for (let key in elements) {
-      const element = elements[key];
-      // Only include items (not lines, holes, or areas)
-      if (element.prototype === 'items' && element.info) {
-        // Get category from first tag, or use 'other' as fallback
-        const primaryCategory = (element.info.tag && element.info.tag.length > 0) 
-          ? element.info.tag[0].toLowerCase() 
-          : 'other';
-        
-        items.push({
-          id: key,
-          name: element.info.title || key,
-          type: key,
-          category: primaryCategory,
-          tags: element.info.tag || [],
-          image: element.info.image || null,
-          prototype: 'items'
-        });
-      }
-    }
-    
-    return items;
-  }, [catalog]);
-
-  // Get doors and windows from catalog
-  const catalogHoles = useMemo(() => {
-    if (!catalog || !catalog.elements) return { doors: [], windows: [] };
-    
     const doors = [];
     const windows = [];
-    const elements = catalog.elements;
-    
-    for (let key in elements) {
-      const element = elements[key];
-      if (element.prototype === 'holes' && element.info) {
-        const tags = element.info.tag || [];
-        const item = {
-          id: key,
-          name: element.info.title || element.name || key,
-          type: element.name,
-          image: element.info.image || null,
-          tags: tags,
-          prototype: 'holes'
-        };
-        
-        if (tags.some(tag => tag.toLowerCase().includes('door'))) {
-          doors.push(item);
-        } else if (tags.some(tag => tag.toLowerCase().includes('window'))) {
-          windows.push(item);
-        }
-      }
-    }
-    
-    return { doors, windows };
-  }, [catalog]);
-
-  // Get available textures from catalog elements (walls and areas)
-  const catalogTextures = useMemo(() => {
-    if (!catalog || !catalog.elements) return { wall: [], floor: [] };
-    
     const wallTextures = [];
     const floorTextures = [];
-    const elements = catalog.elements;
-    
-    for (let key in elements) {
-      const element = elements[key];
-      if (element.textures && Object.keys(element.textures).length > 0) {
-        const textureEntries = Object.entries(element.textures);
-        for (const [texKey, texData] of textureEntries) {
-          const textureItem = {
-            id: `${key}-${texKey}`,
-            textureKey: texKey,
-            name: texData.name || texKey,
-            image: texData.uri || null,
-            sourceElement: key
-          };
-          
-          if (element.prototype === 'lines') {
-            textureItem.targetType = 'wall';
-            wallTextures.push(textureItem);
-          } else if (element.prototype === 'areas') {
-            textureItem.targetType = 'floor';
-            floorTextures.push(textureItem);
-          }
+    const categorySet = new Set();
+
+    Object.entries(catalog.elements).forEach(([key, element]) => {
+      if (!element) return;
+
+      const info = element.info || null;
+      const tags = Array.isArray(info?.tag) ? info.tag : [];
+
+      if (element.prototype === "items" && info) {
+        const category = (tags[0] || "other").toLowerCase();
+        categorySet.add(category);
+        items.push({
+          id: key,
+          name: info.title || key,
+          type: key,
+          category,
+          tags,
+          image: info.image || null,
+          prototype: "items",
+        });
+      }
+
+      if (element.prototype === "holes" && info) {
+        const holeItem = {
+          id: key,
+          name: info.title || element.name || key,
+          type: element.name,
+          image: info.image || null,
+          tags,
+          prototype: "holes",
+        };
+        const normalizedTags = tags.map((tag) => String(tag).toLowerCase());
+
+        if (normalizedTags.some((tag) => tag.includes("door"))) {
+          doors.push(holeItem);
+        } else if (normalizedTags.some((tag) => tag.includes("window"))) {
+          windows.push(holeItem);
         }
       }
-    }
-    
-    return { wall: wallTextures, floor: floorTextures };
-  }, [catalog]);
 
-  // Get icon based on category
-  function getCategoryIcon(category) {
-    const iconMap = {
-      'kitchen': 'UtensilsCrossed',
-      'bathroom': 'Bath',
-      'livingroom': 'Sofa',
-      'bedroom': 'Bed',
-      'office': 'Briefcase',
-      'lighting': 'Lightbulb',
-      'decoration': 'Flower',
-      'storage': 'Archive',
-      'electronics': 'Tv',
-      'furniture': 'Armchair',
-      'furnishings': 'Armchair',
-      'furnishing': 'Armchair',
-      'table': 'Table',
-      'security': 'Shield',
-      'telecomunication': 'Wifi',
-      'metal': 'HardDrive',
-      'wood': 'Trees',
-      'text': 'Type',
-      'image': 'Image',
-      'other': 'Package'
-    };
-    return iconMap[category.toLowerCase()] || 'Package';
-  }
+      if (element.textures && Object.keys(element.textures).length > 0) {
+        Object.entries(element.textures).forEach(
+          ([textureKey, textureData]) => {
+            const textureItem = {
+              id: `${key}-${textureKey}`,
+              textureKey,
+              name: textureData.name || textureKey,
+              image: textureData.uri || null,
+              sourceElement: key,
+              prototype: "texture",
+              targetType: element.prototype === "lines" ? "wall" : "floor",
+            };
 
-  // Generate catalog categories dynamically from catalog items
-  const catalogCategories = useMemo(() => {
-    const categorySet = new Set();
-    catalogItems.forEach(item => {
-      if (item.category) {
-        categorySet.add(item.category);
+            if (element.prototype === "lines") {
+              wallTextures.push(textureItem);
+            } else if (element.prototype === "areas") {
+              floorTextures.push(textureItem);
+            }
+          },
+        );
       }
     });
-    
-    return Array.from(categorySet).map(cat => ({
-      id: cat,
-      label: cat.charAt(0).toUpperCase() + cat.slice(1).replace(/([A-Z])/g, ' $1').trim(),
-      icon: getCategoryIcon(cat)
-    }));
-  }, [catalogItems]);
 
-  const categories = {
-    personal: {
-      title: 'Personal',
-      items: [
-        { id: 'recentlyUsed', label: 'Recently Used', icon: 'Clock' },
-        { id: 'favorites', label: 'Favorites', icon: 'Star' }
-      ]
-    },
-    explore: {
-      title: 'Explore',
-      items: [
-        { id: 'recommended', label: 'Recommended', icon: 'TrendingUp' },
-        { id: 'hot', label: 'Hot', icon: 'Flame' }
-      ]
-    },
-    catalog: {
-      title: 'Catalog',
-      items: [
-        ...catalogCategories.length > 0 ? catalogCategories : [
-          { id: 'kitchen', label: 'Kitchen Furniture', icon: 'UtensilsCrossed' },
-          { id: 'bathroom', label: 'Bathroom', icon: 'Bath' },
-          { id: 'livingRoom', label: 'Living Room', icon: 'Sofa' },
-          { id: 'bedroom', label: 'Bedroom', icon: 'Bed' },
-          { id: 'office', label: 'Office', icon: 'Briefcase' },
-          { id: 'lighting', label: 'Lighting', icon: 'Lightbulb' },
-          { id: 'decorations', label: 'Decorations', icon: 'Flower' },
-          { id: 'storage', label: 'Storage', icon: 'Archive' },
-          { id: 'electronics', label: 'Electronics', icon: 'Tv' }
+    return {
+      items,
+      holes: { doors, windows },
+      textures: { wall: wallTextures, floor: floorTextures },
+      categories: Array.from(categorySet).map((category) => ({
+        id: category,
+        label: formatCategoryLabel(category),
+        icon: getCategoryIcon(category),
+      })),
+    };
+  }, [catalog]);
+
+  const categories = useMemo(
+    () => ({
+      personal: {
+        title: "Personal",
+        items: [
+          {
+            id: "personalUploads",
+            label: personalModels.length
+              ? `My Uploads (${personalModels.length})`
+              : "My Uploads",
+            icon: "Upload",
+          },
+          { id: "recentlyUsed", label: "Recently Used", icon: "Clock" },
+          { id: "favorites", label: "Favorites", icon: "Star" },
         ],
-        { 
-          id: 'construction', 
-          label: 'Construction', 
-          icon: 'HardHat',
-          hasSubcategories: true,
-          subcategories: [
-            { id: 'doors', label: 'Doors', icon: 'DoorOpen' },
-            { id: 'windows', label: 'Windows', icon: 'RectangleHorizontal' },
-            { id: 'textures', label: 'Textures', icon: 'Paintbrush' }
-          ]
-        }
-      ]
-    }
-  };
+      },
+      explore: {
+        title: "Explore",
+        items: [
+          { id: "recommended", label: "Recommended", icon: "TrendingUp" },
+          { id: "hot", label: "Hot", icon: "Flame" },
+        ],
+      },
+      catalog: {
+        title: "Catalog",
+        items: [
+          ...(catalogData.categories.length > 0
+            ? catalogData.categories
+            : FALLBACK_CATALOG_ITEMS),
+          CONSTRUCTION_ITEM,
+        ],
+      },
+    }),
+    [catalogData.categories, personalModels.length],
+  );
 
-  // Filter models based on selected category
   const filteredModels = useMemo(() => {
-    // Skip filtering for personal/explore categories (empty for now)
-    if (['recentlyUsed', 'favorites', 'recommended', 'hot'].includes(selectedCategory)) {
+    if (selectedCategory === "personalUploads") {
+      return personalModels;
+    }
+
+    if (EMPTY_MODEL_SECTIONS.has(selectedCategory)) {
       return [];
     }
-    
-    // Handle construction subcategories
-    if (selectedSubcategory === 'doors') {
-      return catalogHoles.doors;
-    } else if (selectedSubcategory === 'windows') {
-      return catalogHoles.windows;
-    } else if (selectedSubcategory === 'textures') {
-      // Combine wall and floor textures with a section marker
-      return [
-        ...catalogTextures.wall.map(t => ({ ...t, prototype: 'texture' })),
-        ...catalogTextures.floor.map(t => ({ ...t, prototype: 'texture' }))
-      ];
-    }
-    
-    // For catalog categories, filter by category
-    return catalogItems.filter(item => item.category === selectedCategory);
-  }, [catalogItems, catalogHoles, catalogTextures, selectedCategory, selectedSubcategory]);
 
-  // Handle item click to add to scene
+    switch (selectedSubcategory) {
+      case "doors":
+        return catalogData.holes.doors;
+      case "windows":
+        return catalogData.holes.windows;
+      case "textures":
+        return [...catalogData.textures.wall, ...catalogData.textures.floor];
+      default:
+        return catalogData.items.filter(
+          (item) => item.category === selectedCategory,
+        );
+    }
+  }, [catalogData, personalModels, selectedCategory, selectedSubcategory]);
+
   const handleItemClick = (item) => {
-
-    // Handle texture selection
-    if (item.prototype === 'texture') {
-      if (textureActions) {
-        textureActions.selectTexture(item.textureKey, item.targetType);
-      }
+    if (item.prototype === "texture") {
+      textureActions?.selectTexture?.(item.textureKey, item.targetType);
       return;
     }
 
-    if (!item.type) {
-      return;
-    }
+    if (!item.type) return;
 
-    // Check if we're in 3D view mode
-    const mode = plannerState ? plannerState.get('mode') : null;
-    const isIn3DView = mode === MODE_3D_VIEW || mode === MODE_3D_FIRST_PERSON
-      || mode === MODE_DRAWING_ITEM_3D || mode === MODE_DRAGGING_ITEM_3D
-      || mode === MODE_DRAWING_HOLE_3D || mode === MODE_DRAGGING_HOLE_3D
-      || mode === MODE_APPLYING_TEXTURE;
-
-    if (item.prototype === 'holes') {
-      // Handle holes (doors/windows) - they use holesActions
-      if (holesActions) {
-        if (isIn3DView) {
-          // Use 3D hole placement to stay in 3D view
-          holesActions.selectToolDrawingHole3D(item.type);
-        } else {
-          holesActions.selectToolDrawingHole(item.type);
-        }
-      }
-    } else if (item.prototype === 'items') {
-      // Handle items - they use itemsActions
-      if (itemsActions) {
-        if (isIn3DView) {
-          itemsActions.selectToolDrawingItem3D(item.type);
-        } else {
-          itemsActions.selectToolDrawingItem(item.type);
-        }
-      }
-    }
-  };
-
-  // Handle category click
-  const handleCategoryClick = (categoryId, hasSubcategories) => {
-    if (hasSubcategories) {
-      // For construction, don't change selected category, just toggle expansion
-      if (selectedCategory === categoryId) {
-        setSelectedCategory(null);
-        setSelectedSubcategory(null);
+    if (item.prototype === "holes") {
+      if (!holesActions) return;
+      if (isIn3DView) {
+        holesActions.selectToolDrawingHole3D(item.type);
       } else {
-        setSelectedCategory(categoryId);
-        setSelectedSubcategory(null);
+        holesActions.selectToolDrawingHole(item.type);
       }
-    } else {
-      setSelectedCategory(categoryId);
-      setSelectedSubcategory(null);
+      return;
+    }
+
+    if (item.prototype === "items" && itemsActions) {
+      if (isIn3DView) {
+        itemsActions.selectToolDrawingItem3D(item.type);
+      } else {
+        itemsActions.selectToolDrawingItem(item.type);
+      }
     }
   };
 
-  // Handle subcategory click
+  const handleCategoryClick = (categoryId, hasSubcategories) => {
+    const shouldCollapseCategory =
+      hasSubcategories && selectedCategory === categoryId;
+    setSelectedCategory(shouldCollapseCategory ? null : categoryId);
+    setSelectedSubcategory(null);
+  };
+
   const handleSubcategoryClick = (subcategoryId) => {
     setSelectedSubcategory(subcategoryId);
   };
 
+  const handleTriggerPersonalUpload = () => {
+    setExpandedSection("personal");
+    setSelectedCategory("personalUploads");
+    setSelectedSubcategory(null);
+    personalUploadInputRef.current?.click?.();
+  };
+
+  const handlePersonalUploadChange = async (event) => {
+    const [file] = Array.from(event.target?.files || []);
+    event.target.value = "";
+    if (!file || !onPersonalModelUpload) return;
+
+    setUploadErrorMessage("");
+    setIsUploadingPersonalModel(true);
+    setExpandedSection("personal");
+    setSelectedCategory("personalUploads");
+    setSelectedSubcategory(null);
+
+    try {
+      await onPersonalModelUpload(file);
+    } catch (error) {
+      setUploadErrorMessage(error?.message || "Failed to upload model");
+    } finally {
+      setIsUploadingPersonalModel(false);
+    }
+  };
+
   if (!isOpen) return null;
+
+  const isShowingTextures = selectedSubcategory === "textures";
+  const isPersonalUploadsView = selectedCategory === "personalUploads";
 
   return (
     <div className="models-sidebar">
-      {/* Left Category Browser */}
+      <input
+        ref={personalUploadInputRef}
+        type="file"
+        accept=".glb,model/gltf-binary"
+        className="personal-model-upload-input"
+        onChange={handlePersonalUploadChange}
+      />
+
       <div className="category-browser">
         <div className="sidebar-header">
           <h2 className="sidebar-title">Categories</h2>
@@ -308,54 +361,62 @@ const ModelsSidebar = ({ isOpen, onClose, catalog, itemsActions, holesActions, t
         </div>
 
         <div className="sidebar-content">
-          {Object.entries(categories)?.map(([sectionKey, section]) => (
+          {Object.entries(categories).map(([sectionKey, section]) => (
             <div key={sectionKey} className="section-group">
               <button
-                onClick={() => setExpandedSection(expandedSection === sectionKey ? null : sectionKey)}
+                onClick={() =>
+                  setExpandedSection(
+                    expandedSection === sectionKey ? null : sectionKey,
+                  )
+                }
                 className="section-header"
               >
-                <span className="section-title">{section?.title}</span>
+                <span className="section-title">{section.title}</span>
                 <Icon
                   name="ChevronDown"
                   size={20}
-                  className={`chevron-icon ${expandedSection === sectionKey ? 'rotated' : ''}`}
+                  className={`chevron-icon ${expandedSection === sectionKey ? "rotated" : ""}`}
                 />
               </button>
 
               {expandedSection === sectionKey && (
                 <div className="category-list">
-                  {section?.items?.map((item) => (
-                    <div key={item?.id}>
+                  {section.items.map((item) => (
+                    <div key={item.id}>
                       <button
-                        onClick={() => handleCategoryClick(item?.id, item?.hasSubcategories)}
-                        className={`category-item ${selectedCategory === item?.id || (item?.hasSubcategories && selectedCategory === item?.id) ? 'active' : ''}`}
+                        onClick={() =>
+                          handleCategoryClick(item.id, item.hasSubcategories)
+                        }
+                        className={`category-item ${selectedCategory === item.id ? "active" : ""}`}
                       >
-                        <Icon name={item?.icon} size={18} />
-                        <span className="category-label">{item?.label}</span>
-                        {item?.hasSubcategories && (
-                          <Icon 
-                            name="ChevronDown" 
-                            size={16} 
-                            className={`subcategory-chevron ${selectedCategory === item?.id ? 'rotated' : ''}`}
+                        <Icon name={item.icon} size={18} />
+                        <span className="category-label">{item.label}</span>
+                        {item.hasSubcategories && (
+                          <Icon
+                            name="ChevronDown"
+                            size={16}
+                            className={`subcategory-chevron ${selectedCategory === item.id ? "rotated" : ""}`}
                           />
                         )}
                       </button>
-                      
-                      {/* Subcategories */}
-                      {item?.hasSubcategories && selectedCategory === item?.id && (
-                        <div className="subcategory-list">
-                          {item?.subcategories?.map((sub) => (
-                            <button
-                              key={sub?.id}
-                              onClick={() => handleSubcategoryClick(sub?.id)}
-                              className={`subcategory-item ${selectedSubcategory === sub?.id ? 'active' : ''}`}
-                            >
-                              <Icon name={sub?.icon} size={16} />
-                              <span className="subcategory-label">{sub?.label}</span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
+
+                      {item.hasSubcategories &&
+                        selectedCategory === item.id && (
+                          <div className="subcategory-list">
+                            {item.subcategories.map((sub) => (
+                              <button
+                                key={sub.id}
+                                onClick={() => handleSubcategoryClick(sub.id)}
+                                className={`subcategory-item ${selectedSubcategory === sub.id ? "active" : ""}`}
+                              >
+                                <Icon name={sub.icon} size={16} />
+                                <span className="subcategory-label">
+                                  {sub.label}
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
                     </div>
                   ))}
                 </div>
@@ -365,71 +426,155 @@ const ModelsSidebar = ({ isOpen, onClose, catalog, itemsActions, holesActions, t
         </div>
       </div>
 
-      {/* Right Model Grid */}
       <div className="models-grid-container">
         <div className="models-grid-header">
           <h3 className="models-grid-title">
-            {selectedSubcategory === 'textures' ? 'Textures' : 'Models'}
+            {isShowingTextures ? "Textures" : "Models"}
           </h3>
-          {selectedSubcategory === 'textures' && activeTextureKey && (
-            <button 
-              className="cancel-texture-btn"
-              onClick={() => {
-                if (textureActions) textureActions.cancelTextureApplication();
-              }}
-            >
-              <Icon name="X" size={14} />
-              <span>Cancel</span>
-            </button>
-          )}
+
+          <div className="models-grid-actions">
+            {isPersonalUploadsView && (
+              <button
+                type="button"
+                className="upload-model-btn"
+                onClick={handleTriggerPersonalUpload}
+                disabled={isUploadingPersonalModel}
+              >
+                <Icon name="Upload" size={14} />
+                <span>
+                  {isUploadingPersonalModel ? "Uploading..." : "Upload GLB"}
+                </span>
+              </button>
+            )}
+
+            {isShowingTextures && activeTextureKey && (
+              <button
+                className="cancel-texture-btn"
+                onClick={() => textureActions?.cancelTextureApplication?.()}
+              >
+                <Icon name="X" size={14} />
+                <span>Cancel</span>
+              </button>
+            )}
+          </div>
         </div>
 
-        {selectedSubcategory === 'textures' && (
+        {isShowingTextures && (
           <div className="texture-instructions">
-            {activeTextureKey 
-              ? `Click on a ${activeTextureTargetType === 'wall' ? 'wall side' : 'floor'} in 3D view to apply "${activeTextureKey}" texture`
-              : 'Select a texture below, then click on a wall side or floor in 3D view to apply it'
-            }
+            {activeTextureKey
+              ? `Click on a ${activeTextureTargetType === "wall" ? "wall side" : "floor"} in 3D view to apply "${activeTextureKey}" texture`
+              : "Select a texture below, then click on a wall side or floor in 3D view to apply it"}
           </div>
         )}
 
-        <div className="models-grid">
-          {filteredModels?.map((model) => {
-            const isTexture = model?.prototype === 'texture';
-            const isActiveTexture = isTexture && activeTextureKey === model?.textureKey && activeTextureTargetType === model?.targetType;
-            
-            return (
-              <div 
-                key={model?.id} 
-                className={`model-card ${isActiveTexture ? 'texture-active' : ''} ${isTexture ? 'texture-card' : ''}`}
-                onClick={() => handleItemClick(model)}
-                style={{ cursor: 'pointer' }}
-              >
-                {model?.image ? (
-                  <div className="model-image-container">
-                    <Image
-                      src={model?.image}
-                      alt={model?.name}
-                      className="model-image"
-                    />
-                  </div>
-                ) : (
-                  <div className="model-image-container model-placeholder">
-                    <Icon name={isTexture ? 'Paintbrush' : 'Package'} size={40} />
-                  </div>
-                )}
-                <div className="model-info">
-                  <h4 className="model-name">{model?.name}</h4>
-                  {isTexture && (
-                    <span className={`texture-type-badge ${model?.targetType}`}>
-                      {model?.targetType === 'wall' ? 'Wall' : 'Floor'}
-                    </span>
-                  )}
-                </div>
+        {isPersonalUploadsView && (
+          <div className="personal-upload-banner">
+            <div>
+              <div className="personal-upload-title">Personal Models</div>
+              <div className="personal-upload-copy">
+                Upload a `.glb` file and it will appear here as a placeable
+                model.
               </div>
-            );
-          })}
-        </div>
+            </div>
+            <button
+              type="button"
+              className="personal-upload-link"
+              onClick={handleTriggerPersonalUpload}
+            >
+              Choose File
+            </button>
+          </div>
+        )}
+
+        {uploadErrorMessage && (
+          <div className="personal-upload-error">{uploadErrorMessage}</div>
+        )}
+
+        {filteredModels.length > 0 ? (
+          <div className="models-grid">
+            {filteredModels.map((model) => {
+              const isTexture = model.prototype === "texture";
+              const isActiveTexture =
+                isTexture &&
+                activeTextureKey === model.textureKey &&
+                activeTextureTargetType === model.targetType;
+
+              return (
+                <div
+                  key={model.id}
+                  className={`model-card ${isActiveTexture ? "texture-active" : ""} ${isTexture ? "texture-card" : ""}`}
+                  onClick={() => handleItemClick(model)}
+                  style={{ cursor: "pointer" }}
+                >
+                  {model.image ? (
+                    <div className="model-image-container">
+                      <Image
+                        src={model.image}
+                        alt={model.name}
+                        className="model-image"
+                      />
+                    </div>
+                  ) : (
+                    <div className="model-image-container model-placeholder">
+                      <Icon
+                        name={
+                          isPersonalUploadsView
+                            ? "Upload"
+                            : isTexture
+                              ? "Paintbrush"
+                              : "Package"
+                        }
+                        size={40}
+                      />
+                    </div>
+                  )}
+                  <div className="model-info">
+                    <h4 className="model-name">{model.name}</h4>
+                    {isTexture && (
+                      <span
+                        className={`texture-type-badge ${model.targetType}`}
+                      >
+                        {model.targetType === "wall" ? "Wall" : "Floor"}
+                      </span>
+                    )}
+                    {isPersonalUploadsView && model.fileName && (
+                      <span className="personal-model-file">
+                        {model.fileName}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="models-empty-state">
+            <Icon
+              name={isPersonalUploadsView ? "Upload" : "Package"}
+              size={32}
+            />
+            <p className="models-empty-title">
+              {isPersonalUploadsView
+                ? "No personal models yet"
+                : "No models in this category yet"}
+            </p>
+            <p className="models-empty-copy">
+              {isPersonalUploadsView
+                ? "Upload a `.glb` file to add your own object to the planner."
+                : "Pick another category or subcategory to keep exploring."}
+            </p>
+            {isPersonalUploadsView && (
+              <button
+                type="button"
+                className="upload-model-empty-btn"
+                onClick={handleTriggerPersonalUpload}
+              >
+                <Icon name="Upload" size={14} />
+                <span>Upload GLB</span>
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

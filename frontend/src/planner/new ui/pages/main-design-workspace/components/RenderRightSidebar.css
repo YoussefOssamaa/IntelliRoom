@@ -1,0 +1,508 @@
+/* ═══════════════════════════════════════════════════════
+   Render Right Sidebar
+   ═══════════════════════════════════════════════════════ */
+
+.render-right-sidebar {
+  position: absolute;
+  top: 52px;
+  right: 0;
+  bottom: 0;
+  width: 300px;
+  padding: 10px 10px 84px;
+  background: transparent;
+  border-left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow-y: auto;
+  overflow-x: visible;
+  z-index: 35;
+  transition: width 0.2s ease, padding 0.2s ease;
+}
+
+.render-right-sidebar.collapsed-all {
+  width: 46px;
+  padding: 10px 6px 84px;
+}
+
+.render-dock-panel {
+  position: relative;
+  width: 100%;
+  border: 1px solid #252f3d;
+  border-radius: 12px;
+  background: #141b25;
+  overflow: visible;
+  box-shadow: 0 10px 20px rgba(3, 8, 16, 0.34);
+  transition: width 0.2s ease, min-height 0.2s ease;
+}
+
+.render-dock-panel.collapsed {
+  width: 32px;
+  min-height: 108px;
+  align-self: flex-end;
+}
+
+.render-dock-panel.smart-preview-panel {
+  flex: 0 0 auto;
+}
+
+.render-dock-panel.camera-capture-panel {
+  flex: 0 0 auto;
+  min-height: 360px;
+}
+
+.render-dock-panel.camera-capture-panel.collapsed {
+  flex: 0 0 auto;
+  min-height: 160px;
+}
+
+.render-dock-panel-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.render-dock-panel-title {
+  margin: 0;
+  padding: 11px 12px;
+  border-bottom: 1px solid #252f3d;
+  background: #1a2431;
+  color: #d6dee9;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.render-dock-panel-handle {
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  width: 24px;
+  height: 58px;
+  transform: translateY(-50%);
+  border: 1px solid #252f3d;
+  border-right: 0;
+  border-radius: 10px 0 0 10px;
+  background: #1a2431;
+  color: #8ea0b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 3;
+  box-shadow: -4px 6px 14px rgba(3, 8, 16, 0.35);
+}
+
+.render-dock-panel-handle:hover {
+  background: #223043;
+  color: #f3f6fb;
+}
+
+.render-camera-header {
+  width: 100%;
+  border: 0;
+  background: #1a2431;
+  color: #d6dee9;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.render-camera-header:hover {
+  background: #1e2a39;
+}
+
+.render-camera-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.render-camera-header-chevron {
+  color: #8ea0b8;
+  transform: rotate(-90deg);
+  transition: transform 0.18s ease;
+}
+
+.render-camera-header-chevron.open {
+  transform: rotate(0deg);
+}
+
+.camera-panel-body,
+.captured-panel-body {
+  padding: 12px;
+}
+
+.camera-capture-content {
+  min-height: 0;
+}
+
+.camera-capture-content .camera-panel-body {
+  padding-bottom: 8px;
+}
+
+.render-captured-divider {
+  height: 1px;
+  background: #283446;
+  margin: 0 12px 6px;
+}
+
+.render-dock-panel-title.captured-title {
+  border-bottom: 0;
+  padding: 8px 12px;
+  background: transparent;
+}
+
+.render-preview-body {
+  padding: 12px;
+}
+
+.captured-panel-body {
+  min-height: 180px;
+  flex: 1;
+  overflow-y: auto;
+  padding-top: 0;
+  max-height: 42vh;
+}
+
+.render-sidebar-title {
+  margin: 0 0 10px;
+  color: #ecf1f8;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.camera-props-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.camera-prop-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.camera-prop-field > span {
+  font-size: 11px;
+  color: #9aabbe;
+  font-weight: 600;
+}
+
+.camera-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.camera-input {
+  width: 100%;
+  height: 34px;
+  background: #0f1620;
+  border: 1px solid #2d3a4d;
+  border-radius: 8px;
+  color: #e6edf7;
+  padding: 0 10px;
+  font-size: 13px;
+  outline: none;
+}
+
+.camera-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.camera-input.camera-select {
+  appearance: none;
+  padding-right: 30px;
+}
+
+.camera-input-unit {
+  position: absolute;
+  right: 9px;
+  font-size: 11px;
+  color: #8fa2b8;
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════════
+   Camera Distance Widget  (CDW)
+   ═══════════════════════════════════════════════════════ */
+
+.cdw-container {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 10px 8px;
+  background: #1c2028;
+  border-radius: 10px;
+  border: 1px solid #2e3541;
+}
+
+/* ── Scale labels (left column) ── */
+.cdw-scale {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 176px;
+  padding: 14px 0;
+  flex-shrink: 0;
+}
+
+.cdw-scale-label {
+  font-size: 10px;
+  color: #6b7280;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* ── SVG canvas ── */
+.cdw-svg {
+  flex-shrink: 0;
+  overflow: visible;
+  user-select: none;
+}
+
+/* Track line */
+.cdw-track-line {
+  stroke: #374151;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+/* Frustum (cone) fill */
+.cdw-frustum-fill {
+  fill: rgba(59, 130, 246, 0.25);
+}
+
+/* Frustum right edge */
+.cdw-frustum-edge {
+  stroke: #3b82f6;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+/* Frustum outline strokes */
+.cdw-frustum-stroke {
+  stroke: #3b82f6;
+  stroke-width: 1;
+  stroke-opacity: 0.6;
+}
+
+/* ── Camera handle ── */
+.cdw-camera-handle {
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.6));
+}
+
+.cdw-cam-body {
+  fill: #d1d5db;
+  stroke: #9ca3af;
+  stroke-width: 0.5;
+}
+
+.cdw-cam-lens {
+  fill: #374151;
+  stroke: #6b7280;
+  stroke-width: 0.5;
+}
+
+.cdw-cam-lens-inner {
+  fill: #1e293b;
+}
+
+.cdw-cam-bump {
+  fill: #d1d5db;
+  stroke: #9ca3af;
+  stroke-width: 0.5;
+}
+
+.cdw-cam-arrows {
+  font-size: 7px;
+  fill: #9ca3af;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+.cdw-camera-handle:hover .cdw-cam-body,
+.cdw-camera-handle:hover .cdw-cam-bump {
+  fill: #f3f4f6;
+}
+
+/* ── Target handle ── */
+.cdw-target-handle {
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.5));
+}
+
+.cdw-target-ring {
+  fill: #1c2028;
+  stroke: #d1d5db;
+  stroke-width: 1.5;
+}
+
+.cdw-target-dot {
+  fill: #d1d5db;
+}
+
+.cdw-target-cross {
+  stroke: #d1d5db;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.cdw-target-handle:hover .cdw-target-ring {
+  stroke: #f9fafb;
+}
+.cdw-target-handle:hover .cdw-target-dot,
+.cdw-target-handle:hover .cdw-target-cross {
+  stroke: #f9fafb;
+  fill: #f9fafb;
+}
+
+/* Floor note */
+.cdw-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 112px;
+  margin-left: 2px;
+}
+
+.cdw-control-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cdw-control-field > span {
+  font-size: 11px;
+  color: #9aabbe;
+  font-weight: 600;
+}
+
+.render-room-panel-body {
+  padding: 0 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.render-room-option-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.render-room-option-grid.compact {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.render-room-option {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #2b3748;
+  border-radius: 14px;
+  background: #101722;
+}
+
+.render-room-option.selected {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.3);
+}
+
+.render-room-option-radio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #e6edf7;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.render-room-option-radio input {
+  accent-color: #60a5fa;
+}
+
+.render-room-option-visual {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  min-height: 72px;
+  border-radius: 12px;
+  padding: 10px;
+  overflow: hidden;
+}
+
+.render-room-option.bedroom .render-room-option-visual {
+  background: linear-gradient(135deg, #4338ca, #8b5cf6);
+}
+
+.render-room-option.living-room .render-room-option-visual {
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+}
+
+.render-room-option.kitchen .render-room-option-visual {
+  background: linear-gradient(135deg, #ea580c, #f59e0b);
+}
+
+.render-room-option.bathroom .render-room-option-visual {
+  background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+}
+
+.render-room-option.dining-room .render-room-option-visual {
+  background: linear-gradient(135deg, #b45309, #f97316);
+}
+
+.render-room-option.office .render-room-option-visual {
+  background: linear-gradient(135deg, #334155, #64748b);
+}
+
+.room-visual-badge {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-weight: 800;
+}
+
+.render-capture-summary-panel {
+  padding: 12px;
+  border: 1px solid #2b3748;
+  border-radius: 12px;
+  background: #0f1620;
+}
+
+.render-capture-summary-title {
+  color: #dce7f5;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.render-capture-summary-text,
+.render-capture-summary-hint {
+  margin: 0;
+  color: #a9bbd1;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.render-capture-summary-hint {
+  margin-top: 8px;
+  color: #7f8ea4;
+}

@@ -22,6 +22,10 @@ import shopperRoutes from './routes/ecommerceRoutes/shopperRoutes.js';
 import wishlistRoutes from './routes/ecommerceRoutes/wishlistRoutes.js';
 import design2D3Dndex from './routes/design2D-3DRoutes/design2D3DIndex.js'
 import healthcontroller from './controllers/healthcontroller.js'
+import adminRoutes from './routes/adminRoutes/adminIndex.js';
+import adminDashboardRoutes from './routes/adminRoutes/dashboardIndex.js';
+import subscribtionRoutes from './routes/subscribtionRoutes/subscribtionIndex.js';
+
 import render3DIndex from './routes/render3DRoutes/render3DIndex.js'
 const __dirname = path.resolve();
 
@@ -43,6 +47,9 @@ app.use('/api/comfyOutputs', express.static(path.join(__dirname, './uploads/comf
 
 export const comfyUIServiceInstance = new ComfyUIService(COMFYUI_HOST);
 
+app.use('/api/admin', adminRoutes);
+app.use('/api/admin/dashboard', adminDashboardRoutes);
+app.use('/api/subscription', subscribtionRoutes);
 
 app.use('/api/ecommerce', ecommerceIndex);
 app.use('/api/design2D3D', design2D3Dndex);
@@ -64,7 +71,7 @@ app.use('/api/dashboard', dashboardIndex);
 app.use('/api/updateProfile', updateProfileIndex)
 app.use('/api/community', communityIndex)
 app.use('/api/generatedImage', generatedImageIndex)
-app.use('/api/render3d', render3DIndex) 
+app.use('/api/render3d', render3DIndex)
 
 app.use('/health', healthcontroller)
 
@@ -74,8 +81,6 @@ app.use('/health', healthcontroller)
 app.listen(API_PORT, () => {
     console.log(`Server is running on http://localhost:${API_PORT}`);
 });
-
-
 
 
 

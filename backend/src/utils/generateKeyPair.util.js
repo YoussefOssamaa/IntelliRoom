@@ -25,5 +25,7 @@ const generateKeyPair = (prefix = '') => {
 }
 
 generateKeyPair("Auth");
+generateKeyPair("AdminAuth");
+generateKeyPair("AdminRefresh");
 generateKeyPair("Refresh");
 generateKeyPair("Reset");

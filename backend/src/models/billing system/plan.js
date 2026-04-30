@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
-const planSchema = new mongoose.Schema(  {
+
+const planSchema = new mongoose.Schema(
+  {
     name: {
       type: String,
       required: true,
@@ -10,19 +12,19 @@ const planSchema = new mongoose.Schema(  {
     price: {
       type: Number,
       required: true,
-      min: 0,
+      min: 0, // السعر هيكون بالقرش (Cents) لو هتتعامل مع بيموب، يعني الـ 100 جنيه تتكتب 10000
     },
     currency: {
       type: String,
-      default: "USD",
+      default: "EGP",
       uppercase: true,
       trim: true,
     },
-    // billingCycle: {   added to subscription model instead of plan model
-    //   type: String,
-    //   enum: ["monthly", "yearly"],
-    //   default: "monthly",
-    // },
+    // لو الخطة دي ليها تعريف معين على بيموب
+    paymobIntegrationId: {
+      type: String,
+      trim: true,
+    },
     renderLimit: {
       type: Number,
       required: true,
@@ -38,7 +40,7 @@ const planSchema = new mongoose.Schema(  {
       default: [],
     }
   },
-  { timestamps: true });
+  { timestamps: true }
+);
 
- const Plan = mongoose.model('Plan', planSchema);
- export default Plan;
+export default mongoose.model('Plan', planSchema);

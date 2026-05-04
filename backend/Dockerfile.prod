@@ -15,8 +15,8 @@ RUN pnpm install --prod --no-frozen-lockfile
 # Copy the rest of the backend source code and AI directory
 COPY backend . 
 
-RUN mkdir -p src/utils/src/keys
-RUN node src/utils/generateKeyPair.util.js
+
+RUN cd src/utils && mkdir -p src/keys && node generateKeyPair.util.js
 
 # Ensure the uploads directory exists 
 RUN mkdir -p /app/uploads/comfyOutputs

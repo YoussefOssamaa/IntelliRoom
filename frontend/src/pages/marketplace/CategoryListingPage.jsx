@@ -64,7 +64,7 @@ const CategoryListingPage = () => {
         }
 
         const response = await fetch(
-          `${process.env.VITE_API_URL_BACKEND_BASE}/products?${queryParams.toString()}`,
+          `${import.meta.env.VITE_API_URL_BACKEND_BASE}/products?${queryParams.toString()}`,
         );
         const result = await response.json();
 

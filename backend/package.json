@@ -10,7 +10,7 @@
   },
   "scripts": {
     "preinstall": "node ./scripts/block-npm.js",
-    "start": "nodemon src/server.js",
+    "start": "node src/server.js",
     "dev": "nodemon -L src/server.js", 
     "generate-keys": "node src/utils/generateKeyPair.util.js",
     "worker:render3d": "node src/workers/render3DWorker.js",

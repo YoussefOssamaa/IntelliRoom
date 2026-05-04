@@ -29,7 +29,7 @@ import subscribtionRoutes from './routes/subscribtionRoutes/subscribtionIndex.js
 import render3DIndex from './routes/render3DRoutes/render3DIndex.js'
 const __dirname = path.resolve();
 
-export const API_PORT = process.env.API_PORT;
+export const API_PORT = process.env.PORT || process.env.API_PORT || 5000;
 const COMFYUI_HOST = process.env.COMFYUI_HOST || 'localhost:8188';
 
 

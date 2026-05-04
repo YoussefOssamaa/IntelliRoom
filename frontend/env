@@ -1,6 +1,5 @@
 # Backend API URL
-VITE_API_URL_BACKEND_BASE=https://intelliroom.net/api
-
+VITE_API_URL_BACKEND_BASE=
 # Cloudinary direct upload (unsigned preset)
 VITE_CLOUDINARY_CLOUD_NAME=dkuepoeeg
 VITE_CLOUDINARY_UPLOAD_PRESET=front_capture_unsigned

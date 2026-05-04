@@ -10,7 +10,6 @@
   },
   "scripts": {
     "preinstall": "node ./scripts/block-npm.js",
-    "build": "mkdir -p src/keys && node src/utils/generateKeyPair.util.js",
     "start": "node src/server.js",
     "dev": "nodemon -L src/server.js",
     "generate-keys": "node src/utils/generateKeyPair.util.js",

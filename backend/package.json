@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "main": "server.js",
+  "main": "src/server.js",
   "engines": {
     "node": ">=20.0.0",
     "pnpm": ">=9.0.0"
@@ -11,7 +11,7 @@
   "scripts": {
     "preinstall": "node ./scripts/block-npm.js",
     "start": "node src/server.js",
-    "dev": "nodemon -L src/server.js", 
+    "dev": "nodemon -L src/server.js",
     "generate-keys": "node src/utils/generateKeyPair.util.js",
     "worker:render3d": "node src/workers/render3DWorker.js",
     "lint": "eslint . --ext .js"

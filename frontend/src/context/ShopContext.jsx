@@ -1,10 +1,12 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 
+
+
 const ShopContext = createContext();
 
-const AUTH_API_URL = "http://localhost:5000/api/shopper/me";
-const CART_API_URL = "http://localhost:5000/api/cart";
-const WISHLIST_API_URL = "http://localhost:5000/api/wishlist";
+const AUTH_API_URL = `${import.meta.env.VITE_API_URL_BACKEND_BASE}/shopper/me`;
+const CART_API_URL = `${import.meta.env.VITE_API_URL_BACKEND_BASE}/cart`;
+const WISHLIST_API_URL = `${import.meta.env.VITE_API_URL_BACKEND_BASE}/wishlist`;
 
 export const ShopProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -17,7 +19,7 @@ export const ShopProvider = ({ children }) => {
       try {
         const response = await fetch(AUTH_API_URL, {
           method: "GET",
-          credentials: "include", 
+          credentials: "include",
         });
 
         if (response.status === 401) {

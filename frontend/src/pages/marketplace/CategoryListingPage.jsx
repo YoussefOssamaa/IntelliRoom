@@ -3,6 +3,8 @@ import ProductFilter from "./ProductFilter";
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 
+
+
 const CategoryListingPage = () => {
   const { categoryId } = useParams();
 
@@ -62,7 +64,7 @@ const CategoryListingPage = () => {
         }
 
         const response = await fetch(
-          `http://localhost:5000/api/products?${queryParams.toString()}`,
+          `${process.env.VITE_API_URL_BACKEND_BASE}/products?${queryParams.toString()}`,
         );
         const result = await response.json();
 

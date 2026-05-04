@@ -5,6 +5,8 @@ import styles from "./uploadImagePage.module.css";
 import Header from "../../pages/dashboard/Header";
 import Footer from "../../components/common/Footer";
 
+
+
 /* ══════════════════════════════════════════════════════════════
    ICON KIT
    ══════════════════════════════════════════════════════════════ */
@@ -384,7 +386,7 @@ function UploadImagePage() {
         headers: { "Content-Type": "multipart/form-data" },
         withCredentials: true,
       });
-      // BACKEND_URL is e.g. "http://localhost:5000/api", enhancedImageUrl is "/api/comfyOutputs/<file>"
+      // BACKEND_URL is e.g. "http://${process.env.VITE_API_URL_BACKEND_BASE}/api", enhancedImageUrl is "/api/comfyOutputs/<file>"
       const baseUrl = BACKEND_URL.replace(/\/api$/, '');
       setResultPreview(`${baseUrl}${res.data.enhancedImageUrl}`);
       setIsSuccess(true);

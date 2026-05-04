@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 //  backend URL or a local one only for testing
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL_BACKEND_BASE || '/api';
 
 const marketplaceAPI = axios.create({
   baseURL: `${API_BASE_URL}/plugins`,
@@ -29,7 +29,7 @@ const marketplaceAPI = axios.create({
 marketplaceAPI.interceptors.response.use(
   (response) => response.data,
   (error) => {
-    const errorMessage = error.response?.data?.message || error.message ;
+    const errorMessage = error.response?.data?.message || error.message;
     console.error('API Error:', errorMessage);
     return Promise.reject(error);
   }

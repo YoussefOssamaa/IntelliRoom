@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import Header from './MarketHeader'; 
+import Header from './MarketHeader';
+
 
 const ProductDetailsPage = () => {
-    const { slug } = useParams(); 
+    const { slug } = useParams();
     const navigate = useNavigate();
 
     // State
@@ -17,7 +18,7 @@ const ProductDetailsPage = () => {
         const fetchProduct = async () => {
             setIsLoading(true);
             try {
-                const response = await fetch(`http://localhost:5000/api/products/${slug}`);
+                const response = await fetch(`${import.meta.env.VITE_API_URL_BACKEND_BASE}/products/${slug}`);
                 const result = await response.json();
 
                 if (result.success) {
@@ -75,7 +76,7 @@ const ProductDetailsPage = () => {
         <div className="min-h-screen bg-[#f9fafb] flex flex-col">
 
             <div className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-                
+
                 {/* Breadcrumbs */}
                 <nav className="flex text-sm text-gray-500 mb-8 font-medium">
                     <Link to="/" className="hover:text-text-accent transition-colors">Home</Link>
@@ -91,14 +92,14 @@ const ProductDetailsPage = () => {
 
                 {/* Main Two-Column Layout */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-16">
-                    
+
                     {/*  Image Gallery */}
                     <div className="flex flex-col gap-4">
                         {/* Main Image */}
                         <div className="aspect-square bg-gray-100 rounded-2xl overflow-hidden relative border border-[#e0e0e0]">
-                            <img 
-                                src={product.media.primaryImage} 
-                                alt={product.name} 
+                            <img
+                                src={product.media.primaryImage}
+                                alt={product.name}
                                 className="absolute top-0 left-0 w-full h-full !rounded-none"
                             />
                             {product.pricing.isOnSale && (
@@ -111,7 +112,7 @@ const ProductDetailsPage = () => {
 
                     {/*  Product Details */}
                     <div className="flex flex-col">
-                        
+
                         <div className="mb-6">
                             <h2 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-2">
                                 {product.brand}
@@ -119,7 +120,7 @@ const ProductDetailsPage = () => {
                             <h1 className="text-3xl sm:text-4xl font-extrabold text-text-primary tracking-tight mb-4">
                                 {product.name}
                             </h1>
-                            
+
                             {/* Rating */}
                             <div className="flex items-center gap-2 mb-4">
                                 <div className="flex text-yellow-400">
@@ -152,25 +153,25 @@ const ProductDetailsPage = () => {
                         <hr className="border-[#e0e0e0] mb-8" />
 
                         <div className="flex flex-col gap-6 mb-8">
-                            
+
                             <div className="flex items-center gap-4">
                                 <span className="text-sm font-bold text-text-primary">Quantity</span>
-                                
+
                                 {/* Quantity Selector */}
                                 <div className="flex items-center border border-[#e0e0e0] rounded-lg overflow-hidden h-12">
-                                    <button 
+                                    <button
                                         onClick={decreaseQuantity}
                                         disabled={quantity <= 1 || isOutOfStock}
                                         className="w-12 h-full flex items-center justify-center bg-gray-50 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                     >
                                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12H4"></path></svg>
                                     </button>
-                                    
+
                                     <div className="w-14 h-full flex items-center justify-center font-bold text-text-primary border-x border-[#e0e0e0]">
                                         {quantity}
                                     </div>
-                                    
-                                    <button 
+
+                                    <button
                                         onClick={increaseQuantity}
                                         disabled={quantity >= product.inventory.stockQuantity || isOutOfStock}
                                         className="w-12 h-full flex items-center justify-center bg-gray-50 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -190,13 +191,13 @@ const ProductDetailsPage = () => {
 
                             {/* Action Buttons */}
                             <div className="flex flex-col sm:flex-row gap-4">
-                                <button 
+                                <button
                                     disabled={isOutOfStock}
                                     className="flex-1 bg-white border-2 border-text-accent text-text-accent font-bold py-4 rounded-xl hover:bg-text-accent hover:text-white transition-all duration-300 disabled:border-gray-300 disabled:text-gray-400 disabled:hover:bg-white disabled:cursor-not-allowed shadow-sm"
                                 >
                                     Add to Cart
                                 </button>
-                                <button 
+                                <button
                                     disabled={isOutOfStock}
                                     className="flex-1 bg-text-accent text-white font-bold py-4 rounded-xl shadow-md hover:bg-green-600 hover:shadow-lg transition-all duration-300 disabled:bg-gray-300 disabled:hover:shadow-md disabled:cursor-not-allowed"
                                 >

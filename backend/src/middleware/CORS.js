@@ -1,5 +1,8 @@
 
 import cors from 'cors';
+import dotenv from 'dotenv';
+dotenv.config();
+
 const corsOptions = {
   origin: [
     'http://localhost:5173',

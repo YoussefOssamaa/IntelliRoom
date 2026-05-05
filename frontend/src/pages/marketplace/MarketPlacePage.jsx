@@ -23,8 +23,7 @@ const MarketplacePage = () => {
   const [inStockOnly, setInStockOnly] = useState(false);
   const [sortBy, setSortBy] = useState('Recommended');
   const [selectedMaterials, setSelectedMaterials] = useState([]);
-
-
+  
 
   const filteredProducts = dummyMarketplaceData.filter((product) => {
     // 1. Category Match

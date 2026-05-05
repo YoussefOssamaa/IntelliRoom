@@ -1,16 +1,16 @@
 import express from 'express';
-import { deleteCategoryController, getCategoryController, postCategoryController, putCategoryController} from '../../controllers/ecommerce/categoryController.js';
-import productRoutes from './productRoutes.js';
+import { 
+    getCategories, 
+    createCategory, 
+    updateCategory, 
+    deleteCategory 
+} from '../../controllers/ecommerce/categoryController.js';
 
 const router = express.Router();
 
-
-router.get('/', getCategoryController )
-router.post('/', postCategoryController )
-router.put('/:id', putCategoryController )
-router.delete('/:id', deleteCategoryController )
-
-router.use('/:categoryId/products', productRoutes); //// =>  /ecommerce/categories/:categoryId/products)
-
+router.get('/', getCategories);
+router.post('/', createCategory);
+router.put('/:id', updateCategory);
+router.delete('/:id', deleteCategory);
 
 export default router;

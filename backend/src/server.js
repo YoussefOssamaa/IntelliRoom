@@ -23,6 +23,10 @@ import wishlistRoutes from './routes/ecommerceRoutes/wishlistRoutes.js';
 import design2D3Dndex from './routes/design2D-3DRoutes/design2D3DIndex.js'
 import healthcontroller from './controllers/healthcontroller.js'
 
+import categoryRoutes from './routes/ecommerceRoutes/categoryRoutes.js';
+import roomRoutes from './routes/ecommerceRoutes/roomRoutes.js'
+import orderRoutes from './routes/ecommerceRoutes/orderRoutes.js';
+
 const __dirname = path.resolve();
 
 export const PORT = process.env.PORT || 5000;
@@ -64,6 +68,10 @@ app.use('/api/dashboard', dashboardIndex);
 app.use('/api/updateProfile', updateProfileIndex)
 app.use('/api/community', communityIndex)
 app.use('/api/generatedImage', generatedImageIndex)
+app.use('/api/categories', categoryRoutes);
+app.use('/api/rooms', roomRoutes);
+app.use('/api/order', orderRoutes);
+
 
 
 app.use('/health', healthcontroller)

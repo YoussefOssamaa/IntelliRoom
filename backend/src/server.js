@@ -79,7 +79,7 @@ app.use('/health', healthcontroller)
 
 
 app.listen(API_PORT, () => {
-    console.log(`Server is running on http://localhost:${API_PORT}`);
+    console.log(`Server is running on https://api.intelliroom.net`);
 });
 
 

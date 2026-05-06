@@ -18,7 +18,10 @@ const corsOptions = {
     'http://admin.172.18.0.3:5174',
     // Vercel deployment URL:
     // 'https://your-frontend-project.vercel.app',
-    process.env.FRONTEND_URL
+    process.env.FRONTEND_URL,
+    process.env.FRONTEND_URL2,
+    process.env.FRONTEND_URL3,
+
   ].filter(Boolean), // Removes undefined if FRONTEND_URL is not set
   credentials: true
 }

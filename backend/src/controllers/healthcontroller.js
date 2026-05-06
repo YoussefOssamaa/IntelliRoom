@@ -3,6 +3,7 @@ import express from 'express';
 const healthcontroller = express.Router();
 
 healthcontroller.get('/', (req, res) => {
+    console.log('Backend is working');
     res.status(200).send('Backend is working');
 });
 

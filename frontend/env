@@ -1,5 +1,6 @@
 # Backend API URL
-VITE_API_URL_BACKEND_BASE=
+VITE_API_URL=https://api.intelliroom.net/api
+VITE_API_URL_BACKEND_BASE=https://api.intelliroom.net/api
 # Cloudinary direct upload (unsigned preset)
 VITE_CLOUDINARY_CLOUD_NAME=dkuepoeeg
 VITE_CLOUDINARY_UPLOAD_PRESET=front_capture_unsigned
@@ -16,4 +17,4 @@ SUPABASE_BUCKET     = "Models"   # our public bucket id
 
  # Cloudinary (thumbnails only) 
 CLOUDINARY_THUMBNAILS_UPLOAD_PRESET = "model-thumb"       # unsigned public preset
-CLOUDINARY_THUMBNAILS_FOLDER = "intelliroom/model_thumb"
+CLOUDINARY_THUMBNAILS_FOLDER = "intelliroom/model_thumb" 

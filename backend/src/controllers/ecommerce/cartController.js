@@ -73,7 +73,8 @@ export const putCartController = async (req, res) => {
     const userId = req.userId;
     if (!userId) return res.status(401).json({ success: false, message: "Not authenticated" });
 
-    const { productId, newQuantity } = req.body;
+    // 🚀 FIX: Destructure 'quantity' to match exactly what React is sending!
+    const { productId, quantity } = req.body;
 
     const cart = await Cart.findOne({ user: userId });
     if (!cart) return res.status(404).json({ error: "Cart not found" });
@@ -81,12 +82,13 @@ export const putCartController = async (req, res) => {
     const existingItemIndex = cart.items.findIndex(item => item.product.toString() === productId);
 
     if (existingItemIndex > -1) {
-        if (newQuantity <= 0) {
+        // 🚀 FIX: Use 'quantity' here instead of 'newQuantity'
+        if (quantity <= 0) {
             // If quantity is 0, remove the item entirely
             cart.items.splice(existingItemIndex, 1);
         } else {
             // Otherwise, set the exact new quantity
-            cart.items[existingItemIndex].quantity = newQuantity;
+            cart.items[existingItemIndex].quantity = quantity;
         }
         await cart.save();
         await cart.populate('items.product');

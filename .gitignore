@@ -57,3 +57,8 @@ database/restore/
 .env.prod
 .notes and future plans.txt
 *.md
+/backend/.env
+/backend/.env.*
+
+/frontend/.env
+/frontend/.env/*

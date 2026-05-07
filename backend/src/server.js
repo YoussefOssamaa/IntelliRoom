@@ -27,6 +27,10 @@ import adminDashboardRoutes from './routes/adminRoutes/dashboardIndex.js';
 import subscribtionRoutes from './routes/subscribtionRoutes/subscribtionIndex.js';
 
 import render3DIndex from './routes/render3DRoutes/render3DIndex.js'
+import categoryRoutes from './routes/ecommerceRoutes/categoryRoutes.js';
+import roomRoutes from './routes/ecommerceRoutes/roomRoutes.js'
+import orderRoutes from './routes/ecommerceRoutes/orderRoutes.js';
+
 const __dirname = path.resolve();
 
 export const API_PORT = process.env.PORT || process.env.API_PORT || 5000;
@@ -72,6 +76,12 @@ app.use('/api/updateProfile', updateProfileIndex)
 app.use('/api/community', communityIndex)
 app.use('/api/generatedImage', generatedImageIndex)
 app.use('/api/render3d', render3DIndex)
+app.use('/api/generatedImage', generatedImageIndex)
+app.use('/api/categories', categoryRoutes);
+app.use('/api/rooms', roomRoutes);
+app.use('/api/order', orderRoutes);
+
+
 
 app.use('/health', healthcontroller)
 

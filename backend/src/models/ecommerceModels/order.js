@@ -42,7 +42,7 @@ const orderSchema = new mongoose.Schema(
 );
 
 // We update the pre-save hook to calculate the full breakdown!
-orderSchema.pre("save", function (next) {
+orderSchema.pre("save", async function () {
   // Calculate base items price
   this.itemsPrice = this.items.reduce((total, item) => {
     return total + item.priceAtAdd * item.quantity;
@@ -50,13 +50,12 @@ orderSchema.pre("save", function (next) {
 
   // In a real app, you'd calculate actual tax and shipping here based on rules.
   // For now, let's assume flat rates or zeroes if not set.
-  this.taxPrice = this.taxPrice || 0; 
+  this.taxPrice = this.taxPrice || 0;
   this.shippingPrice = this.shippingPrice || 0;
 
   // The Grand Total
   this.totalPrice = this.itemsPrice + this.taxPrice + this.shippingPrice;
-  
-  next();
+
 });
 
 orderSchema.index({ status: 1, createdAt: -1 });

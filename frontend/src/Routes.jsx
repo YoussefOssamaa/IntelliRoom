@@ -40,7 +40,7 @@ import AdminCategoryCreatePage from "./pages/marketplace/admin/AdminCategoryCrea
 import AdminCategoryEditPage from "./pages/marketplace/admin/AdminCategoryEditPage";
 import AdminRoomsPage from './pages/marketplace/admin/AdminRoomsPage';
 import AdminOrdersPage from './pages/marketplace/admin/AdminOrdersPage';
-import SearchInput from  "./components/common/SearchInput";
+import SearchInput from "./components/common/SearchInput";
 import AdminRoomFormPage from "./pages/marketplace/admin/AdminRoomFormPage";
 
 // استدعاءات لوحة تحكم الأدمن (كودك)
@@ -48,8 +48,7 @@ import AdminLogin from "./pages/admin/AdminLogin";
 import UsersDashboard from "./pages/admin/UsersDashboard";
 import ManageAdmins from "./pages/admin/ManageAdmins";
 import AdminLogs from "./pages/admin/AdminLogs";
-import ProtectedAdminRoute from "./components/ProtectedAdminRoute"; 
-import AdminLayout from "./layouts/AdminLayout"; 
+import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
 
 const MarketplaceLayout = () => {
   return (
@@ -65,7 +64,7 @@ const AppRoutes = () => {
 
   // فحص النطاق الفرعي للأدمن
   const isAdminSubdomain = hostname.split(".")[0] === "admin" || hostname === "admin.localhost";
-  
+
   if (isAdminSubdomain) {
     return (
       <Router>

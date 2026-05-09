@@ -9,11 +9,10 @@ import { getRecommendations } from './getRecommendations.js';
 import { getMatchedProductsFromDB } from './getMatchedProductsFromDB.js';
 import axios from 'axios';
 
-const TEST_MODE = true;  // set to true to skip ComfyUI processing and return test recommendations
+const TEST_MODE = false;  // set to true to skip ComfyUI processing and return test recommendations
 
 export const postImageController = async (req, res) => {
     try {
-        let localFileName = null;
         if (!req.files?.image?.[0]) {
             return res.status(400).json({ error: 'Main image is required' });
         }
@@ -24,60 +23,61 @@ export const postImageController = async (req, res) => {
         console.log('Uploaded file:', mainImage.filename);
 
 
-        // // // // console.log('Uploading image to ComfyUI...');
+        console.log('Uploading image to ComfyUI...');
 
 
-        // // // // const comfyImageFilename = await comfyUIServiceInstance.uploadImage(mainImage.path);
-        // // // // console.log('Main image uploaded to ComfyUI as:', comfyImageFilename);
+        const comfyImageFilename = await comfyUIServiceInstance.uploadImage(mainImage.path);
+        console.log('Main image uploaded to ComfyUI as:', comfyImageFilename);
 
 
-        // // // // let inputReferenceImageFilename = null;
+        let inputReferenceImageFilename = null;
 
-        // // // // if (referenceImage) {
-        // // // //     inputReferenceImageFilename = await comfyUIServiceInstance.uploadImage(referenceImage.path);
+        if (referenceImage) {
+            inputReferenceImageFilename = await comfyUIServiceInstance.uploadImage(referenceImage.path);
 
-        // // // //     console.log('Reference image uploaded to ComfyUI as:', inputReferenceImageFilename);
+            console.log('Reference image uploaded to ComfyUI as:', inputReferenceImageFilename);
 
-        // // // // }
-
-
-        // // // // let comfyOutputNode = "";
+        }
 
 
-        // // // // const workflow = buildComfyWorkflow(comfyImageFilename, inputReferenceImageFilename, inputPrompt);
-        // // // // comfyOutputNode = COMFYUI_OUTPUT_NODE;
-
-        // // // // console.log('Running ComfyUI workflow...');
-
-        // // // // const result = await comfyUIServiceInstance.runComfyWorkflow(workflow);
-        // // // // console.log('Workflow result:', result);
+        let comfyOutputNode = "";
 
 
-        // // // // const outputNode = result.outputs[comfyOutputNode];
+        const workflow = buildComfyWorkflow(comfyImageFilename, inputReferenceImageFilename, inputPrompt);
+        comfyOutputNode = COMFYUI_OUTPUT_NODE;
 
-        // // // // if (!outputNode || !outputNode.images || outputNode.images.length === 0) {
-        // // // //     return res.status(500).json({
-        // // // //         error: 'Failed to process image - no output received',
-        // // // //     });
-        // // // // }
+        console.log('Running ComfyUI workflow...');
 
-        // // // // const outputImageInfo = outputNode.images[0];
-        // // // // const outputFilename = outputImageInfo.filename;
-        // // // // const outputSubfolder = outputImageInfo.subfolder || '';
-        // // // // const outputType = outputImageInfo.type || 'output';
+        const result = await comfyUIServiceInstance.runComfyWorkflow(workflow);
+        console.log('Workflow result:', result);
 
-        // // // // console.log('Output image info:', outputImageInfo);
 
-        // // // // /////////////// will be changed to be uploaded to a cloud storage, not downloaded locally
-        // // // // console.log('Downloading processed image from ComfyUI...');
-        // // // // const localFileName = await comfyUIServiceInstance.downloadImage(
-        // // // //     outputFilename,
-        // // // //     outputSubfolder,
-        // // // //     outputType
-        // // // // );
+        const outputNode = result.outputs[comfyOutputNode];
+
+        if (!outputNode || !outputNode.images || outputNode.images.length === 0) {
+            return res.status(500).json({
+                error: 'Failed to process image - no output received',
+            });
+        }
+
+        const outputImageInfo = outputNode.images[0];
+        const outputFilename = outputImageInfo.filename;
+        const outputSubfolder = outputImageInfo.subfolder || '';
+        const outputType = outputImageInfo.type || 'output';
+
+        console.log('Output image info:', outputImageInfo);
+
+        /////////////// will be changed to be uploaded to a cloud storage, not downloaded locally
+        console.log('Downloading processed image from ComfyUI...');
+        const localFileName = await comfyUIServiceInstance.downloadImage(
+            outputFilename,
+            outputSubfolder,
+            outputType
+        );
 
         //const fullImagePath = `/api/comfyOutputs/${localFileName}`;
         let recommendations = [];
+        let matchedProducts = [];
         try {
             // const backendContainer = process.env.NODE_ENV === 'production' ? 'backend' : 'dev';
             // const absoluteImageUrl = `http://${backendContainer}:5000${fullImagePath}`;
@@ -129,7 +129,7 @@ export const postImageController = async (req, res) => {
 
             */
 
-            const matchedProducts = await getMatchedProductsFromDB(recommendedImagesArray);
+            matchedProducts = await getMatchedProductsFromDB(recommendedImagesArray);
             console.log("THIS IS THE MATCHED PRODUCTS", matchedProducts)
 
 
@@ -137,14 +137,14 @@ export const postImageController = async (req, res) => {
             console.error('Error in postImageController recommendations search request:', error);
         }
 
-        await setTimeout(1000);  /// delay to allow the output image to appear on the frontend page
+        await setTimeout(500);  /// delay to allow the output image to appear on the frontend page
 
         return res.status(200).json({
-            message: 'Image uploaded and processed successfully',
+            success: true,
             originalImage: `/uploads/uploadedImages/${mainImage.filename}`,
             referenceImage: referenceImage ? `/uploads/referenceImages/${referenceImage.filename}` : null,
             enhancedImageUrl: `/api/comfyOutputs/${localFileName}`,
-            recommendations: recommendations
+            matchedProducts: matchedProducts
         });
 
 

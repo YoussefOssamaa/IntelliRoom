@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const productSchema = new mongoose.Schema({
     // 1. Core Identifiers
-    sku: { type: String, required: true, unique: true, trim: true },
+    sku: { type: String, required: true, unique: true, trim: true, index: true },
     name: { type: String, required: true, trim: true },
     slug: { type: String, required: true, unique: true, lowercase: true },
     shortDescription: { type: String, required: true, maxLength: 200 },
@@ -12,30 +12,32 @@ const productSchema = new mongoose.Schema({
     // 2. Pricing & Economics
     pricing: {
         originalPrice: { type: Number, required: true },
-        currentPrice: { type: Number, required: true, 
-                        min: [0.01, 'Price must be at least $0.01'] },
+        currentPrice: {
+            type: Number, required: true,
+            min: [0.01, 'Price must be at least $0.01']
+        },
         isOnSale: { type: Boolean, default: false },
-        costPerItem: { type: Number, required: true, select: false } 
+        costPerItem: { type: Number, required: true, select: false }
     },
 
     // 3. Categorization & Discovery (🚀 THE MAJOR UPDATES ARE HERE)
     categorization: {
         // Now references the Category model directly
-        primary: { 
-            type: mongoose.Schema.Types.ObjectId, 
-            ref: 'Category', 
-            required: true, 
-            index: true 
+        primary: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Category',
+            required: true,
+            index: true
         },
         // Subcategory also references the Category model (e.g., pointing to "Sofas")
-        subCategory: { 
-            type: mongoose.Schema.Types.ObjectId, 
-            ref: 'Category' 
+        subCategory: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Category'
         },
         tags: [{ type: String }],
-        rooms: [{ 
-            type: mongoose.Schema.Types.ObjectId, 
-            ref: 'Room' 
+        rooms: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Room'
         }],
         materials: [{ type: String }],
         colors: [{ type: String }]
@@ -57,7 +59,7 @@ const productSchema = new mongoose.Schema({
         primaryImage: { type: String, required: true },
         gallery: [{ type: String }],
         // Critical for sending data to your AI generation workflow
-        threeDModelUrl: { type: String } 
+        threeDModelUrl: { type: String }
     },
 
     // 6. Inventory & Logistics
@@ -76,12 +78,12 @@ const productSchema = new mongoose.Schema({
         // Links this product to community AI designs that feature it
         featuredInDesigns: [{ type: mongoose.Schema.Types.ObjectId, ref: 'CommunityDesign' }]
     }
-}, { 
-    timestamps: true 
+}, {
+    timestamps: true
 });
 
 // Pre-save middleware: Automatically update 'inStock' based on 'stockQuantity'
-productSchema.pre('save', function() {
+productSchema.pre('save', function () {
     // Only run this math if the inventory object actually exists on the product
     if (this.inventory && this.inventory.stockQuantity !== undefined) {
         this.inventory.inStock = this.inventory.stockQuantity > 0;

@@ -48,3 +48,8 @@ logs/
 
 /frontend/.env
 /frontend/.env/*
+
+
+# furniture images
+furniture_images/
+

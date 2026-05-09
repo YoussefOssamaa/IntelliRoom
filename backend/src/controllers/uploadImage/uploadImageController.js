@@ -5,11 +5,15 @@ import { comfyUIServiceInstance } from '../../server.js';
 import { setTimeout } from 'node:timers/promises';
 import { escape } from 'node:querystring';
 import { buildComfyWorkflow, COMFYUI_OUTPUT_NODE } from '../../../../ai/ComfyUI_Workflows/API_Format/Final_workflow_API.mjs';
+import { getRecommendations } from './getRecommendations.js';
+import { getMatchedProductsFromDB } from './getMatchedProductsFromDB.js';
 import axios from 'axios';
 
+const TEST_MODE = true;  // set to true to skip ComfyUI processing and return test recommendations
 
 export const postImageController = async (req, res) => {
     try {
+        let localFileName = null;
         if (!req.files?.image?.[0]) {
             return res.status(400).json({ error: 'Main image is required' });
         }
@@ -20,74 +24,118 @@ export const postImageController = async (req, res) => {
         console.log('Uploaded file:', mainImage.filename);
 
 
-        console.log('Uploading image to ComfyUI...');
+        // // // // console.log('Uploading image to ComfyUI...');
 
 
-        const comfyImageFilename = await comfyUIServiceInstance.uploadImage(mainImage.path);
-        console.log('Main image uploaded to ComfyUI as:', comfyImageFilename);
+        // // // // const comfyImageFilename = await comfyUIServiceInstance.uploadImage(mainImage.path);
+        // // // // console.log('Main image uploaded to ComfyUI as:', comfyImageFilename);
 
 
-        let inputReferenceImageFilename = null;
+        // // // // let inputReferenceImageFilename = null;
 
-        if (referenceImage) {
-            inputReferenceImageFilename = await comfyUIServiceInstance.uploadImage(referenceImage.path);
+        // // // // if (referenceImage) {
+        // // // //     inputReferenceImageFilename = await comfyUIServiceInstance.uploadImage(referenceImage.path);
 
-            console.log('Reference image uploaded to ComfyUI as:', inputReferenceImageFilename);
+        // // // //     console.log('Reference image uploaded to ComfyUI as:', inputReferenceImageFilename);
 
-        }
-
-
-        let comfyOutputNode = "";
+        // // // // }
 
 
-        const workflow = buildComfyWorkflow(comfyImageFilename, inputReferenceImageFilename, inputPrompt);
-        comfyOutputNode = COMFYUI_OUTPUT_NODE;
-
-        console.log('Running ComfyUI workflow...');
-
-        const result = await comfyUIServiceInstance.runComfyWorkflow(workflow);
-        console.log('Workflow result:', result);
+        // // // // let comfyOutputNode = "";
 
 
-        const outputNode = result.outputs[comfyOutputNode];
+        // // // // const workflow = buildComfyWorkflow(comfyImageFilename, inputReferenceImageFilename, inputPrompt);
+        // // // // comfyOutputNode = COMFYUI_OUTPUT_NODE;
 
-        if (!outputNode || !outputNode.images || outputNode.images.length === 0) {
-            return res.status(500).json({
-                error: 'Failed to process image - no output received',
-            });
-        }
+        // // // // console.log('Running ComfyUI workflow...');
 
-        const outputImageInfo = outputNode.images[0];
-        const outputFilename = outputImageInfo.filename;
-        const outputSubfolder = outputImageInfo.subfolder || '';
-        const outputType = outputImageInfo.type || 'output';
-
-        console.log('Output image info:', outputImageInfo);
+        // // // // const result = await comfyUIServiceInstance.runComfyWorkflow(workflow);
+        // // // // console.log('Workflow result:', result);
 
 
-        console.log('Downloading processed image from ComfyUI...');
-        const localFilename = await comfyUIServiceInstance.downloadImage(
-            outputFilename,
-            outputSubfolder,
-            outputType
-        );
+        // // // // const outputNode = result.outputs[comfyOutputNode];
 
-        const fullImagePath = `/api/comfyOutputs/${localFilename}`;
+        // // // // if (!outputNode || !outputNode.images || outputNode.images.length === 0) {
+        // // // //     return res.status(500).json({
+        // // // //         error: 'Failed to process image - no output received',
+        // // // //     });
+        // // // // }
 
+        // // // // const outputImageInfo = outputNode.images[0];
+        // // // // const outputFilename = outputImageInfo.filename;
+        // // // // const outputSubfolder = outputImageInfo.subfolder || '';
+        // // // // const outputType = outputImageInfo.type || 'output';
+
+        // // // // console.log('Output image info:', outputImageInfo);
+
+        // // // // /////////////// will be changed to be uploaded to a cloud storage, not downloaded locally
+        // // // // console.log('Downloading processed image from ComfyUI...');
+        // // // // const localFileName = await comfyUIServiceInstance.downloadImage(
+        // // // //     outputFilename,
+        // // // //     outputSubfolder,
+        // // // //     outputType
+        // // // // );
+
+        //const fullImagePath = `/api/comfyOutputs/${localFileName}`;
         let recommendations = [];
         try {
-            const backendContainer = process.env.NODE_ENV === 'production' ? 'backend' : 'dev';
-            const absoluteImageUrl = `http://${backendContainer}:5000${fullImagePath}`;
+            // const backendContainer = process.env.NODE_ENV === 'production' ? 'backend' : 'dev';
+            // const absoluteImageUrl = `http://${backendContainer}:5000${fullImagePath}`;
 
-            const response = await axios.post('http://orchestrator:7860/search', {
-                image_url: absoluteImageUrl
-            });
-            recommendations = response.data.results || [];
+            //const absoluteImageUrl = `http://localhost:5000${fullImagePath}`;
+            // // const response = await axios.post('http://orchestrator:7860/search', {
+            // //     image_url: absoluteImageUrl
+            // // });
+
+            /*curl -X 'POST' \
+             'https://mohamedsameh77i-intellivdb.hf.space/search?top_k=5' \
+             -H 'accept: application/json' \
+             -H 'Content-Type: multipart/form-data' \
+             -F 'file=@after.png;type=image/png'  */
+
+            if (TEST_MODE) {
+                recommendations = await getRecommendations("", 10);
+                console.log("THIS IS THE RECOMMENDATIONS ARRAY", recommendations)
+
+            }
+            else {
+                recommendations = await getRecommendations(localFileName, 10);
+                console.log("THIS IS THE RECOMMENDATIONS ARRAY", recommendations)
+            }
+
+            const recommendedImagesArray = recommendations.map(item => item.filename);
+            console.log("THIS IS THE RECOMMENDED IMAGE URLS", recommendedImagesArray)
+
+            /*
+                the arrey looks like this: 
+                [   'img1080.png',
+                'img0870.png',
+                'img0600.png',
+                'img0439.png',
+                'img0855.png',
+                'img1191.png',
+                'img0630.png',
+                'img0001.png',
+                'img0387.png',
+                    'img1171.png' ]
+
+
+                and in the db the sku looks like this:
+                _id: ObjectId('69fec26951a32a474548e159'),
+                sku: 'img1184',
+                name: 'Sunny Yellow Lounge',
+                slug: 'sunny-yellow-lounge-1106',
+
+
+            */
+
+            const matchedProducts = await getMatchedProductsFromDB(recommendedImagesArray);
+            console.log("THIS IS THE MATCHED PRODUCTS", matchedProducts)
+
+
         } catch (error) {
-            console.error('Error in postImageController search request:', error);
+            console.error('Error in postImageController recommendations search request:', error);
         }
-
-
 
         await setTimeout(1000);  /// delay to allow the output image to appear on the frontend page
 
@@ -95,7 +143,7 @@ export const postImageController = async (req, res) => {
             message: 'Image uploaded and processed successfully',
             originalImage: `/uploads/uploadedImages/${mainImage.filename}`,
             referenceImage: referenceImage ? `/uploads/referenceImages/${referenceImage.filename}` : null,
-            enhancedImageUrl: `/api/comfyOutputs/${localFilename}`,
+            enhancedImageUrl: `/api/comfyOutputs/${localFileName}`,
             recommendations: recommendations
         });
 

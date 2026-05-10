@@ -2,6 +2,8 @@
 	"dependencies": {
 		"express": "^5.2.1",
 		"form-data": "^4.0.5",
-		"git": "^0.1.5"
+		"git": "^0.1.5",
+		"gsap": "^3.15.0",
+		"tailwindcss-animate": "^1.0.7"
 	}
 }

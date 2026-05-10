@@ -85,6 +85,19 @@ export const loginHandler = async (req, res) => {
             return res.status(401).json({ success: false, message: genericMessage });
         }
 
+        // --- Monthly Credit Reset Logic ---
+        if (logging_user.plan === 'free') {
+            const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
+            const now = Date.now();
+            const lastReset = logging_user.last_credit_reset ? logging_user.last_credit_reset.getTime() : 0;
+            
+            if (now - lastReset >= thirtyDaysInMs) {
+                logging_user.credits = 1000;
+                logging_user.last_credit_reset = new Date(now);
+                await logging_user.save();
+            }
+        }
+
         const payload = {
             userId: logging_user._id,
         }

@@ -47,6 +47,7 @@ app.use(CORSMiddleware)
 app.use(cookieParser())
 app.use('/uploads', express.static(path.join(__dirname, './uploads')));
 app.use('/api/comfyOutputs', express.static(path.join(__dirname, './uploads/comfyOutputs')));
+app.use('/api/team/photos', express.static(path.join(__dirname, './uploads/team')));
 app.use('/workspace/furniture_images', express.static('/workspace/furniture_images'));
 
 
@@ -77,6 +78,9 @@ app.use('/api/updateProfile', updateProfileIndex)
 app.use('/api/community', communityIndex)
 app.use('/api/generatedImage', generatedImageIndex)
 app.use('/api/render3d', render3DIndex) 
+app.use('/api/team', teamIndex)
+
+app.use('/health', healthcontroller)
 app.use('/api/generatedImage', generatedImageIndex)
 app.use('/api/categories', categoryRoutes);
 app.use('/api/rooms', roomRoutes);

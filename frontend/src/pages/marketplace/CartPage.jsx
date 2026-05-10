@@ -1,9 +1,11 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useShop } from "../../context/ShopContext";
 import Header from "./MarketHeader";
 
 const CartPage = () => {
+  const navigate = useNavigate();
+  
   // Pull the data and functions from our global brain
   const {
     cart,
@@ -29,6 +31,10 @@ const CartPage = () => {
     100,
   );
 
+  const hasInvalidItems = cart.some(
+    (item) => !item.pricing?.currentPrice || item.pricing.currentPrice <= 0,
+  );
+
   return (
     <div className="min-h-screen bg-[#f9fafb] flex flex-col">
       {/* <Header /> */}
@@ -38,7 +44,7 @@ const CartPage = () => {
           Your Cart
         </h1>
 
-         {/* the empty state  */}
+        {/* the empty state  */}
         {cart.length === 0 ? (
           <div className="bg-white p-12 rounded-3xl border border-[#e0e0e0] text-center shadow-sm flex flex-col items-center">
             <div className="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center mb-6">
@@ -71,7 +77,6 @@ const CartPage = () => {
             </Link>
           </div>
         ) : (
-          
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
             {/* left column: Product Rows (65%) */}
             <div className="flex-1">
@@ -83,13 +88,16 @@ const CartPage = () => {
                   >
                     {/* Product Image */}
                     <Link
-                      to={`/marketplace/product/${item.slug}`}
-                      className="w-full sm:w-32 h-32 flex-shrink-0 bg-gray-100 rounded-xl overflow-hidden"
+                      to={`/ecomm/product/${item.slug}`}
+                      className="w-full sm:w-32 h-32 flex-shrink-0 bg-gray-100 rounded-2xl overflow-hidden border border-[#e0e0e0] relative"
                     >
                       <img
-                        src={item.media.primaryImage}
-                        alt={item.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        src={
+                          item?.media?.primaryImage ||
+                          "https://via.placeholder.com/150?text=No+Image"
+                        }
+                        alt={item?.name || "Product"}
+                        className="absolute top-0 left-0 w-full h-full object-cover !rounded-none"
                       />
                     </Link>
 
@@ -97,18 +105,25 @@ const CartPage = () => {
                     <div className="flex-1 flex flex-col justify-between">
                       <div>
                         <div className="flex justify-between items-start gap-4">
-                          <Link to={`/marketplace/product/${item.slug}`}>
+                          <Link to={`/ecomm/product/${item.slug}`}>
                             <h3 className="text-lg font-bold text-text-primary hover:text-text-accent transition-colors line-clamp-1">
                               {item.name}
                             </h3>
                           </Link>
                           <span className="text-lg font-extrabold text-text-primary">
-                            ${item.pricing.currentPrice * item.cartQuantity}
+                            $
+                            {(
+                              (item.pricing?.currentPrice || 0) *
+                              (item.cartQuantity || 1)
+                            ).toFixed(2)}
                           </span>
                         </div>
-                        <p className="text-sm text-gray-500 mt-1">
-                          {item.brand}
-                        </p>
+
+                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-1 mb-1">
+                          {item.categorization?.primary?.name || "Furniture"}
+                        </div>
+
+                        <p className="text-sm text-gray-500">{item.brand}</p>
                         {item.categorization?.materials && (
                           <p className="text-xs text-gray-400 mt-1">
                             Material: {item.categorization.materials[0]}
@@ -127,7 +142,8 @@ const CartPage = () => {
                                 item.cartQuantity - 1,
                               )
                             }
-                            className="w-10 h-full flex items-center justify-center bg-gray-50 text-gray-600 hover:bg-gray-200 transition-colors"
+                            disabled={item.cartQuantity <= 1}
+                            className="w-10 h-full flex items-center justify-center bg-gray-50 text-gray-600 hover:bg-gray-200 transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-gray-50"
                           >
                             <svg
                               className="w-3 h-3"
@@ -176,7 +192,7 @@ const CartPage = () => {
                           <button
                             onClick={() => {
                               toggleFavorite(item);
-                              removeFromCart(item._id); // Move to favorites removes from cart
+                              removeFromCart(item._id);
                             }}
                             className="text-gray-400 hover:text-text-accent transition-colors hidden sm:block"
                           >
@@ -211,7 +227,6 @@ const CartPage = () => {
 
             {/* right column: Order Summary (35%) */}
             <div className="w-full lg:w-[380px] xl:w-[420px] flex-shrink-0">
-              {/* Sticky container ensures it stays on screen when scrolling */}
               <div className="bg-white rounded-3xl border border-[#e0e0e0] p-6 sm:p-8 shadow-sm sticky top-8">
                 <h2 className="text-xl font-bold text-text-primary mb-6">
                   Order Summary
@@ -286,21 +301,39 @@ const CartPage = () => {
                   </span>
                 </div>
 
-                <button className="w-full bg-text-accent text-white font-extrabold py-4 rounded-xl shadow-md hover:bg-green-600 hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2">
-                  Proceed to Checkout
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M14 5l7 7m0 0l-7 7m7-7H3"
-                    ></path>
-                  </svg>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!hasInvalidItems && cart.length > 0) {
+                      navigate("/ecomm/checkout");
+                    }
+                  }}
+                  disabled={hasInvalidItems || cart.length === 0}
+                  className={`w-full font-extrabold py-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 ${
+                    hasInvalidItems || cart.length === 0
+                      ? "bg-gray-400 text-white cursor-not-allowed opacity-80 pointer-events-none"
+                      : "bg-text-accent text-white shadow-md hover:bg-green-600 hover:shadow-lg"
+                  }`}
+                >
+                  {hasInvalidItems
+                    ? "Cart Contains Invalid Items"
+                    : "Proceed to Checkout"}
+
+                  {!hasInvalidItems && cart.length > 0 && (
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M14 5l7 7m0 0l-7 7m7-7H3"
+                      ></path>
+                    </svg>
+                  )}
                 </button>
 
                 {/* Trust Badges */}

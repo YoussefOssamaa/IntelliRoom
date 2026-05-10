@@ -10,10 +10,9 @@ import chromadb
 import httpx
 import numpy as np
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile
 from PIL import Image
 from pydantic import BaseModel
-import httpx
 
 
 KAGGLE_BASE_URL  = os.getenv("KAGGLE_BASE_URL", "https://somezroklink.share.zrok.io")

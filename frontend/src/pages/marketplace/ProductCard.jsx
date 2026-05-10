@@ -1,9 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import { useShop } from "../../context/ShopContext";
 
 const ProductCard = ({ product }) => {
-
   const { cart, favorites, toggleCart, toggleFavorite } = useShop();
 
   const isInCart = cart.some((item) => item._id === product._id);
@@ -22,12 +21,13 @@ const ProductCard = ({ product }) => {
   return (
     <div className="group flex flex-col bg-white rounded-2xl overflow-hidden border border-[#e0e0e0]/50 hover:shadow-xl hover:border-text-accent/30 transition-all duration-300">
       <div className="relative aspect-[4/5] overflow-hidden bg-gray-100">
+        {/* Standardized to /ecomm/ */}
         <Link
           to={`/ecomm/product/${product.slug}`}
-          className="block w-full h-full "
+          className="block w-full h-full"
         >
           <img
-            src={product.media.primaryImage}
+            src={product.media?.primaryImage}
             alt={product.name}
             className="absolute top-0 left-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out !rounded-none"
           />
@@ -35,7 +35,7 @@ const ProductCard = ({ product }) => {
 
         {/* Sale Badge */}
         <div className="absolute top-3 left-3 flex flex-col gap-2 pointer-events-none z-10">
-          {product.pricing.isOnSale && (
+          {product.pricing?.isOnSale && (
             <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded shadow-sm">
               SALE
             </span>
@@ -91,7 +91,6 @@ const ProductCard = ({ product }) => {
             >
               <div className="w-5 h-5 flex items-center justify-center">
                 {isInCart ? (
-                  /* The Checkmark (Shows ONLY when in cart) */
                   <svg
                     className="w-5 h-5 animate-[bounce_0.3s_ease-in-out]"
                     fill="none"
@@ -106,7 +105,6 @@ const ProductCard = ({ product }) => {
                     ></path>
                   </svg>
                 ) : (
-                  /* The Original Cart Icon (Shows ONLY when NOT in cart) */
                   <svg
                     className="w-5 h-5"
                     fill="none"
@@ -127,9 +125,9 @@ const ProductCard = ({ product }) => {
         </div>
       </div>
 
-      {/* 3. THE TEXT LINK (Wraps the text details) */}
+      {/* Standardized to /ecomm/ */}
       <Link
-        to={`/marketplace/product/${product.slug}`}
+        to={`/ecomm/product/${product.slug}`}
         className="p-4 flex flex-col flex-grow block"
       >
         <div className="flex items-center gap-1 mb-2">
@@ -148,17 +146,24 @@ const ProductCard = ({ product }) => {
           </span>
         </div>
 
+        {/* 🚀 Safely extracts the Category Name from the populated model */}
+        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+          {product.categorization?.primary?.name ||
+            product.categorization?.primary ||
+            "Furniture"}
+        </div>
+
         <h3 className="text-sm font-bold text-text-primary group-hover:text-text-accent transition-colors line-clamp-2 mb-1 flex-grow">
           {product.name}
         </h3>
 
         <div className="mt-2 flex items-center gap-2">
           <span className="text-base font-extrabold text-text-primary">
-            ${product.pricing.currentPrice}
+            ${product.pricing?.currentPrice}
           </span>
-          {product.pricing.isOnSale && (
+          {product.pricing?.isOnSale && (
             <span className="text-xs font-medium text-gray-400 line-through">
-              ${product.pricing.originalPrice}
+              ${product.pricing?.originalPrice}
             </span>
           )}
         </div>

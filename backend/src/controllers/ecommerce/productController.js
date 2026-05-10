@@ -1,46 +1,93 @@
+import mongoose from 'mongoose';
 import Product from '../../models/ecommerceModels/product.js';
+import Category from '../../models/ecommerceModels/category.js'; 
+import Room from '../../models/ecommerceModels/room.js';
 
 // @desc    Fetch all products (with filtering, sorting, and pagination)
 // @route   GET /api/products
 // @access  Public
 export const getProducts = async (req, res) => {
     try {
-        // 1. Destructure the query parameters sent from your React ProductFilter
-        const { category, inStockOnly, materials, sort, search } = req.query;
-
-        // 2. Build the MongoDB Query Object
+        // 🚀 THE FIX: Added categories (plural), minPrice, and maxPrice
+        const { category, categories, room, inStockOnly, materials, colors, sort, search, minPrice, maxPrice } = req.query;
         let query = {};
 
-        // Filter by Category (if it's not "All")
-        if (category && category !== 'All') {
-            query['categorization.primary'] = category;
+        // 1. 🚀 Filter by Room (Translating slug to ObjectId!)
+        if (room) {
+            const roomDoc = await Room.findOne({ slug: room });
+            if (roomDoc) {
+                query['categorization.rooms'] = roomDoc._id; 
+            } else {
+                // If the room doesn't exist, return an empty array immediately
+                return res.status(200).json({ success: true, count: 0, data: [] });
+            }
         }
 
-        // Filter by Availability
+        // 2. Filter by Primary Category (Singular - for main store page)
+        if (category && category !== 'All') {
+            if (mongoose.Types.ObjectId.isValid(category)) {
+                query['categorization.primary'] = category;
+            } else {
+                const foundCategory = await Category.findOne({ name: category });
+                if (foundCategory) {
+                    query['categorization.primary'] = foundCategory._id;
+                } else {
+                    query['categorization.primary'] = null; 
+                }
+            }
+        }
+
+        // 3. 🚀 Filter by SubCategories (Plural - for the Room Page sidebar checkboxes)
+        if (categories) {
+            const catNames = categories.split(',');
+            // Find all matching category IDs in one go
+            const foundCats = await Category.find({ name: { $in: catNames } });
+            const catIds = foundCats.map(c => c._id);
+            
+            if (catIds.length > 0) {
+                query['categorization.subCategory'] = { $in: catIds };
+            } else {
+                query['categorization.subCategory'] = null; 
+            }
+        }
+
+        // 4. 🚀 Filter by Price Ranges
+        if (minPrice || maxPrice) {
+            query['pricing.currentPrice'] = {};
+            if (minPrice) query['pricing.currentPrice'].$gte = Number(minPrice);
+            if (maxPrice) query['pricing.currentPrice'].$lte = Number(maxPrice);
+        }
+
+        // 5. Filter by Availability
         if (inStockOnly === 'true') {
             query['inventory.inStock'] = true;
         }
 
-        // Filter by Materials (if the array exists and has items)
-        // Using $in means "Find products where the material is ANY of these selected materials"
+        // 6. Filter by Materials
         if (materials) {
-            const materialsArray = materials.split(','); // Convert "Wood,Velvet" to ['Wood', 'Velvet']
+            const materialsArray = materials.split(','); 
             query['categorization.materials'] = { $in: materialsArray };
         }
 
-        // Search by Name (using Regex for partial matching)
-        if (search) {
-            query.name = { $regex: search, $options: 'i' }; // 'i' makes it case-insensitive
+        // 7. Filter by Colors
+        if (colors) {
+            const colorsArray = colors.split(','); 
+            query['categorization.colors'] = { $in: colorsArray };
         }
 
-        // 3. Handle Sorting
+        // 8. Search by Name
+        if (search) {
+            query.name = { $regex: search, $options: 'i' }; 
+        }
+
+        // Handle Sorting
         let sortOption = {};
         switch (sort) {
             case 'Price: Low to High':
-                sortOption = { 'pricing.currentPrice': 1 }; // 1 is ascending
+                sortOption = { 'pricing.currentPrice': 1 }; 
                 break;
             case 'Price: High to Low':
-                sortOption = { 'pricing.currentPrice': -1 }; // -1 is descending
+                sortOption = { 'pricing.currentPrice': -1 }; 
                 break;
             case 'Customer Rating':
                 sortOption = { 'social.averageRating': -1 };
@@ -49,13 +96,15 @@ export const getProducts = async (req, res) => {
                 sortOption = { name: 1 };
                 break;
             default:
-                sortOption = { createdAt: -1 }; // 'Recommended' or default: newest first
+                sortOption = { createdAt: -1 }; 
         }
 
-        // 4. Execute the Query
-        const products = await Product.find(query).sort(sortOption);
+        // Execute the massive, perfectly structured query
+        const products = await Product.find(query)
+            .populate('categorization.primary', 'name slug')
+            .populate('categorization.subCategory', 'name slug')
+            .sort(sortOption);
 
-        // 5. Send the response back to React
         res.status(200).json({
             success: true,
             count: products.length,
@@ -64,16 +113,20 @@ export const getProducts = async (req, res) => {
 
     } catch (error) {
         console.error("Error fetching products:", error);
-        res.status(500).json({ success: false, message: 'Server Error fetching products' });
+        res.status(500).json({ success: false, message: 'Server Error fetching products', error: error.message });
     }
 };
+
+// ... (The rest of your controller functions remain exactly the same below!) ...
 
 // @desc    Fetch a single product by its URL slug
 // @route   GET /api/products/:slug
 // @access  Public
 export const getProductBySlug = async (req, res) => {
     try {
-        const product = await Product.findOne({ slug: req.params.slug });
+        const product = await Product.findOne({ slug: req.params.slug })
+            .populate('categorization.primary', 'name slug')
+            .populate('categorization.subCategory', 'name slug');
 
         if (!product) {
             return res.status(404).json({ success: false, message: 'Product not found' });
@@ -86,166 +139,109 @@ export const getProductBySlug = async (req, res) => {
     }
 };
 
-
-
-
-
-
-
-
-
-export const getProductsByCategory = async (req, res) => {
-
-
+export const getUniqueRooms = async (req, res) => {
     try {
-        const category_id = req.query.categoryID || ""
-        const searched_product = req.query.search || ""
-        const sort_by = req.query.sort || "featured"
-        const currentPage = parseInt(req.query.page) || 1
-        const page_limit = Math.min(parseInt(req.query.limit) || 40, 100) /// items per page should be = 40 and max 100
-        const skip = (currentPage - 1) * page_limit
+        const rooms = await Product.distinct("categorization.rooms");
+        res.status(200).json({ success: true, data: rooms });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
 
-        let sort_filter = {}
-        if (sort_by === "featured") {
-            sort_filter = { isFeatured: -1 }
-        } else if (sort_by === "lowtohigh") {
-            sort_filter = { price: 1 }
-        } else if (sort_by === "hightolow") {
-            sort_filter = { price: -1 }
-        }
+export const getProductFormOptions = async (req, res) => {
+    try {
+        const colors = await Product.distinct('categorization.colors');
+        const materials = await Product.distinct('categorization.materials');
+        const categories = await Category.find({});
+        
+        const roomsFromDB = await Room.find({ isActive: true });
+        const rooms = roomsFromDB.map(room => ({ 
+            _id: room._id, 
+            name: room.name 
+        })); 
 
-        const search_filter = { name: { $regex: searched_product, $options: "i" } }
-        if (category_id) {
-            search_filter.category = category_id
-        }
-
-        const total_products = await Product.countDocuments(search_filter) || 0
-
-        const products = await Product.find(search_filter)
-            .skip(skip).limit(page_limit)
-            .sort(sort_filter)
-        console.log(products)
         res.status(200).json({
-            products,
-            totalPages: Math.ceil(total_products / page_limit)
-        })
-
-    } catch (err) {
-        return res.status(500).json({ error: err.message });
+            success: true,
+            data: {
+                colors: colors.filter(Boolean), 
+                materials: materials.filter(Boolean),
+                rooms: rooms,
+                categories: categories
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
     }
+};
 
-}
-
-
-export const getProductByIdController = async (req, res) => {
-
-
+export const createProduct = async (req, res) => {
     try {
-        const { id } = req.params;
-        const product = await Product.findById(id);
+        const productData = req.body;
 
-        if (!product) {
-            return res.status(404).json({ error: "Product not found" });
+        if (productData.categorization) {
+            if (typeof productData.categorization.primary === 'string' && productData.categorization.primary.trim() !== '') {
+                const primaryMatch = await Category.findOne({ name: productData.categorization.primary });
+                if (primaryMatch) productData.categorization.primary = primaryMatch._id;
+            }
+            if (typeof productData.categorization.subCategory === 'string' && productData.categorization.subCategory.trim() !== '') {
+                const subMatch = await Category.findOne({ name: productData.categorization.subCategory });
+                if (subMatch) productData.categorization.subCategory = subMatch._id;
+            }
         }
 
-        res.status(200).json(product)
-
+        const newProduct = new Product(productData);
+        await newProduct.save();
+        
+        res.status(201).json({ success: true, data: newProduct });
     } catch (err) {
-        return res.status(500).json({ error: err.message });
+        return res.status(500).json({ success: false, message: err.message });
     }
-
 }
 
-
-
-
-
-export const postProductsController = async (req, res) => {
-
-    try {
-        const product_posted = req.body;
-        const new_product = new Product(product_posted);
-        await new_product.save();
-        console.log(new_product);
-        res.status(201).json(new_product);
-
-
-    } catch (err) {
-        return res.status(500).json({ error: err.message });
-    }
-
-}
-
-
-
-
-export const putProductsController = async (req, res) => {
-
+export const updateProduct = async (req, res) => {
     try {
         const { id } = req.params;
-        const product_updates = req.body;
-        const updated_product = await Product.findByIdAndUpdate(id, product_updates, { new: true });
+        const updateData = req.body;
 
-        if (!updated_product) {
-            return res.status(404).json({ error: "Product not found" });
+        if (updateData.categorization) {
+            if (typeof updateData.categorization.primary === 'string' && updateData.categorization.primary.trim() !== '') {
+                const primaryMatch = await Category.findOne({ name: updateData.categorization.primary });
+                if (primaryMatch) updateData.categorization.primary = primaryMatch._id;
+            }
+            
+            if (typeof updateData.categorization.subCategory === 'string' && updateData.categorization.subCategory.trim() !== '') {
+                const subMatch = await Category.findOne({ name: updateData.categorization.subCategory });
+                if (subMatch) updateData.categorization.subCategory = subMatch._id;
+            }
         }
-        console.log(updated_product);
-        res.status(200).json(updated_product);
 
+        const updatedProduct = await Product.findByIdAndUpdate(id, updateData, {
+            new: true, 
+            runValidators: true 
+        });
+
+        if (!updatedProduct) {
+            return res.status(404).json({ success: false, message: "Product not found" });
+        }
+
+        res.status(200).json({ success: true, data: updatedProduct });
     } catch (err) {
-        return res.status(500).json({ error: err.message });
+        return res.status(500).json({ success: false, message: err.message });
     }
-
 }
 
-
-
-
-export const deleteProductsController = async (req, res) => {
+export const deleteProduct = async (req, res) => {
     try {
         const { id } = req.params;
-        const deleted_product = await Product.findByIdAndDelete(id);
-
-        if (!deleted_product) {
-            return res.status(404).json({ message: "Product not found" });
+        
+        const deletedProduct = await Product.findByIdAndDelete(id);
+        
+        if (!deletedProduct) {
+            return res.status(404).json({ success: false, message: "Product not found" });
         }
-        console.log(deleted_product);
-        return res.status(200).json({ message: "Product deleted successfully" });
-    }
-    catch (err) {
-        return res.status(500).json({ error: err.message });
-    }
 
-}
-
-
-export const getFeaturedProducts = async (req, res) => {
-    try {
-
-        const featured_products = await Product.find({ isFeatured: true }).limit(8)
-        res.status(200).json(featured_products)
+        res.status(200).json({ success: true, message: "Product deleted successfully" });
     } catch (err) {
-        return res.status(500).json({ error: err.message });
-        console.log(err)
+        return res.status(500).json({ success: false, message: err.message });
     }
 }
-
-
-export const getMatchedProducts = async (req, res) => {
-
-    try {
-
-
-
-
-
-    } catch (err) {
-        return res.status(500).json({ error: err.message });
-        console.log(err)
-    }
-
-
-}
-
-
-

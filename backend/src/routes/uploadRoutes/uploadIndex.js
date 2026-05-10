@@ -10,15 +10,23 @@ const router = express.Router();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const upload_dir = path.join(__dirname, '../../../uploads/uploadedImages');
-if (!fs.existsSync(upload_dir)) {
-  fs.mkdirSync(upload_dir, { recursive: true });
+const upload_dir_main = path.join(__dirname, '../../../uploads/uploadedImages');    ///  /backend/uploads/uploadedImages
+if (!fs.existsSync(upload_dir_main)) {
+    fs.mkdirSync(upload_dir_main, { recursive: true });
 }
 
+const upload_dir_ref = path.join(__dirname, '../../../uploads/referenceImages');
+if (!fs.existsSync(upload_dir_ref)) {
+    fs.mkdirSync(upload_dir_ref, { recursive: true });
+}
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, upload_dir);
+        if (file.fieldname === 'referenceImage') {
+            cb(null, upload_dir_ref);
+        } else {
+            cb(null, upload_dir_main);
+        }
     },
     filename: function (req, file, cb) {
         cb(null, Date.now() + '-' + file.originalname);
@@ -27,20 +35,20 @@ const storage = multer.diskStorage({
 
 const extensionFilter = (req, file, cb) => {
 
-      const allowedExtensions = /jpeg|jpg|png|webp/;   // regex for allowed extensions
-      const allowedMimeTypes = [
+    const allowedExtensions = /jpeg|jpg|png|webp/;   // regex for allowed extensions
+    const allowedMimeTypes = [
         'image/jpeg',
         'image/jpg',
         'image/png',
         'image/webp'
-        ];
+    ];
 
 
 
 
-      const extension = allowedExtensions.test(file.originalname.toLowerCase());
-      const mimetype = allowedMimeTypes.includes(file.mimetype);
-      
+    const extension = allowedExtensions.test(file.originalname.toLowerCase());
+    const mimetype = allowedMimeTypes.includes(file.mimetype);
+
     if (extension && mimetype) {
         cb(null, true);
     } else {
@@ -58,11 +66,11 @@ const upload = multer({
 
 
 
-router.post('/',protect , upload.fields([
+router.post('/', protect, upload.fields([
     { name: 'image', maxCount: 1 },
     { name: 'referenceImage', maxCount: 1 }
-  ]),
-   postImageController);
+]),
+    postImageController);
 
 
 

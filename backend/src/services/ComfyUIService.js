@@ -275,7 +275,7 @@ export class ComfyUIService {
             );
 
             const historyData = response.data[promptId];
-            console.log('History data:', JSON.stringify(historyData, null, 2));
+            //console.log('History data:', JSON.stringify(historyData, null, 2));
             return historyData;
 
         } catch (error) {

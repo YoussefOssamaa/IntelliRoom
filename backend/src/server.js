@@ -45,8 +45,9 @@ await connectDB();
 app.use(express.json());
 app.use(CORSMiddleware)
 app.use(cookieParser())
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/uploads', express.static(path.join(__dirname, './uploads')));
 app.use('/api/comfyOutputs', express.static(path.join(__dirname, './uploads/comfyOutputs')));
+app.use('/workspace/furniture_images', express.static('/workspace/furniture_images'));
 
 
 export const comfyUIServiceInstance = new ComfyUIService(COMFYUI_HOST);

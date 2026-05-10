@@ -92,7 +92,7 @@ export const postImageController = async (req, res) => {
              -H 'accept: application/json' \
              -H 'Content-Type: multipart/form-data' \
              -F 'file=@after.png;type=image/png'  */
-
+            inputPrompt
             if (TEST_MODE) {
                 recommendations = await getRecommendations("", 10);
                 console.log("THIS IS THE RECOMMENDATIONS ARRAY", recommendations)
@@ -143,7 +143,7 @@ export const postImageController = async (req, res) => {
             success: true,
             originalImage: `/uploads/uploadedImages/${mainImage.filename}`,
             referenceImage: referenceImage ? `/uploads/referenceImages/${referenceImage.filename}` : null,
-            enhancedImageUrl: `/api/comfyOutputs/${localFileName}`,
+            enhancedImageUrl: `/uploads/comfyOutputs/${localFileName}`,
             matchedProducts: matchedProducts
         });
 

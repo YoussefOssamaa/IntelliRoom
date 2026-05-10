@@ -23,6 +23,7 @@ import wishlistRoutes from './routes/ecommerceRoutes/wishlistRoutes.js';
 import design2D3Dndex from './routes/design2D-3DRoutes/design2D3DIndex.js'
 import healthcontroller from './controllers/healthcontroller.js'
 import render3DIndex from './routes/render3DRoutes/render3DIndex.js'
+import teamIndex from './routes/teamRoutes/teamIndex.js'
 const __dirname = path.resolve();
 
 export const PORT = process.env.PORT || 5000;
@@ -39,6 +40,7 @@ app.use(CORSMiddleware)
 app.use(cookieParser())
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.use('/api/comfyOutputs', express.static(path.join(__dirname, './uploads/comfyOutputs')));
+app.use('/api/team/photos', express.static(path.join(__dirname, './uploads/team')));
 
 
 export const comfyUIServiceInstance = new ComfyUIService(COMFYUI_HOST);
@@ -65,6 +67,7 @@ app.use('/api/updateProfile', updateProfileIndex)
 app.use('/api/community', communityIndex)
 app.use('/api/generatedImage', generatedImageIndex)
 app.use('/api/render3d', render3DIndex) 
+app.use('/api/team', teamIndex)
 
 app.use('/health', healthcontroller)
 

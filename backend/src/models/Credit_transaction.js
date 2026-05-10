@@ -1,6 +1,11 @@
-const mongoose = require('mongoose');
+import mongoose, { Schema } from 'mongoose';
 
 const creditTransactionSchema = new mongoose.Schema({
+  user_id: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: true
+  },
   transaction_id: {
     type: Number,
     required: true,
@@ -23,19 +28,17 @@ const creditTransactionSchema = new mongoose.Schema({
       message: '{VALUE} is not supported. Must be strictly "spent" or "earned"'
     }
   },
-  timestamp: {
-    type: Date,
-    required: true,
-    default: Date.now // Optional: defaults to current time if not provided
-  },
   description: {
     type: String,
     required: true
-  }
+  },
+
 }, {
   // CRITICAL: Connects to your existing specific collection name
   collection: 'credit_transaction',
-  timestamps: false
+  timestamps: true
 });
 
-module.exports = mongoose.model('CreditTransaction', creditTransactionSchema);
+const CreditTransaction = mongoose.model('CreditTransaction', creditTransactionSchema);
+
+export default CreditTransaction;

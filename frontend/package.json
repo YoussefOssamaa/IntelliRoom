@@ -6,8 +6,7 @@
   "engines": {
     "node": ">=20.0.0",
     "pnpm": ">=9.0.0"
-  },
-  "scripts": {
+  },  "scripts": {
     "preinstall": "node ../scripts/block-npm.js",
     "dev": "vite",
     "start": "vite --host",

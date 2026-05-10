@@ -1,5 +1,6 @@
 import express from 'express';
 import GeneratedImage from '../../models/generatedImageModels/generatedImage.js';
+import { deductCredits } from '../../services/creditService.js';
 
 
 
@@ -26,6 +27,9 @@ export const postGeneratedImageController = async (req, res) => {
             generatedImageUrl,
             isFavorite
         })
+
+        // Deduct 50 credits for the workflow
+        await deductCredits(user_id, 50, "Generated Image");
 
 
         return res.status(201).json(newPost);

@@ -1,6 +1,7 @@
 import express from 'express';
 import Project from '../../models/design2D-3DModels/project.js';
 import mongoose from 'mongoose';
+import { deductCredits } from '../../services/creditService.js';
 
 
 
@@ -25,9 +26,10 @@ export const postProjectController = async (req, res) => {
             }
 
 
-        const newProject = new Project({owner, title: title || "Untitled Project", sceneData, area, coverImageUrl, thumbnailUrl , version: 1.0});
+        const newProject = new Project({owner: userId, title: title || "Untitled Project", sceneData, area, coverImageUrl, thumbnailUrl , version: 1.0});
 
         await newProject.save();
+        await deductCredits(userId, 50, "Created 2D/3D Design");
         await newProject.populate('owner');
 
         console.log(newProject);

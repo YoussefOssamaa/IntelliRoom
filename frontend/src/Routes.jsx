@@ -12,6 +12,7 @@ import LandingPage from './pages/landingPage/landingPage';
 import Ecomm from './pages/marketplace/MarketPlacePage';
 import CategoryListingPage from './pages/marketplace/CategoryListingPage';
 import ProductDetailsPage from './pages/marketplace/ProductDetailsPage';
+import AboutPage from './pages/about/AboutPage';
 
 import PlannerPage from './pages/planner/PlannerPage';
 import { UpdateProfile } from './pages/updateProfile/updateProfile';
@@ -46,6 +47,7 @@ const AppRoutes = () => {
         />
 
         <Route path="/" element={<LandingPage />} />
+        <Route path="/about" element={<AboutPage />} />
         <Route path="/marketplace" element={<MarketplacePage />} />
         <Route path="/pricingPlans" element={<PricingPlansPage />} />
         <Route path="/pluginReview/:id" element={<PluginReviewPage />} />

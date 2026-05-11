@@ -22,6 +22,34 @@ function App() {
   const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
+    // Mobile Viewport Scale Fix - preserve original viewport meta data
+    let viewportMeta = document.querySelector('meta[name="viewport"]') as HTMLMetaElement | null;
+    let originalContent = '';
+    let isCreated = false;
+
+    if (viewportMeta) {
+      originalContent = viewportMeta.content;
+      // Force mobile browsers to render at a desktop-like minimum width
+      viewportMeta.content = 'width=1280, initial-scale=0';
+    } else {
+      viewportMeta = document.createElement('meta');
+      viewportMeta.name = 'viewport';
+      viewportMeta.content = 'width=1280, initial-scale=0';
+      document.head.appendChild(viewportMeta);
+      isCreated = true;
+    }
+
+    return () => {
+      // Restore the original document viewport on component unmount
+      if (viewportMeta && !isCreated) {
+        viewportMeta.content = originalContent;
+      } else if (viewportMeta && isCreated) {
+        document.head.removeChild(viewportMeta);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     // Wait for all sections to mount and ScrollTriggers to initialize
     const timer = setTimeout(() => {
       ScrollTrigger.refresh();

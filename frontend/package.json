@@ -69,6 +69,7 @@
     "react-day-picker": "^9.13.0",
     "react-dom": "^19.2.0",
     "react-helmet": "^6.1.0",
+    "react-hot-toast": "^2.6.0",
     "react-hook-form": "^7.70.0",
     "react-icons": "3.5.0",
     "react-redux": "^9.2.0",

@@ -43,3 +43,13 @@ logs/
 .env.prod
 .notes and future plans.txt
 *.md
+/backend/.env
+/backend/.env.*
+
+/frontend/.env
+/frontend/.env/*
+
+
+# furniture images
+furniture_images/
+

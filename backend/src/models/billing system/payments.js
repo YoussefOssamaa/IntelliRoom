@@ -1,5 +1,4 @@
-const mongoose = require('mongoose');
-
+import mongoose from 'mongoose';
 
 const paymentSchema = new mongoose.Schema(
   {
@@ -18,21 +17,28 @@ const paymentSchema = new mongoose.Schema(
     provider: {
       type: String,
       required: true,
-      enum: ["stripe", "paypal", "razorpay", "manual"], // We can add more providers as needed
+      enum: ["paymob", "kashier", "manual"], // ضفنا بيموب
+      default: "paymob",
       trim: true,
       lowercase: true,
     },
-    providerId: {
+    // الـ Transaction ID اللي راجع من بيموب بعد الدفع
+    providerTransactionId: {
       type: String,
       required: true,
       unique: true,
       trim: true,
       index: true,
     },
+    // بيموب بيحتاج يعمل Order الأول، فهنحفظ الـ Order ID هنا عشان نربطهم ببعض
+    paymobOrderId: {
+      type: String,
+      trim: true,
+    },
     status: {
       type: String,
       required: true,
-      enum: ["pending", "paid", "failed", "refunded"],
+      enum: ["pending", "paid", "failed", "refunded", "voided"], // ضفنا voided بتاعت بيموب
       default: "pending",
       index: true,
     },
@@ -43,9 +49,9 @@ const paymentSchema = new mongoose.Schema(
     },
     currency: {
       type: String,
-      enum: ["USD", "EUR","OMR", "GBP", "AED", "SAR", "EGP"],
+      enum: ["EGP", "USD"], // التركيز على الجنيه المصري
       required: true,
-      default: "USD",
+      default: "EGP",
       uppercase: true,
       trim: true,
     },
@@ -55,4 +61,5 @@ const paymentSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-module.exports = mongoose.model('Payment', paymentSchema);
+
+export default mongoose.model('Payment', paymentSchema);

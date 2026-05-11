@@ -22,8 +22,15 @@ import shopperRoutes from './routes/ecommerceRoutes/shopperRoutes.js';
 import wishlistRoutes from './routes/ecommerceRoutes/wishlistRoutes.js';
 import design2D3Dndex from './routes/design2D-3DRoutes/design2D3DIndex.js'
 import healthcontroller from './controllers/healthcontroller.js'
+import adminRoutes from './routes/adminRoutes/adminIndex.js';
+import adminDashboardRoutes from './routes/adminRoutes/dashboardIndex.js';
+import subscribtionRoutes from './routes/subscribtionRoutes/subscribtionIndex.js';
+
 import render3DIndex from './routes/render3DRoutes/render3DIndex.js'
-import teamIndex from './routes/teamRoutes/teamIndex.js'
+import categoryRoutes from './routes/ecommerceRoutes/categoryRoutes.js';
+import roomRoutes from './routes/ecommerceRoutes/roomRoutes.js'
+import orderRoutes from './routes/ecommerceRoutes/orderRoutes.js';
+
 const __dirname = path.resolve();
 
 export const PORT = process.env.PORT || 5000;
@@ -38,13 +45,17 @@ await connectDB();
 app.use(express.json());
 app.use(CORSMiddleware)
 app.use(cookieParser())
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/uploads', express.static(path.join(__dirname, './uploads')));
 app.use('/api/comfyOutputs', express.static(path.join(__dirname, './uploads/comfyOutputs')));
 app.use('/api/team/photos', express.static(path.join(__dirname, './uploads/team')));
+app.use('/workspace/furniture_images', express.static('/workspace/furniture_images'));
 
 
 export const comfyUIServiceInstance = new ComfyUIService(COMFYUI_HOST);
 
+app.use('/api/admin', adminRoutes);
+app.use('/api/admin/dashboard', adminDashboardRoutes);
+app.use('/api/subscription', subscribtionRoutes);
 
 app.use('/api/ecommerce', ecommerceIndex);
 app.use('/api/design2D3D', design2D3Dndex);
@@ -70,9 +81,14 @@ app.use('/api/render3d', render3DIndex)
 app.use('/api/team', teamIndex)
 
 app.use('/health', healthcontroller)
+app.use('/api/generatedImage', generatedImageIndex)
+app.use('/api/categories', categoryRoutes);
+app.use('/api/rooms', roomRoutes);
+app.use('/api/order', orderRoutes);
 
 
 
+app.use('/health', healthcontroller)
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);

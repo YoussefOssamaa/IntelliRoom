@@ -9,10 +9,11 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const authPrivateKey = fs.readFileSync(path.join(__dirname, "..", "..", "src", "utils", "src", "keys", "AuthPrivate.pem"), 'utf8');
-const authPublicKey = fs.readFileSync(path.join(__dirname, "..", "..", "src", "utils", "src", "keys", "AuthPublic.pem"), 'utf8');
-const refreshPrivateKey = fs.readFileSync(path.join(__dirname, "..", "..", "src", "utils", "src", "keys", "RefreshPrivate.pem"), 'utf8');
-const refreshPublicKey = fs.readFileSync(path.join(__dirname, "..", "..", "src", "utils", "src", "keys", "RefreshPublic.pem"), 'utf8');
+const keysFolder = process.env.KEYS_PATH || path.join(__dirname, "../utils/src/keys");
+const authPrivateKey = fs.readFileSync(path.join(keysFolder, "AuthPrivate.pem"), 'utf8');
+const authPublicKey = fs.readFileSync(path.join(keysFolder, "AuthPublic.pem"), 'utf8');
+const refreshPrivateKey = fs.readFileSync(path.join(keysFolder, "RefreshPrivate.pem"), 'utf8');
+const refreshPublicKey = fs.readFileSync(path.join(keysFolder, "RefreshPublic.pem"), 'utf8');
 
 const protect = (req, res, next) => {
     const validation = authCookieSchema.safeParse(req.cookies);
@@ -41,7 +42,7 @@ const protect = (req, res, next) => {
     }
 
     req.userId = payload.userId;
-    
+
     next();
 }
 

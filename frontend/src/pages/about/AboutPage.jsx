@@ -37,7 +37,7 @@ const AboutPage = () => {
           <span className="about-kicker">IntelliRoom</span>
           <h1 className="about-title">Meet the Team</h1>
           <p className="about-copy">
-            The team behind IntelliRoom brings together AI, frontend, backend, and design systems work to build a smarter interior design platform.
+            A focused team combining AI, backend, frontend, design, and product work to build a smarter interior design platform.
           </p>
         </section>
 
@@ -53,8 +53,8 @@ const AboutPage = () => {
                 </div>
                 <div className="team-info">
                   <h2 className="team-name">{member.name}</h2>
-                  <a className="team-email" href={`mailto:${member.email}`}>
-                    {member.email}
+                  <a className="team-link" href={`mailto:${member.email}`}>
+                    Email me
                   </a>
                 </div>
               </article>

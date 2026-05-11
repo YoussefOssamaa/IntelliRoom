@@ -93,8 +93,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchProjectsData = async () => {
       try {
-        // delay
-        await new Promise((resolve) => setTimeout(resolve, 4000));
+        // delay removed
         const response = await axios.get("/generatedImage", {
           withCredentials: true,
         });

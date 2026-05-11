@@ -30,6 +30,8 @@ import render3DIndex from './routes/render3DRoutes/render3DIndex.js'
 import categoryRoutes from './routes/ecommerceRoutes/categoryRoutes.js';
 import roomRoutes from './routes/ecommerceRoutes/roomRoutes.js'
 import orderRoutes from './routes/ecommerceRoutes/orderRoutes.js';
+import teamIndex from './routes/teamRoutes/teamIndex.js';
+
 
 const __dirname = path.resolve();
 

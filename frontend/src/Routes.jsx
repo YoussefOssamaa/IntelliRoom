@@ -24,38 +24,7 @@ import CartPage from './pages/marketplace/CartPage';
 import MarketHeader from './pages/marketplace/MarketHeader';
 import FavoritesPage from './pages/marketplace/FavoritesPage';
 import RoomPage from './pages/marketplace/RoomPage';
-import React from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Outlet,
-} from "react-router-dom";
-import MarketplacePage from "./screens/PluginMarketplace";
-import { PricingPlansPage } from "./pages/pricingPlans/PricingPlansPage";
-import { PluginReviewPage } from "./pages/plugins-review/PluginReviewPage";
-import UploadImagePage from "./pages/uploadImage/uploadImagePage";
-import DashboardPage from "./pages/dashboard/DashboardPage";
-import LoginModal from "./pages/auth/login";
-import SignUpModal from "./pages/auth/signUp";
-import ProtectedRoute from "./components/protectedRoute";
-import LandingPage from "./pages/landingPage/landingPage";
-import Ecomm from "./pages/marketplace/MarketPlacePage";
-import CategoryPage from "./pages/marketplace/CategoryPage";
-import ProductDetailsPage from "./pages/marketplace/ProductDetailsPage";
-
-import PlannerPage from "./pages/planner/PlannerPage";
-import { UpdateProfile } from "./pages/updateProfile/updateProfile";
-import { Community } from "./pages/community/community";
-import Checkout from "./pages/checkout/Checkout";
-
-import { ShopProvider } from "./context/ShopContext";
-import CartPage from "./pages/marketplace/CartPage";
-import MarketHeader from "./pages/marketplace/MarketHeader";
-import FavoritesPage from "./pages/marketplace/FavoritesPage";
-import RoomPage from "./pages/marketplace/RoomPage";
 import CheckoutPage from "./pages/marketplace/CheckoutPage";
-
 import AdminLayout from "./pages/marketplace/admin/AdminLayout";
 import AdminProductsPage from "./pages/marketplace/admin/AdminProductsPage";
 import AdminProductGridPage from "./pages/marketplace/admin/AdminProductGridPage";
@@ -139,7 +108,7 @@ const AppRoutes = () => {
           <Route path="/ecomm/product/:slug" element={<ProductDetailsPage />} />
           <Route
             path="/ecomm/category/:categoryId"
-            element={<CategoryPage />}
+            element={<CategoryListingPage />}
           />
           <Route path="/ecomm/cart" element={<CartPage />} />
           <Route

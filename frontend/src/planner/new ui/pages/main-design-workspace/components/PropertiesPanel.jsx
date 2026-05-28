@@ -12,6 +12,8 @@ import { usePlanner } from '../../../../context/PlannerContext';
 const PropertiesPanel = ({ state, workspaceMode }) => {
   const { projectActions, catalog, translator, sceneActions, linesActions, holesActions, itemsActions, areaActions, groupsActions } = usePlanner();
   const [activeSection, setActiveSection] = useState('properties'); // 'properties' | 'elements'
+  const [isPreviewCollapsed, setIsPreviewCollapsed] = useState(false);
+  const [isInspectorCollapsed, setIsInspectorCollapsed] = useState(false);
   const t = (text, ...args) => (translator && translator.t ? translator.t(text, ...args) : text);
 
   if (!state) return null;
@@ -55,15 +57,35 @@ const PropertiesPanel = ({ state, workspaceMode }) => {
   return (
     <div className="right-panel-container">
       {/* Smart Preview — 2D minimap in 3D mode, 3D preview in 2D mode */}
-      <SmartPreview workspaceMode={workspaceMode} />
+      <section className={`inspector-dock-panel preview-dock-panel ${isPreviewCollapsed ? 'collapsed' : ''}`}>
+        <button
+          type="button"
+          className="inspector-collapse-btn"
+          onClick={() => setIsPreviewCollapsed((currentValue) => !currentValue)}
+          aria-label={isPreviewCollapsed ? t('Expand preview') : t('Collapse preview')}
+        >
+          <Icon name={isPreviewCollapsed ? "ChevronDown" : "ChevronUp"} size={14} />
+        </button>
+        {!isPreviewCollapsed && <SmartPreview workspaceMode={workspaceMode} />}
+      </section>
 
       {/* Properties Panel */}
-      <div className="properties-panel">
+      <div className={`properties-panel ${isInspectorCollapsed ? 'collapsed' : ''}`}>
       {/* Header */}
       <div className="properties-header">
         <h3 className="properties-title">{t('Properties')}</h3>
+        <button
+          type="button"
+          className="properties-collapse-btn"
+          onClick={() => setIsInspectorCollapsed((currentValue) => !currentValue)}
+          aria-label={isInspectorCollapsed ? t('Expand properties') : t('Collapse properties')}
+        >
+          <Icon name={isInspectorCollapsed ? "ChevronUp" : "ChevronDown"} size={15} />
+        </button>
       </div>
 
+      {!isInspectorCollapsed && (
+      <>
       {/* Tab Navigation */}
       <div className="properties-tabs">
         <button
@@ -128,6 +150,8 @@ const PropertiesPanel = ({ state, workspaceMode }) => {
           </div>
         )}
       </div>
+      </>
+      )}
     </div>
     </div>
   );

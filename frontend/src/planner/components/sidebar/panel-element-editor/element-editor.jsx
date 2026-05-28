@@ -69,8 +69,8 @@ export default class ElementEditor extends Component {
     }
 
     return {
-      innerLength: this.buildLengthMeasure(metrics.outerEdge.length, displayUnit),
-      outerLength: this.buildLengthMeasure(metrics.innerEdge.length, displayUnit),
+      innerLength: this.buildLengthMeasure(metrics.innerEdge.length, displayUnit),
+      outerLength: this.buildLengthMeasure(metrics.outerEdge.length, displayUnit),
     };
   }
 
@@ -211,6 +211,10 @@ export default class ElementEditor extends Component {
     // Safeguard: check if element has a valid type
     if (!element.type) {
       console.warn('Element has no type, cannot initialize properties:', element);
+      return new Map({});
+    }
+
+    if (!catalog.hasElement(element.type)) {
       return new Map({});
     }
     

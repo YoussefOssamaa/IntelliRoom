@@ -28,6 +28,11 @@ const projectSchema = new mongoose.Schema(
       default: {}
     },
 
+    lastSavedAt: {
+      type: Date,
+      default: Date.now
+    },
+
     isArchived: {
       type: Boolean,
       default: false
@@ -46,7 +51,7 @@ const projectSchema = new mongoose.Schema(
     } 
 
   },
-  { timestamps: true}
+  { timestamps: true, collection: "projects" }
 );
 
 projectSchema.index({ owner: 1, isArchived: 1, updatedAt: -1 });

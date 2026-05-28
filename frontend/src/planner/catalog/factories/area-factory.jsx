@@ -3,6 +3,7 @@ import { createArea, updatedArea } from './area-factory-3d';
 import * as SharedStyle from '../../shared-style';
 import Translator from '../../translator/translator';
 import { computeInsetPolygon } from './area-utils';
+import { resolvePlannerTextureDefinition } from '../utils/cloud-texture-registry';
 
 let translator = new Translator();
 
@@ -75,42 +76,71 @@ export default function AreaFactory(name, info, textures) {
         });
       });
 
-      if (element.selected) {
-        return <path d={path} fill={SharedStyle.AREA_MESH_COLOR.selected} />;
-      }
-
       // Show applied texture as a tiled SVG pattern in 2D
       const textureKey = element.properties.get ? element.properties.get('texture') : element.properties.texture;
-      const textureData = textureKey && textureKey !== 'none' && textures[textureKey];
+      const textureData =
+        textureKey &&
+        textureKey !== 'none' &&
+        resolvePlannerTextureDefinition(textureKey, {
+          targetType: 'floor',
+          fallbackTextures: areaElement.textures || textures,
+        });
+
+      if (textureKey && textureKey !== 'none' && !textureData) {
+        console.error('[PlannerTextures][Trace] Failed to resolve 2D floor texture', {
+          textureKey,
+          areaId: element.id,
+        });
+      }
 
       if (textureData) {
         // Convert lengthRepeatScale to tile size in scene units:
         // e.g. scale=0.004 → 1/0.004 = 250 scene-units per repeat
-        const tileSize = Math.round(1 / (textureData.lengthRepeatScale || 0.01));
-        const patternId = `area-tex-${element.id}`;
+        const repeatScale =
+          textureData.lengthRepeatScale ||
+          textureData.rendering?.lengthRepeatScale ||
+          0.01;
+        const tileSize = Math.max(24, Math.round(1 / repeatScale));
+        const patternId = `area-tex-${String(element.id).replace(/[^a-zA-Z0-9_-]/g, '-')}`;
+        const textureImage =
+          textureData.thumbnailUrl || textureData.uri || textureData.maps?.Color;
 
         return (
           <g>
             <defs>
               <pattern id={patternId} patternUnits="userSpaceOnUse" width={tileSize} height={tileSize}>
-                <image href={textureData.uri} x="0" y="0" width={tileSize} height={tileSize} preserveAspectRatio="xMidYMid slice" />
+                <image href={textureImage} x="0" y="0" width={tileSize} height={tileSize} preserveAspectRatio="xMidYMid slice" />
               </pattern>
             </defs>
             <path d={path} fill={`url(#${patternId})`} />
+            {element.selected && (
+              <path
+                d={path}
+                fill="none"
+                stroke={SharedStyle.AREA_MESH_COLOR.selected}
+                strokeWidth="6"
+                vectorEffect="non-scaling-stroke"
+              />
+            )}
           </g>
         );
       }
 
       // No texture selected — neutral light floor colour
-      return <path d={path} fill="#f0ede8" />;
+      return (
+        <path
+          d={path}
+          fill={element.selected ? SharedStyle.AREA_MESH_COLOR.selected : '#f0ede8'}
+        />
+      );
     },
 
     render3D: function (element, layer, scene) {
-      return createArea(element, layer, scene, textures)
+      return createArea(element, layer, scene, areaElement.textures || textures)
     },
 
     updateRender3D: (element, layer, scene, mesh, oldElement, differences, selfDestroy, selfBuild) => {
-      return updatedArea(element, layer, scene, textures, mesh, oldElement, differences, selfDestroy, selfBuild);
+      return updatedArea(element, layer, scene, areaElement.textures || textures, mesh, oldElement, differences, selfDestroy, selfBuild);
     }
 
   };
@@ -127,7 +157,7 @@ export default function AreaFactory(name, info, textures) {
     }
 
     areaElement.properties.texture = {
-      label: translator.t('texture'),
+      label: translator.t('Finishes'),
       type: 'enum',
       defaultValue: 'none',
       values: textureValues

@@ -2,7 +2,6 @@
 import * as Three from 'three';
 import {
   pointsDistance,
-  angleBetweenTwoPoints,
 } from './geometry';
 
 // Footprint cache — keyed by mesh reference so it auto-clears on mesh rebuild
@@ -200,6 +199,45 @@ export function getWallRotation(x1, z1, x2, z2, normal) {
   return { wallAngle, suggestedRotation };
 }
 
+function getWallSnapOffset(wall, dragFootprint, suggestedRotation, wallOffset = 0) {
+  if (dragFootprint) {
+    const rotFP = rotatedFootprint(dragFootprint, suggestedRotation);
+    return (wall.thickness || 0) * 0.5 + rotFP.halfDepth;
+  }
+
+  return (wall.thickness || 0) * 0.5 + wallOffset;
+}
+
+function buildWallSnapResult(wall, closestX, closestZ, queryX, queryZ, dragFootprint = null, wallOffset = 0) {
+  const normal = getWallNormal(wall.x1, wall.z1, wall.x2, wall.z2, queryX, queryZ);
+  const { wallAngle, suggestedRotation } = getWallRotation(
+    wall.x1,
+    wall.z1,
+    wall.x2,
+    wall.z2,
+    normal,
+  );
+  const totalOffset = getWallSnapOffset(
+    wall,
+    dragFootprint,
+    suggestedRotation,
+    wallOffset,
+  );
+
+  return {
+    x: closestX + normal.nx * totalOffset,
+    z: closestZ + normal.nz * totalOffset,
+    wallX: closestX,
+    wallZ: closestZ,
+    type: SNAP_3D_WALL,
+    wall,
+    distance: pointsDistance(queryX, queryZ, closestX, closestZ),
+    normal,
+    wallAngle,
+    suggestedRotation,
+  };
+}
+
 // ─── Scene data extraction ────────────────────────────────────────────────────
 
 /** Simple per-frame cache so repeated calls in the same event don't re-walk
@@ -307,35 +345,15 @@ export function snapToWalls(x, z, walls, snapDistance, wallOffset = 0, dragFootp
     const seg = distanceToLineSegment(x, z, wall.x1, wall.z1, wall.x2, wall.z2);
     if (seg.distance < snapDistance && seg.distance < bestDist) {
       bestDist = seg.distance;
-
-      const normal = getWallNormal(wall.x1, wall.z1, wall.x2, wall.z2, x, z);
-      const { wallAngle, suggestedRotation } = getWallRotation(
-        wall.x1, wall.z1, wall.x2, wall.z2, normal
-      );
-
-      // When we have the dragged item's footprint, compute the depth using
-      // the *suggested* rotation so the back face sits flush with the wall
-      // surface (wall thickness/2 outward from the center-line).
-      let totalOffset;
-      if (dragFootprint) {
-        const rotFP = rotatedFootprint(dragFootprint, suggestedRotation);
-        totalOffset = (wall.thickness || 0) * 0.5 + rotFP.halfDepth;
-      } else {
-        totalOffset = (wall.thickness || 0) * 0.5 + wallOffset;
-      }
-
-      bestSnap = {
-        x: seg.closestX + normal.nx * totalOffset,
-        z: seg.closestZ + normal.nz * totalOffset,
-        wallX: seg.closestX,
-        wallZ: seg.closestZ,
-        type: SNAP_3D_WALL,
+      bestSnap = buildWallSnapResult(
         wall,
-        distance: seg.distance,
-        normal,
-        wallAngle,
-        suggestedRotation,
-      };
+        seg.closestX,
+        seg.closestZ,
+        x,
+        z,
+        dragFootprint,
+        wallOffset,
+      );
     }
   }
 
@@ -386,33 +404,17 @@ export function snapToItems(x, z, items, snapDistance, dragFootprint = null, sce
     : null;
 
   for (const item of items) {
-    // Try edge-to-edge snap when we have footprint info
-    if (dragFP) {
-      const otherFP = _getOtherFootprint(item, sceneGraph);
-      const edgeSnap = _edgeSnap(x, z, dragFP, item, otherFP, snapDistance);
-      if (edgeSnap && edgeSnap.distance < bestDist) {
-        bestDist = edgeSnap.distance;
-        bestSnap = edgeSnap;
-      }
-      continue; // skip legacy path when we have BB info
-    }
-
-    // Legacy center-based fallback
-    const dx = Math.abs(x - item.x);
-    const dz = Math.abs(z - item.z);
-
-    if (dx < bestDist && dx < dz) {
-      bestDist = dx;
-      bestSnap = { x: item.x, z, type: SNAP_3D_ITEM, item, alignment: 'x', distance: dx };
-    }
-    if (dz < bestDist && dz <= dx) {
-      bestDist = dz;
-      bestSnap = { x, z: item.z, type: SNAP_3D_ITEM, item, alignment: 'z', distance: dz };
-    }
-    const cDist = Math.sqrt(dx * dx + dz * dz);
-    if (cDist < bestDist) {
-      bestDist = cDist;
-      bestSnap = { x: item.x, z: item.z, type: SNAP_3D_ITEM, item, alignment: 'center', distance: cDist };
+    const itemSnap = _snapToTargetItem(
+      x,
+      z,
+      item,
+      snapDistance,
+      dragFP,
+      sceneGraph,
+    );
+    if (itemSnap && itemSnap.distance < bestDist) {
+      bestDist = itemSnap.distance;
+      bestSnap = itemSnap;
     }
   }
 
@@ -426,6 +428,52 @@ function _getOtherFootprint(item, sceneGraph) {
   if (!mesh) return { halfWidth: 15, halfDepth: 15 };
   const local = computeItemFootprint(mesh);
   return rotatedFootprint(local, item.rotation * Math.PI / 180);
+}
+
+function _snapToTargetItem(x, z, item, snapDistance, dragFootprint = null, sceneGraph = null) {
+  if (dragFootprint) {
+    const otherFP = _getOtherFootprint(item, sceneGraph);
+    return _edgeSnap(x, z, dragFootprint, item, otherFP, snapDistance);
+  }
+
+  const dx = Math.abs(x - item.x);
+  const dz = Math.abs(z - item.z);
+  const cDist = Math.sqrt(dx * dx + dz * dz);
+
+  if (dx < snapDistance && dx < dz) {
+    return {
+      x: item.x,
+      z,
+      type: SNAP_3D_ITEM,
+      item,
+      alignment: 'x',
+      distance: dx,
+    };
+  }
+
+  if (dz < snapDistance && dz <= dx) {
+    return {
+      x,
+      z: item.z,
+      type: SNAP_3D_ITEM,
+      item,
+      alignment: 'z',
+      distance: dz,
+    };
+  }
+
+  if (cDist < snapDistance) {
+    return {
+      x: item.x,
+      z: item.z,
+      type: SNAP_3D_ITEM,
+      item,
+      alignment: 'center',
+      distance: cDist,
+    };
+  }
+
+  return null;
 }
 
 // Edge-to-edge snap between the dragged item (at x,z with dragFP) and a
@@ -582,7 +630,16 @@ function _priorityWeight(type, surfaceHint) {
  * *keep* snapping (with the larger release distance).  Returns the updated
  * snap result or null if we should release.
  */
-function _tryMaintainSnap(x, z, scene, config, snapState, dragFP = null, surfaceHint = null) {
+function _tryMaintainSnap(
+  x,
+  z,
+  scene,
+  config,
+  snapState,
+  dragFP = null,
+  surfaceHint = null,
+  sceneGraph = null,
+) {
   if (!_surfaceAllowsSnapType(surfaceHint, snapState.activeType)) return null;
 
   if (snapState.activeType === SNAP_3D_WALL && snapState.activeTarget != null) {
@@ -594,32 +651,15 @@ function _tryMaintainSnap(x, z, scene, config, snapState, dragFP = null, surface
 
     if (!snapState.shouldMaintain(seg.distance, config)) return null;
 
-    // Re-project with same offset logic
-    const normal = getWallNormal(targetWall.x1, targetWall.z1, targetWall.x2, targetWall.z2, x, z);
-    const { wallAngle, suggestedRotation } = getWallRotation(
-      targetWall.x1, targetWall.z1, targetWall.x2, targetWall.z2, normal
+    const snapInfo = buildWallSnapResult(
+      targetWall,
+      seg.closestX,
+      seg.closestZ,
+      x,
+      z,
+      dragFP,
+      config.wallOffset || 0,
     );
-    // Use footprint-aware offset when available (same logic as snapToWalls)
-    let totalOffset;
-    if (dragFP) {
-      const rotFP = rotatedFootprint(dragFP, suggestedRotation);
-      totalOffset = (targetWall.thickness || 0) * 0.5 + rotFP.halfDepth;
-    } else {
-      totalOffset = (targetWall.thickness || 0) * 0.5 + (config.wallOffset || 0);
-    }
-
-    const snapInfo = {
-      x: seg.closestX + normal.nx * totalOffset,
-      z: seg.closestZ + normal.nz * totalOffset,
-      wallX: seg.closestX,
-      wallZ: seg.closestZ,
-      type: SNAP_3D_WALL,
-      wall: targetWall,
-      distance: seg.distance,
-      normal,
-      wallAngle,
-      suggestedRotation,
-    };
 
     snapState.update(SNAP_3D_WALL, targetWall.lineID, snapInfo);
 
@@ -637,19 +677,18 @@ function _tryMaintainSnap(x, z, scene, config, snapState, dragFP = null, surface
     const targetItem = items.find(i => i.itemID === snapState.activeTarget);
     if (!targetItem) return null;
 
-    const dist = pointsDistance(x, z, targetItem.x, targetItem.z);
-    if (!snapState.shouldMaintain(dist, config)) return null;
-
-    // Re-evaluate alignment type based on current position
-    const dx = Math.abs(x - targetItem.x);
-    const dz = Math.abs(z - targetItem.z);
-    let snapInfo;
-    if (dx < dz) {
-      snapInfo = { x: targetItem.x, z, type: SNAP_3D_ITEM, item: targetItem, alignment: 'x', distance: dx };
-    } else if (dz < dx) {
-      snapInfo = { x, z: targetItem.z, type: SNAP_3D_ITEM, item: targetItem, alignment: 'z', distance: dz };
-    } else {
-      snapInfo = { x: targetItem.x, z: targetItem.z, type: SNAP_3D_ITEM, item: targetItem, alignment: 'center', distance: dist };
+    const releaseDistance =
+      config.itemSnapReleaseDistance ?? config.itemSnapDistance * 1.6;
+    const snapInfo = _snapToTargetItem(
+      x,
+      z,
+      targetItem,
+      releaseDistance,
+      dragFP,
+      sceneGraph,
+    );
+    if (!snapInfo || !snapState.shouldMaintain(snapInfo.distance, config)) {
+      return null;
     }
 
     snapState.update(SNAP_3D_ITEM, targetItem.itemID, snapInfo);
@@ -709,7 +748,16 @@ export function applySnapping(
 
   // ── 1. Hysteresis: try to keep the current snap ──────────────────────────
   if (snapState && snapState.activeType !== SNAP_3D_NONE) {
-    const maintained = _tryMaintainSnap(x, z, scene, config, snapState, dragFP, surfaceHint);
+    const maintained = _tryMaintainSnap(
+      x,
+      z,
+      scene,
+      config,
+      snapState,
+      dragFP,
+      surfaceHint,
+      sceneGraph,
+    );
     if (maintained) return maintained;
     snapState.update(SNAP_3D_NONE, null, null);
   }

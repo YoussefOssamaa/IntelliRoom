@@ -23,6 +23,7 @@ const LeftToolbar = ({ activeTab, onTabChange }) => {
           title={t(tool?.label)}
         >
           <Icon name={tool?.icon} size={24} />
+          <span className="toolbar-label-popover">{t(tool?.label)}</span>
         </button>
       ))}
     </div>

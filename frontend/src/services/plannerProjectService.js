@@ -41,12 +41,19 @@ export async function getPlannerUserProfile() {
 export async function savePlannerProject({
   projectId,
   title = 'Untitled Project',
+  projectJson,
   sceneData,
+  data,
+  coverImageUrl,
+  coverUrl,
   thumbnailUrl
 }) {
+  const completeProjectJson = projectJson ?? sceneData ?? data ?? {};
   const payload = {
     title,
-    sceneData,
+    projectJson: completeProjectJson,
+    data: completeProjectJson,
+    coverImageUrl: coverImageUrl ?? coverUrl,
     thumbnailUrl
   };
 

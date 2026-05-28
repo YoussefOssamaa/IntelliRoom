@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import MarketplacePage from './screens/PluginMarketplace';
 import { PricingPlansPage } from './pages/pricingPlans/PricingPlansPage';
 import { PluginReviewPage } from './pages/plugins-review/PluginReviewPage';
@@ -44,7 +44,6 @@ import UsersDashboard from "./pages/admin/UsersDashboard";
 import ManageAdmins from "./pages/admin/ManageAdmins";
 import AdminLogs from "./pages/admin/AdminLogs";
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
-
 const MarketplaceLayout = () => {
   return (
     <ShopProvider>
@@ -168,6 +167,7 @@ const AppRoutes = () => {
         {/* <Route path="/dashboard" element={<DashboardPage />} /> */}
         <Route path="/updateProfile" element={<UpdateProfile />} />
         <Route path="/planner" element={<PlannerPage />} />
+        <Route path="/planner/:projectId" element={<PlannerPage />} />
         <Route path="/community" element={<Community />} />
         <Route path="/checkout" element={<Checkout />} />
       </Routes>

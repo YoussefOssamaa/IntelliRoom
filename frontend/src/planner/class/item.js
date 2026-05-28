@@ -4,7 +4,9 @@ import {
   IDBroker,
   NameGenerator
 } from '../utils/export';
-import { Map, fromJS } from 'immutable';
+import { Map, List, fromJS } from 'immutable';
+import * as SnapUtils from '../utils/snap';
+import * as SnapSceneUtils from '../utils/snap-scene';
 
 import {
   MODE_IDLE,
@@ -15,9 +17,92 @@ import {
   MODE_3D_VIEW
 } from '../constants';
 
+const toRadians = (degrees) => degrees * Math.PI / 180;
+
+const getItemBoundingBoxSize = (item) => ({
+  width: Number(item?.properties?.getIn?.(['width', 'length']) || 200),
+  depth: Number(item?.properties?.getIn?.(['depth', 'length']) || 100),
+});
+
+const getBoundingBoxAnchors = (x, y, width, depth, rotation = 0) => {
+  const halfWidth = width / 2;
+  const halfDepth = depth / 2;
+  const rotationRadians = toRadians(rotation);
+  const cosine = Math.cos(rotationRadians);
+  const sine = Math.sin(rotationRadians);
+
+  const rotatePoint = (localX, localY) => ({
+    x: x + localX * cosine - localY * sine,
+    y: y + localX * sine + localY * cosine,
+  });
+
+  return [
+    { role: 'center', ...rotatePoint(0, 0) },
+    { role: 'top-left', ...rotatePoint(-halfWidth, -halfDepth) },
+    { role: 'top-right', ...rotatePoint(halfWidth, -halfDepth) },
+    { role: 'bottom-right', ...rotatePoint(halfWidth, halfDepth) },
+    { role: 'bottom-left', ...rotatePoint(-halfWidth, halfDepth) },
+    { role: 'top', ...rotatePoint(0, -halfDepth) },
+    { role: 'right', ...rotatePoint(halfWidth, 0) },
+    { role: 'bottom', ...rotatePoint(0, halfDepth) },
+    { role: 'left', ...rotatePoint(-halfWidth, 0) },
+  ];
+};
+
+const applyBoundingBoxSnap = (state, item, x, y) => {
+  const snapElements = state.get('snapElements');
+  if (!state.snapMask || state.snapMask.isEmpty() || !snapElements?.size) {
+    return { x, y, activeSnapElement: null };
+  }
+
+  const { width, depth } = getItemBoundingBoxSize(item);
+  const rotation = Number(item?.rotation || 0);
+  const anchors = getBoundingBoxAnchors(x, y, width, depth, rotation);
+
+  let bestSnap = null;
+  let deltaX = 0;
+  let deltaY = 0;
+
+  anchors.forEach((anchor) => {
+    const snap = SnapUtils.nearestSnap(
+      snapElements,
+      anchor.x,
+      anchor.y,
+      state.snapMask,
+    );
+
+    if (!snap) return;
+
+    if (!bestSnap || snap.point.distance < bestSnap.point.distance) {
+      bestSnap = snap;
+      deltaX = snap.point.x - anchor.x;
+      deltaY = snap.point.y - anchor.y;
+    }
+  });
+
+  return {
+    x: x + deltaX,
+    y: y + deltaY,
+    activeSnapElement: bestSnap ? bestSnap.snap : null,
+  };
+};
+
+const extractPersistedItemData = (drawingSupport) => {
+  const rawItemData =
+    drawingSupport && typeof drawingSupport.get === 'function'
+      ? drawingSupport.get('itemData')
+      : null;
+
+  if (!rawItemData || typeof rawItemData.toJS !== 'function') {
+    return {};
+  }
+
+  return rawItemData.toJS();
+};
+
 class Item{
 
-  static create( state, layerID, type, x, y, width, height, rotation ) {
+  static create( state, layerID, type, x, y, width, height, rotation, itemData = {} ) {
     let itemID = IDBroker.acquireID();
 
     let item = state.catalog.factoryElement(type, {
@@ -30,6 +115,10 @@ class Item{
       y,
       rotation
     });
+
+    if (item && typeof item.merge === 'function' && itemData && Object.keys(itemData).length > 0) {
+      item = item.merge(itemData);
+    }
 
     state = state.setIn(['scene', 'layers', layerID, 'items', itemID], item);
 
@@ -58,11 +147,20 @@ class Item{
     return { updatedState: state };
   }
 
-  static selectToolDrawingItem(state, sceneComponentType) {
+  static selectToolDrawingItem(state, sceneComponentType, itemData = null) {
+    let snapElements = SnapSceneUtils.sceneSnapElements(
+      state.scene,
+      new List(),
+      state.snapMask,
+    );
+
     state = state.merge({
       mode: MODE_DRAWING_ITEM,
+      snapElements,
+      activeSnapElement: null,
       drawingSupport: new Map({
-        type: sceneComponentType
+        type: sceneComponentType,
+        itemData: itemData ? fromJS(itemData) : new Map(),
       })
     });
 
@@ -70,15 +168,39 @@ class Item{
   }
 
   static updateDrawingItem(state, layerID, x, y) {
+    let activeSnapElement = null;
+
     if (state.hasIn(['drawingSupport','currentID'])) {
-      state = state.updateIn(['scene', 'layers', layerID, 'items', state.getIn(['drawingSupport','currentID'])], item => item.merge({x, y}));
+      const currentID = state.getIn(['drawingSupport','currentID']);
+      const currentItem = state.getIn(['scene', 'layers', layerID, 'items', currentID]);
+      ({ x, y, activeSnapElement } = applyBoundingBoxSnap(state, currentItem, x, y));
+      state = state.updateIn(
+        ['scene', 'layers', layerID, 'items', currentID],
+        item => item.merge({x, y})
+      );
     }
     else {
-      let { updatedState: stateI, item } = this.create( state, layerID, state.getIn(['drawingSupport','type']), x, y, 200, 100, 0);
+      let { updatedState: stateI, item } = this.create(
+        state,
+        layerID,
+        state.getIn(['drawingSupport','type']),
+        x,
+        y,
+        200,
+        100,
+        0,
+        extractPersistedItemData(state.get('drawingSupport')),
+      );
+      ({ x, y, activeSnapElement } = applyBoundingBoxSnap(stateI, item, x, y));
+      stateI = stateI.updateIn(
+        ['scene', 'layers', layerID, 'items', item.id],
+        currentItem => currentItem.merge({x, y})
+      );
       state = Item.select( stateI, layerID, item.id ).updatedState;
       state = state.setIn(['drawingSupport','currentID'], item.id);
     }
 
+    state = state.set('activeSnapElement', activeSnapElement);
     return { updatedState: state };
   }
 
@@ -87,8 +209,10 @@ class Item{
     state = this.updateDrawingItem(state, layerID, x, y, catalog).updatedState;
     state = Layer.unselectAll( state, layerID ).updatedState;
     state =  state.merge({
+      activeSnapElement: null,
       drawingSupport: Map({
-        type: state.drawingSupport.get('type')
+        type: state.drawingSupport.get('type'),
+        itemData: state.drawingSupport.get('itemData') || new Map(),
       })
     });
 
@@ -98,9 +222,12 @@ class Item{
   static beginDraggingItem(state, layerID, itemID, x, y) {
 
     let item = state.getIn(['scene', 'layers', layerID, 'items', itemID]);
+    let snapElements = SnapSceneUtils.sceneSnapElements(state.scene, new List(), state.snapMask);
 
     state = state.merge({
       mode: MODE_DRAGGING_ITEM,
+      snapElements,
+      activeSnapElement: null,
       draggingSupport: Map({
         layerID,
         itemID,
@@ -133,7 +260,22 @@ class Item{
       y: originalY - diffY
     });
 
+    let activeSnapElement = null;
+    let snappedX = item.x;
+    let snappedY = item.y;
+    ({
+      x: snappedX,
+      y: snappedY,
+      activeSnapElement,
+    } = applyBoundingBoxSnap(state, item, item.x, item.y));
+
+    item = item.merge({
+      x: snappedX,
+      y: snappedY,
+    });
+
     state = state.merge({
+      activeSnapElement,
       scene: scene.mergeIn(['layers', layerID, 'items', itemID], item)
     });
 
@@ -142,7 +284,7 @@ class Item{
 
   static endDraggingItem(state, x, y) {
     state = this.updateDraggingItem(state, x, y).updatedState;
-    state = state.merge({ mode: MODE_IDLE });
+    state = state.merge({ mode: MODE_IDLE, activeSnapElement: null, snapElements: new List() });
 
     return { updatedState: state };
   }

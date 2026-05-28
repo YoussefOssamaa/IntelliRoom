@@ -1,6 +1,6 @@
 import express from 'express';
 import dotenv from "dotenv";  //to import the variables declared in "/backend/.env" file 
-dotenv.config(); // used here, only once to load the variables from .env file into process.env
+dotenv.config({ override: true }); // طلع عين امي عشان اعرف البج جاي منين فسيب الoverride true
 import connectDB from "./config/db.js";
 import ecommerceIndex from './routes/ecommerceRoutes/ecommerceIndex.js';
 import loginIndex from './routes/loginRoutes/loginIndex.js';
@@ -41,7 +41,6 @@ const COMFYUI_HOST = process.env.COMFYUI_HOST || 'localhost:8188';
 
 const app = express();
 app.set('trust proxy', 1);
-
 
 await connectDB();
 app.use(express.json());

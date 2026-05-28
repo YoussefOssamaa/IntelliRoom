@@ -360,3 +360,86 @@
   border-color: #2563eb;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
+
+.right-panel-container {
+  width: clamp(286px, 23vw, 360px);
+  gap: 10px;
+  padding: 10px 10px 16px 0;
+  font-family: Inter, "SF Pro Display", "Segoe UI", system-ui, sans-serif;
+}
+
+.properties-panel,
+.inspector-dock-panel {
+  border: 1px solid #e2e8f0;
+  border-right: 0;
+  border-radius: 12px 0 0 12px;
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 18px 42px -30px rgba(15, 23, 42, 0.5);
+  overflow: hidden;
+}
+
+.properties-panel.collapsed {
+  flex: 0 0 auto;
+}
+
+.inspector-dock-panel {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.preview-dock-panel.collapsed {
+  min-height: 42px;
+}
+
+.properties-header {
+  min-height: 44px;
+  padding: 9px 12px;
+  border-bottom-color: #e6edf5;
+}
+
+.properties-title {
+  font-size: 15px;
+}
+
+.inspector-collapse-btn,
+.properties-collapse-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #d9e2ec;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #64748b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 160ms ease-out, color 160ms ease-out, border-color 160ms ease-out;
+}
+
+.inspector-collapse-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 4;
+}
+
+.inspector-collapse-btn:hover,
+.properties-collapse-btn:hover {
+  background: #edf4fb;
+  color: #0f172a;
+  border-color: #c8d5e4;
+}
+
+.tab-btn {
+  transition: background-color 160ms ease-out, color 160ms ease-out, border-color 160ms ease-out;
+}
+
+.properties-section,
+.floor-info-section {
+  padding: 12px;
+}
+
+.info-card {
+  border-color: #e2e8f0;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.035);
+}

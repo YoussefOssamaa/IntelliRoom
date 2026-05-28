@@ -1,4 +1,4 @@
-import { Map, List } from 'immutable';
+import { Map, List, fromJS } from 'immutable';
 import { Item } from '../class/export';
 import { history } from '../utils/export';
 import {
@@ -28,7 +28,11 @@ export default function (state, action) {
 
     case SELECT_TOOL_DRAWING_ITEM:
       // No history push here — recorded in END_DRAWING_ITEM after item is placed.
-      return Item.selectToolDrawingItem(state, action.sceneComponentType).updatedState;
+      return Item.selectToolDrawingItem(
+        state,
+        action.sceneComponentType,
+        action.itemData,
+      ).updatedState;
 
     case UPDATE_DRAWING_ITEM:
       return Item.updateDrawingItem(state, action.layerID, action.x, action.y).updatedState;
@@ -47,7 +51,8 @@ export default function (state, action) {
       state = state.merge({
         mode: MODE_DRAWING_ITEM_3D,
         drawingSupport: new Map({
-          type: action.sceneComponentType
+          type: action.sceneComponentType,
+          itemData: action.itemData ? fromJS(action.itemData) : new Map(),
         })
       });
       return state;

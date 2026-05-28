@@ -139,12 +139,25 @@ export class Item extends Record({
   prototype: 'items',            // Always 'items' for furniture/object elements
   x: 0,                          // e.g., 500.5 - horizontal center position in cm (or current unit)
   y: 0,                          // e.g., 300.0 - vertical center position in cm (or current unit)
-  rotation: 0                    // e.g., 90 - rotation angle in degrees (0-360, where 0 = facing right)
+  rotation: 0,                   // e.g., 90 - rotation angle in degrees (0-360, where 0 = facing right)
+  assetId: '',                   // e.g., backend asset document id for database-driven 3D items
+  assetType: '',                 // e.g., normalized backend asset type token
+  displayName: '',               // e.g., user-facing asset title from the backend
+  category: '',                  // e.g., living_room, office
+  // subCategory: '',               // e.g., seating, tables
+  sub_category: '',              // e.g., seating, tables
+  modelUrl: '',                  // e.g., immutable GLB/GLTF URL stored in the backend
+  thumbnailUrl: '',              // e.g., backend-hosted thumbnail used in sidebars/fallback UI
+  topViewUrl: '',                // e.g., backend-hosted top-view image for 2D rendering
+  metadata: new Map(),           // e.g., backend dimensions/tags payload for streaming and scaling
+  asset: new Map(),              // e.g., compact copy of the backend asset document
 }, 'Item') {
   constructor(json = {}) {
     super({
       ...json,
-      properties: fromJS(json.properties || {})
+      properties: fromJS(json.properties || {}),
+      metadata: fromJS(json.metadata || {}),
+      asset: fromJS(json.asset || {})
     });
   }
 }

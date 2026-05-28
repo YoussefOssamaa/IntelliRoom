@@ -1,15 +1,12 @@
 import {
   Shape,
   MeshPhongMaterial,
+  MeshStandardMaterial,
   ShapeGeometry,
   Box3,
-  TextureLoader,
-  BackSide,
-  FrontSide,
   Object3D,
   Mesh,
   MeshBasicMaterial,
-  RepeatWrapping,
   Vector2,
   DoubleSide,
   Float32BufferAttribute,
@@ -18,6 +15,12 @@ import {
 } from 'three';
 import * as SharedStyle from '../../shared-style';
 import { computeInsetPolygon } from './area-utils';
+import {
+  applyPlannerTextureToMaterial,
+  ensureGeometrySupportsAmbientOcclusion,
+  markMaterialTextureRequest,
+} from '../utils/texture-map-loader';
+import { resolvePlannerTextureDefinition } from '../utils/cloud-texture-registry';
 
 /**
  * Apply a texture to a wall face
@@ -25,37 +28,6 @@ import { computeInsetPolygon } from './area-utils';
  * @param texture: The texture to load
  * @param length: The lenght of the face
  * @param height: The height of the face
- */
-const applyTexture = (material, texture, length, height) => {
-  let loader = new TextureLoader();
-
-  if (texture) {
-    loader.load(texture.uri, (loadedTexture) => {
-      // Configure and assign texture after it loads
-      loadedTexture.wrapS = RepeatWrapping;
-      loadedTexture.wrapT = RepeatWrapping;
-      loadedTexture.repeat.set(length * texture.lengthRepeatScale, height * texture.heightRepeatScale);
-      material.map = loadedTexture;
-      material.needsUpdate = true;
-    });
-
-    if (texture.normal) {
-      loader.load(texture.normal.uri, (loadedTexture) => {
-        // Configure and assign normal map after it loads
-        loadedTexture.wrapS = RepeatWrapping;
-        loadedTexture.wrapT = RepeatWrapping;
-        loadedTexture.repeat.set(length * texture.normal.lengthRepeatScale, height * texture.normal.heightRepeatScale);
-        material.normalMap = loadedTexture;
-        material.normalScale = new Vector2(texture.normal.normalScaleX, texture.normal.normalScaleY);
-        material.needsUpdate = true;
-      });
-    }
-  }
-};
-
-/**
- * Function that assign UV coordinates to a geometry
- * @param geometry - BufferGeometry
  */
 const assignUVs = (geometry) => {
   geometry.computeBoundingBox();
@@ -85,6 +57,8 @@ const assignUVs = (geometry) => {
 };
 
 export function createArea(element, layer, scene, textures) {
+  const FLOOR_TEXTURE_SURFACE_OFFSET = 0.25;
+
   // Gather raw vertices (Immutable Records have .x, .y, .id)
   let rawVertices = [];
   element.vertices.forEach(vertexID => {
@@ -112,7 +86,16 @@ export function createArea(element, layer, scene, textures) {
 
   // Ensure color is a THREE.Color instance for modern three.js
   const areaColor = color instanceof Color ? color : new Color(color);
-  let floorMaterial = new MeshPhongMaterial({ side: DoubleSide, color: areaColor, map: null });
+  let floorMaterial = new MeshStandardMaterial({
+    side: DoubleSide,
+    color: areaColor,
+    roughness: 1,
+    metalness: 0,
+  });
+  floorMaterial.polygonOffset = true;
+  floorMaterial.polygonOffsetFactor = 1;
+  floorMaterial.polygonOffsetUnits = 1;
+  let floorTopMaterial = floorMaterial;
   let ceilingMaterial = new MeshPhongMaterial({ side: DoubleSide, color: new Color(0xf5f5f5), map: null });
 
   /* Create holes for the area */
@@ -135,7 +118,17 @@ export function createArea(element, layer, scene, textures) {
   let width = boundingBox.max.x - boundingBox.min.x;
   let height = boundingBox.max.y - boundingBox.min.y;
 
-  let texture = textures[textureName];
+  let texture = resolvePlannerTextureDefinition(textureName, {
+    targetType: 'floor',
+    fallbackTextures: textures,
+  });
+
+  if (textureName && textureName !== 'none' && !texture) {
+    console.error('[PlannerTextures][Trace] Failed to resolve floor texture', {
+      textureName,
+      areaId: element.id,
+    });
+  }
 
   // Create floor with actual 3D thickness using ExtrudeGeometry
   // Bottom at y=0, top at floorThickness (where it meets the wall slab)
@@ -146,11 +139,8 @@ export function createArea(element, layer, scene, textures) {
   
   let floorGeometry = new ExtrudeGeometry(shape, extrudeSettings);
   
-  // Assign UVs to the extruded geometry for texture mapping
-  assignUVs(floorGeometry);
-  
-  // Apply texture to floor material AFTER geometry is created
-  applyTexture(floorMaterial, texture, width, height);
+  // The slab keeps a plain material. A separate top plane carries the floor
+  // texture so it never wraps around the slab sides or bottom.
   
   let floor = new Mesh(floorGeometry, floorMaterial);
   
@@ -158,6 +148,27 @@ export function createArea(element, layer, scene, textures) {
   floor.rotation.x = -Math.PI / 2;
   floor.position.y = 0; // Position so top is at floorThickness, extruded downward
   floor.name = 'floor';
+
+  let floorTop = null;
+  if (texture) {
+    floorTopMaterial = new MeshStandardMaterial({
+      side: DoubleSide,
+      color: areaColor,
+      roughness: 1,
+      metalness: 0,
+    });
+    floorTopMaterial.polygonOffset = true;
+    floorTopMaterial.polygonOffsetFactor = -2;
+    floorTopMaterial.polygonOffsetUnits = -8;
+
+    const floorTopGeometry = shapeGeometry.clone();
+    ensureGeometrySupportsAmbientOcclusion(floorTopGeometry);
+    floorTop = new Mesh(floorTopGeometry, floorTopMaterial);
+    floorTop.rotation.x = -Math.PI / 2;
+    floorTop.position.y = floorThickness + FLOOR_TEXTURE_SURFACE_OFFSET;
+    floorTop.renderOrder = 2;
+    floorTop.name = 'floor-top';
+  }
 
   // Create ceiling as thin plane
   let ceiling = new Mesh(shapeGeometry.clone(), ceilingMaterial);
@@ -168,7 +179,22 @@ export function createArea(element, layer, scene, textures) {
   // Create group to hold both floor and ceiling
   let areaGroup = new Object3D();
   areaGroup.add(floor);
+  if (floorTop) {
+    areaGroup.add(floorTop);
+  }
   areaGroup.add(ceiling);
+
+  if (texture) {
+    const requestToken = markMaterialTextureRequest(floorTopMaterial);
+    applyPlannerTextureToMaterial(
+      floorTopMaterial,
+      texture,
+      { width, height },
+      requestToken,
+    ).catch((error) => {
+      console.warn('[AreaFactory] Texture application failed:', texture?.id || textureName, error);
+    });
+  }
 
   return Promise.resolve(areaGroup);
 }
@@ -176,11 +202,13 @@ export function createArea(element, layer, scene, textures) {
 export function updatedArea( element, layer, scene, textures, mesh, oldElement, differences, selfDestroy, selfBuild ) {
   let noPerf = () => { selfDestroy(); return selfBuild(); };
   let floor = mesh.getObjectByName('floor');
+  let floorTop = mesh.getObjectByName('floor-top');
   let ceiling = mesh.getObjectByName('ceiling');
 
   if( differences[0] == 'selected' ) {
     let color = element.selected ? SharedStyle.AREA_MESH_COLOR.selected : SharedStyle.AREA_MESH_COLOR.unselected;
     if (floor) floor.material.color.set( color );
+    if (floorTop && !floorTop.material.map) floorTop.material.color.set(color);
   }
   else if( differences[0] == 'properties' ){
     // If thickness or height properties changed, rebuild

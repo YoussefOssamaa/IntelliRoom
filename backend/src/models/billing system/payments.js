@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+// /workspace/backend/src/models/billing system/payments.js
 
 const paymentSchema = new mongoose.Schema(
   {
@@ -11,18 +11,18 @@ const paymentSchema = new mongoose.Schema(
     subscriptionId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Subscription",
-      required: true,
+      required: false, // Optional for failed payments without subscription
       index: true,
     },
     provider: {
       type: String,
       required: true,
-      enum: ["paymob", "kashier", "manual"], // ضفنا بيموب
-      default: "paymob",
+      enum: ["fawaterak", "kashier", "manual"], // Changed from paymob to fawaterak
+      default: "fawaterak",
       trim: true,
       lowercase: true,
     },
-    // الـ Transaction ID اللي راجع من بيموب بعد الدفع
+    // Fawaterak transaction ID
     providerTransactionId: {
       type: String,
       required: true,
@@ -30,15 +30,16 @@ const paymentSchema = new mongoose.Schema(
       trim: true,
       index: true,
     },
-    // بيموب بيحتاج يعمل Order الأول، فهنحفظ الـ Order ID هنا عشان نربطهم ببعض
-    paymobOrderId: {
+    // Replace paymobOrderId with fawaterkOrderId
+    fawaterkOrderId: {
       type: String,
       trim: true,
+      index: true,
     },
     status: {
       type: String,
       required: true,
-      enum: ["pending", "paid", "failed", "refunded", "voided"], // ضفنا voided بتاعت بيموب
+      enum: ["pending", "paid", "failed", "refunded", "cancelled"],
       default: "pending",
       index: true,
     },
@@ -49,7 +50,7 @@ const paymentSchema = new mongoose.Schema(
     },
     currency: {
       type: String,
-      enum: ["EGP", "USD"], // التركيز على الجنيه المصري
+      enum: ["EGP", "USD"],
       required: true,
       default: "EGP",
       uppercase: true,
@@ -57,6 +58,15 @@ const paymentSchema = new mongoose.Schema(
     },
     paidAt: {
       type: Date,
+    },
+    // Fawaterak-specific fields
+    fawaterkPaymentMethodId: {
+      type: String,
+      trim: true,
+    },
+    fawaterkCustomerId: {
+      type: String,
+      trim: true,
     },
   },
   { timestamps: true }

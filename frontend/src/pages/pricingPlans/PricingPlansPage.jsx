@@ -4,12 +4,33 @@ import Header from '../../pages/dashboard/Header';
 import Footer from '../../components/common/Footer';
 import { Navigate } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import { subscribeToPlan } from '../../services/subscriptionService';
 
 
 
 export function PricingPlansPage() {
   const [isAnnual, setIsAnnual] = useState(false);
+  const [loadingPlan, setLoadingPlan] = useState(null);
   const navigate = useNavigate();
+
+  const handleSubscribe = async (planName) => {
+    setLoadingPlan(planName);
+    try {
+      if (planName.toLowerCase() === 'pro') {
+        // Use hardcoded MongoDB ID for testing the Pro plan
+        const response = await subscribeToPlan("69ee08f3e0b9782218f35244", "monthly");
+        if (response?.checkoutUrl) {
+          window.location.href = response.checkoutUrl;
+          return;
+        }
+      } else {
+        navigate("/checkout");
+      }
+    } catch (error) {
+      console.error("Subscription failed:", error);
+    }
+    setLoadingPlan(null);
+  };
 
   const plans = [
     {
@@ -144,7 +165,12 @@ export function PricingPlansPage() {
               ))}
             </ul>
 
-            <button className="cta-button" onClick={()=> navigate("/checkout")  } >Choose {plan.name}</button>
+            {/* OLD NAVIGATION LOGIC (Kept for reference) */}
+            {/* <button className="cta-button" onClick={()=> navigate("/checkout")  } >Choose {plan.name}</button> */}
+            
+            <button className="cta-button" onClick={() => handleSubscribe(plan.name)} disabled={loadingPlan === plan.name}>
+              {loadingPlan === plan.name ? 'Processing...' : `Choose ${plan.name}`}
+            </button>
           </div>
         ))}
       </div>

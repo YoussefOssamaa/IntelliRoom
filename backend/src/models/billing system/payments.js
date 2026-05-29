@@ -1,4 +1,5 @@
 // /workspace/backend/src/models/billing system/payments.js
+import mongoose from 'mongoose';
 
 const paymentSchema = new mongoose.Schema(
   {
@@ -25,7 +26,7 @@ const paymentSchema = new mongoose.Schema(
     // Fawaterak transaction ID
     providerTransactionId: {
       type: String,
-      required: true,
+      required: false,
       unique: true,
       trim: true,
       index: true,

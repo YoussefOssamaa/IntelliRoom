@@ -1,4 +1,5 @@
 // /workspace/backend/src/models/billing system/Subscription.js
+import mongoose from 'mongoose';
 
 const subscriptionSchema = new mongoose.Schema(
   {

@@ -5,7 +5,7 @@ import Usage from '../../models/billing system/usage.js';
 import User from '../../models/user.js'; 
 
 // الرابط الأساسي لفواتيرك (استخدم staging في التطوير، و app.fawaterk.com في الإنتاج)
-const FAWATERK_BASE_URL = 'https://staging.fawaterk.com/api/v2';
+const FAWATERK_BASE_URL = process.env.FAWATERK_BASE_URL || 'https://staging.fawaterk.com/api/v2';
 
 export const getMySubscription = async (req, res) => { 
     try { 

@@ -33,7 +33,7 @@ export const seedAccounts = async () => {
             { user_name: 'user_free_2', email: 'free2@system.com', password: hashedUserPassword, firstName: 'Mona', lastName: 'Free', plan: 'free' },
             { user_name: 'user_pro_1', email: 'pro1@system.com', password: hashedUserPassword, firstName: 'Omar', lastName: 'Pro', plan: 'pro' },
             { user_name: 'user_pro_2', email: 'pro2@system.com', password: hashedUserPassword, firstName: 'Sara', lastName: 'Pro', plan: 'pro' },
-            { user_name: 'user_business_1', email: 'business1@system.com', password: hashedUserPassword, firstName: 'Tarek', lastName: 'Business', plan: 'business' }
+            { user_name: 'user_enterprise_1', email: 'enterprise1@system.com', password: hashedUserPassword, firstName: 'Tarek', lastName: 'Enterprise', plan: 'enterprise' }
         ];
         await User.create(usersData);
 
@@ -53,7 +53,7 @@ export const clearAccounts = async () => {
             'free2@system.com', 
             'pro1@system.com', 
             'pro2@system.com', 
-            'business1@system.com'
+            'enterprise1@system.com'
         ];
 
         await Admin.deleteMany({ email: { $in: adminEmails } });
@@ -70,8 +70,8 @@ const runSeeder = async () => {
         await mongoose.connect('mongodb://devuser:devpass@mongo:27017/intelliroomdb?authSource=admin'); 
         console.log('✅ Connected to MongoDB');
 
-        // await seedAccounts(); 
-        await clearAccounts();
+        await seedAccounts(); 
+        // await clearAccounts();
         
         await mongoose.disconnect();
         console.log('🔌 Disconnected from MongoDB');

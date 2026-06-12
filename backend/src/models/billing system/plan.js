@@ -1,4 +1,5 @@
 // /workspace/backend/src/models/billing system/plan.js
+import mongoose from 'mongoose';
 
 const planSchema = new mongoose.Schema(
   {

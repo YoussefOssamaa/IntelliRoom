@@ -1,4 +1,5 @@
 // /workspace/backend/src/models/billing system/payments.js
+import mongoose from 'mongoose';
 
 const paymentSchema = new mongoose.Schema(
   {

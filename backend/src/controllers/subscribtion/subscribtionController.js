@@ -446,3 +446,11 @@ export const fawaterkWebhook = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+
+
+export const createPaymobCheckout = async (req, res) => {
+}
+export const paymobWebhook = async (req, res) => {
+}
+ 

@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../utils/authContext.jsx';
+
 
 interface NavigationProps {
   progress: number;
@@ -7,7 +9,19 @@ interface NavigationProps {
 
 export default function Navigation({ progress }: NavigationProps) {
   const [scrolled, setScrolled] = useState(false);
+  const { isLoggedIn, user, logout } = useAuth();
+
   const navigate = useNavigate();
+
+
+  const handleSubmit = () => {
+    navigate("/login");
+
+  }
+  /*const handleLogutAction = () => {
+    logout();
+    navigate("/login");
+  } */
 
   useEffect(() => {
     const handleScroll = () => {
@@ -40,7 +54,7 @@ export default function Navigation({ progress }: NavigationProps) {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <button
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            onClick={() => navigate("/")}
             className="font-display text-lg font-bold tracking-tight text-text-primary hover:opacity-70 transition-opacity"
           >
             IntelliRoom
@@ -69,22 +83,45 @@ export default function Navigation({ progress }: NavigationProps) {
 
             {/* Auth Buttons */}
             <div className="flex items-center gap-4">
-              {/* Login -> "Enter" or "Access" */}
-              <button
-                className="font-body text-xs uppercase tracking-widest text-text-primary hover:underline underline-offset-4 transition-all"
-                onClick={() => goToPage("/login")}>
-                Access
-              </button>
+              {!isLoggedIn && (
+                <button
+                  className="font-body text-xs uppercase tracking-widest text-text-primary hover:underline underline-offset-4 transition-all"
 
-              {/* Sign Up -> "Join" or "Begin" */}
-              <button
-                className="bg-text-primary text-cream px-6 py-2.5 rounded-full font-body text-xs uppercase tracking-widest hover:bg-opacity-80 transition-all shadow-sm"
-                onClick={() => goToPage("/signUp")}>
-                Join Now
-              </button>
+                  //onClick={() => goToPage("/login")}>
+                  onClick={handleSubmit}>
+                  Access
+                </button>
+              )}
+
+              {!isLoggedIn && (
+                <button
+                  className="bg-text-primary text-cream px-6 py-2.5 rounded-full font-body text-xs uppercase tracking-widest hover:bg-opacity-80 transition-all shadow-sm"
+                  onClick={() => goToPage("/signUp")}>
+                  Join Now
+                </button>
+              )}
+
+              {isLoggedIn && (
+                <div className="flex items-center gap-4">
+                  <span className="font-body text-xs tracking-widest text-text-primary">
+                    {user?.name}
+                  </span>
+                  <button
+                    className="bg-text-primary text-cream px-6 py-2.5 rounded-full font-body text-xs uppercase tracking-widest hover:bg-opacity-80 transition-all shadow-sm"
+                    onClick={() => {
+                      logout();
+                      navigate("/login");
+                    }}
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
+
+
 
         {/* Progress Line */}
         <div className="mt-[2vh] h-[1px] w-full bg-black/5 relative">
@@ -94,6 +131,6 @@ export default function Navigation({ progress }: NavigationProps) {
           />
         </div>
       </div>
-    </nav>
+    </nav >
   );
 }

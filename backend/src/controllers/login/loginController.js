@@ -51,7 +51,16 @@ export const registerHandler = async (req, res) => {
             user_name,
             password: hashedPassword
         })
-        return res.status(201).json({ success: true, message: "User registered successfully." })
+        return res.status(201).json({ success: true,
+             message: "User registered successfully.",
+             user: {
+                    email: logging_user.email,
+                    firstName: logging_user.firstName,
+                    lastName: logging_user.lastName,
+                    user_name: logging_user.user_name,
+                    plan: logging_user.plan,
+                    credits: logging_user.credits
+                } })
 
     } catch (e) {
         console.log(e.message);
@@ -138,7 +147,17 @@ export const loginHandler = async (req, res) => {
         return res.status(200)
             .cookie("Authentication", authToken, authCookieOptions)
             .cookie("Refresh", refreshToken, refreshCookieOptions)
-            .json({ success: true, message: "logged in successfully" })
+            .json({ success: true,
+                 message: "logged in successfully",
+                 user: {
+                    email: logging_user.email,
+                    firstName: logging_user.firstName,
+                    lastName: logging_user.lastName,
+                    user_name: logging_user.user_name,
+                    plan: logging_user.plan,
+                    credits: logging_user.credits
+                }
+             });
 
 
     }
@@ -190,7 +209,17 @@ export const refreshTokenHandler = async (req, res) => {
 
         return res.status(200)
             .cookie("Authentication", authToken, authCookieOptions)
-            .json({ success: true, message: "token refreshed successfully" });
+            .json({ success: true,
+                 message: "token refreshed successfully",
+                 user: {
+                    email: user.email,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    user_name: user.user_name,
+                    plan: user.plan,
+                    credits: user.credits
+                }
+             });
 
 
     } catch (e) {

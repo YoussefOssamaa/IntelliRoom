@@ -51,16 +51,18 @@ export const registerHandler = async (req, res) => {
             user_name,
             password: hashedPassword
         })
-        return res.status(201).json({ success: true,
-             message: "User registered successfully.",
-             user: {
-                    email: logging_user.email,
-                    firstName: logging_user.firstName,
-                    lastName: logging_user.lastName,
-                    user_name: logging_user.user_name,
-                    plan: logging_user.plan,
-                    credits: logging_user.credits
-                } })
+        return res.status(201).json({
+            success: true,
+            message: "User registered successfully.",
+            user: {
+                email: logging_user.email,
+                firstName: logging_user.firstName,
+                lastName: logging_user.lastName,
+                user_name: logging_user.user_name,
+                plan: logging_user.plan,
+                credits: logging_user.credits
+            }
+        })
 
     } catch (e) {
         console.log(e.message);
@@ -99,7 +101,7 @@ export const loginHandler = async (req, res) => {
             const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
             const now = Date.now();
             const lastReset = logging_user.last_credit_reset ? logging_user.last_credit_reset.getTime() : 0;
-            
+
             if (now - lastReset >= thirtyDaysInMs) {
                 logging_user.credits = 1000;
                 logging_user.last_credit_reset = new Date(now);
@@ -147,9 +149,10 @@ export const loginHandler = async (req, res) => {
         return res.status(200)
             .cookie("Authentication", authToken, authCookieOptions)
             .cookie("Refresh", refreshToken, refreshCookieOptions)
-            .json({ success: true,
-                 message: "logged in successfully",
-                 user: {
+            .json({
+                success: true,
+                message: "logged in successfully",
+                user: {
                     email: logging_user.email,
                     firstName: logging_user.firstName,
                     lastName: logging_user.lastName,
@@ -157,7 +160,7 @@ export const loginHandler = async (req, res) => {
                     plan: logging_user.plan,
                     credits: logging_user.credits
                 }
-             });
+            });
 
 
     }
@@ -209,9 +212,10 @@ export const refreshTokenHandler = async (req, res) => {
 
         return res.status(200)
             .cookie("Authentication", authToken, authCookieOptions)
-            .json({ success: true,
-                 message: "token refreshed successfully",
-                 user: {
+            .json({
+                success: true,
+                message: "token refreshed successfully",
+                user: {
                     email: user.email,
                     firstName: user.firstName,
                     lastName: user.lastName,
@@ -219,7 +223,7 @@ export const refreshTokenHandler = async (req, res) => {
                     plan: user.plan,
                     credits: user.credits
                 }
-             });
+            });
 
 
     } catch (e) {
@@ -306,27 +310,25 @@ export const resetPasswordHandler = async (req, res) => {
 }
 
 export const logoutController = async (req, res) => {
-    /*   try {
-           const cookieOptions = {
-               httpOnly: true,
-               secure: true,
-               sameSite: "none",
-           };
-           const validation = authCookieSchema.safeParse(req.cookies);
-           if (!validation.success) {
-               return res.status(401).json({ success: false, message: "not authenticated" });
-           }
-           const token = validation.data.Refresh;
-   
-           await Refresh.deleteOne({ refreshToken: token });
-   
-           return res.status(200)
-               .clearCookie("Authentication", cookieOptions)
-               .clearCookie("Refresh", cookieOptions)
-               .json({ success: true, message: "logged out successfully" });
-   
-       } catch (error) {
-           console.error("Logout Error:", error);
-           res.status(500).json({ success: false, message: "Internal Server Error" });
-       }*/
+    try {
+        const cookieOptions = {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+        };
+        const validation = authCookieSchema.safeParse(req.cookies);
+        if (validation.success) {
+            const token = validation.data.Refresh;
+            await Refresh.deleteOne({ refreshToken: token });
+        }
+
+        return res.status(200)
+            .clearCookie("Authentication", cookieOptions)
+            .clearCookie("Refresh", cookieOptions)
+            .json({ success: true, message: "logged out successfully" });
+
+    } catch (error) {
+        console.error("Logout Error:", error);
+        res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
 };

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../utils/authContext.jsx';
+import axios from '../../config/axios.config';
+import { checkLoggedIn } from '../../utils/checkLoggedIn.jsx';
 
 
 interface NavigationProps {
@@ -18,10 +20,20 @@ export default function Navigation({ progress }: NavigationProps) {
     navigate("/login");
 
   }
-  /*const handleLogutAction = () => {
-    logout();
-    navigate("/login");
-  } */
+  const handleLogout = async () => {
+    try {
+      const result = await axios.post('/auth/logout');
+      logout();
+      if (result?.data?.success) {
+        console.log("logged out");
+        navigate("/");
+      }
+    } catch (e) {
+      console.error(e);
+      logout();
+      navigate("/");
+    }
+  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -38,6 +50,10 @@ export default function Navigation({ progress }: NavigationProps) {
     }
   };
   const goToPage = (link: string) => {
+    if (link == "/upload" || link == "/planner") {
+      checkLoggedIn(isLoggedIn, navigate, link);
+      return;
+    }
     navigate(link);
   }
   return (
@@ -108,10 +124,7 @@ export default function Navigation({ progress }: NavigationProps) {
                   </span>
                   <button
                     className="bg-text-primary text-cream px-6 py-2.5 rounded-full font-body text-xs uppercase tracking-widest hover:bg-opacity-80 transition-all shadow-sm"
-                    onClick={() => {
-                      logout();
-                      navigate("/login");
-                    }}
+                    onClick={handleLogout}
                   >
                     Logout
                   </button>

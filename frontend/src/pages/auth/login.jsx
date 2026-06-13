@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import '../../styles/auth/login.css';
 import axios from '../../config/axios.config';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../utils/authContext.jsx';
 
 const LoginModal = () => {
@@ -18,6 +18,8 @@ const LoginModal = () => {
     });
 
     const navigate = useNavigate();
+    const location = useLocation();
+    const navigateTo = location?.state?.from || "/dashboard";
 
     const handleChange = (e) => {
         formData.current[e?.target?.name] = e?.target?.value;
@@ -39,7 +41,7 @@ const LoginModal = () => {
                 setIsMessageVisible((p) => true);
                 setLoginMessage((p) => 'Logged in successfully');
                 setTimeout(() => {
-                    navigate('/dashboard');
+                    navigate(navigateTo);
                 }, 1500);
             }
 

@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import './PricingPlansPage.css';
-import Header from '../../pages/dashboard/Header';
 import Footer from '../../components/common/Footer';
-import { Navigate } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
-
+import Navigation from '../../components/common/Navigation';
 
 
 export function PricingPlansPage() {
@@ -64,92 +62,92 @@ export function PricingPlansPage() {
 
   return (
     <>
-    <Header />
-    <div className='main-wrapper'>
+      <Navigation />
+      <div className='main-wrapper pt-[7%]'>
 
-      <div 
-        className="deco-shape" 
-        style={{ 
-          top: '-22%', 
-          right: '-32%', 
-          width: '600px', 
-          height: '600px',
-          backgroundColor: '#D946EF',
-          opacity: '0.15'
-        }} 
-      />
+        <div
+          className="deco-shape"
+          style={{
+            top: '-22%',
+            right: '-32%',
+            width: '600px',
+            height: '600px',
+            backgroundColor: '#D946EF',
+            opacity: '0.15'
+          }}
+        />
 
-      <div 
-        className="deco-shape" 
-        style={{ 
-          top: '70%', 
-          left: '-25%', 
-          width: '600px', 
-          height: '600px',
-          
-          borderRadius: '70px', // Extra rounded
-          transform: 'rotate(45deg)' // Different rotation
-        }} 
-      />
+        <div
+          className="deco-shape"
+          style={{
+            top: '70%',
+            left: '-25%',
+            width: '600px',
+            height: '600px',
 
-      <div className="header-section">
-        <h1 className="main-title">Choose Your Perfect Plan</h1>
-        <p className="sub-title">
-          Choose the plan that suits you best. No hidden fees.
-        </p>
-      </div>
-      
-      {/* --- UPDATED TOGGLE SECTION --- */}
-      <div className="toggle-area">
-        <span className={`label-text ${!isAnnual ? 'active-text' : ''}`}>Monthly</span>
-        
-        {/* The Switch Container */}
-        <div 
-          className={`toggle-switch ${isAnnual ? 'active' : ''}`} 
-          onClick={() => setIsAnnual(!isAnnual)}
-        >
-          {/* The Moving Circle (Knob) */}
-          <div className="switch-knob"></div>
+            borderRadius: '70px', // Extra rounded
+            transform: 'rotate(45deg)' // Different rotation
+          }}
+        />
+
+        <div className="header-section">
+          <h1 className="main-title">Choose Your Perfect Plan</h1>
+          <p className="sub-title">
+            Choose the plan that suits you best. No hidden fees.
+          </p>
         </div>
-        
-        <span className={`label-text ${isAnnual ? 'active-text' : ''}`}>Annual</span>
-        
-        {/* The Savings Badge */}
-        <span className={`save-badge ${isAnnual ? 'active-save-badge' : ''}`}>Save 17%</span>
-      </div>
 
-      <div className='cards-container'>
-        {plans.map((plan, index) => (
-          <div 
-            key={index} 
-            className={`card ${plan.highlighted ? 'popular-card' : ''}`}
+        {/* --- UPDATED TOGGLE SECTION --- */}
+        <div className="toggle-area">
+          <span className={`label-text ${!isAnnual ? 'active-text' : ''}`}>Monthly</span>
+
+          {/* The Switch Container */}
+          <div
+            className={`toggle-switch ${isAnnual ? 'active' : ''}`}
+            onClick={() => setIsAnnual(!isAnnual)}
           >
-            {plan.highlighted && <div className="popular-badge">Most Popular</div>}
-
-            <h3 className='plan-name'>{plan.name}</h3>
-            <p className='description'>{plan.description}</p>
-            
-            <div className="price-tag">
-              ${isAnnual ? plan.annualPrice : plan.monthlyPrice}
-              <span className="period">/{isAnnual ? 'year' : 'month'}</span>
-            </div>
-
-            <hr className="card-divider" />
-
-            <ul className='features'>
-              {plan.features.map((feature, i) => (
-                <li key={i}>
-                  <span className="checkmark">✓</span> {feature}
-                </li>
-              ))}
-            </ul>
-
-            <button className="cta-button" onClick={()=> navigate("/checkout")  } >Choose {plan.name}</button>
+            {/* The Moving Circle (Knob) */}
+            <div className="switch-knob"></div>
           </div>
-        ))}
+
+          <span className={`label-text ${isAnnual ? 'active-text' : ''}`}>Annual</span>
+
+          {/* The Savings Badge */}
+          <span className={`save-badge ${isAnnual ? 'active-save-badge' : ''}`}>Save 17%</span>
+        </div>
+
+        <div className='cards-container'>
+          {plans.map((plan, index) => (
+            <div
+              key={index}
+              className={`card ${plan.highlighted ? 'popular-card' : ''}`}
+            >
+              {plan.highlighted && <div className="popular-badge">Most Popular</div>}
+
+              <h3 className='plan-name'>{plan.name}</h3>
+              <p className='description'>{plan.description}</p>
+
+              <div className="price-tag">
+                ${isAnnual ? plan.annualPrice : plan.monthlyPrice}
+                <span className="period">/{isAnnual ? 'year' : 'month'}</span>
+              </div>
+
+              <hr className="card-divider" />
+
+              <ul className='features'>
+                {plan.features.map((feature, i) => (
+                  <li key={i}>
+                    <span className="checkmark">✓</span> {feature}
+                  </li>
+                ))}
+              </ul>
+
+              <button className="cta-button" onClick={() => navigate("/checkout")} >Choose {plan.name}</button>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
-    <Footer />
+      <Footer />
     </>
   );
 }

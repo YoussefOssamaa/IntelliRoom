@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import "./DashboardPage.css";
 import Header from "./Header";
 import Bohemian from "./Bohemian.jpg";
+import Navigation from "../../components/common/Navigation";
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -151,294 +152,297 @@ export default function DashboardPage() {
 
   // Full screen loader ONLY waits for User Data now
   // if (isUserLoading) {
-    // return (
-      // <div className="flex items-center justify-center min-h-screen bg-[#f8f9fa]">
-      //   <div className="relative flex items-center justify-center">
-      //     <div className="w-24 h-24 rounded-full border-4 border-[#e0e0e0] border-t-[#00e676] animate-spin"></div>
-      //     <span className="absolute text-sm font-bold text-[#333333] animate-pulse">
-      //       Loading
-      //     </span>
-      //   </div>
-      // </div>
-      // <div className="flex flex-col items-center justify-center min-h-screen bg-[#0f172a] relative overflow-hidden">
-      //           {/* The Architectural Grid Background */}
-      //           <div 
-      //               className="absolute inset-0 opacity-20" 
-      //               style={{ 
-      //                   backgroundImage: 'linear-gradient(#38bdf8 1px, transparent 1px), linear-gradient(90deg, #38bdf8 1px, transparent 1px)', 
-      //                   backgroundSize: '40px 40px' 
-      //               }}
-      //           ></div>
+  // return (
+  // <div className="flex items-center justify-center min-h-screen bg-[#f8f9fa]">
+  //   <div className="relative flex items-center justify-center">
+  //     <div className="w-24 h-24 rounded-full border-4 border-[#e0e0e0] border-t-[#00e676] animate-spin"></div>
+  //     <span className="absolute text-sm font-bold text-[#333333] animate-pulse">
+  //       Loading
+  //     </span>
+  //   </div>
+  // </div>
+  // <div className="flex flex-col items-center justify-center min-h-screen bg-[#0f172a] relative overflow-hidden">
+  //           {/* The Architectural Grid Background */}
+  //           <div 
+  //               className="absolute inset-0 opacity-20" 
+  //               style={{ 
+  //                   backgroundImage: 'linear-gradient(#38bdf8 1px, transparent 1px), linear-gradient(90deg, #38bdf8 1px, transparent 1px)', 
+  //                   backgroundSize: '40px 40px' 
+  //               }}
+  //           ></div>
 
-      //           <div className="relative z-10 flex flex-col items-center">
-      //               {/* The Drawing House SVG */}
-      //               <svg className="w-24 h-24 text-sky-400 animate-pulse" fill="none" stroke="currentColor" strokeWidth="1" viewBox="0 0 24 24">
-      //                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
-      //                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 22V12h6v10"></path>
-      //               </svg>
+  //           <div className="relative z-10 flex flex-col items-center">
+  //               {/* The Drawing House SVG */}
+  //               <svg className="w-24 h-24 text-sky-400 animate-pulse" fill="none" stroke="currentColor" strokeWidth="1" viewBox="0 0 24 24">
+  //                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
+  //                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 22V12h6v10"></path>
+  //               </svg>
 
-      //               {/* Thematic Loading Bar & Text */}
-      //               <div className="mt-8 flex flex-col items-center w-64">
-      //                   <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
-      //                       <div className="h-full bg-sky-400 w-1/2 animate-pulse rounded-full"></div>
-      //                   </div>
-      //                   <span className="mt-4 text-sm font-medium text-sky-400 tracking-widest uppercase animate-pulse">
-      //                       Drafting Studio...
-      //                   </span>
-      //               </div>
-      //           </div>
-      //       </div>
-    // );
+  //               {/* Thematic Loading Bar & Text */}
+  //               <div className="mt-8 flex flex-col items-center w-64">
+  //                   <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
+  //                       <div className="h-full bg-sky-400 w-1/2 animate-pulse rounded-full"></div>
+  //                   </div>
+  //                   <span className="mt-4 text-sm font-medium text-sky-400 tracking-widest uppercase animate-pulse">
+  //                       Drafting Studio...
+  //                   </span>
+  //               </div>
+  //           </div>
+  //       </div>
+  // );
   // }
 
   return (
-    <div className="dashboard-layout">
-      <div className="header-wrapper">
-        <Header user={userData} />
+    <>
+      <div>
+        <Navigation user={userData} />
       </div>
 
-      <div className="content-wrapper">
-        {/* SIDEBAR NAVIGATION */}
-        <aside className="sidebar">
-          <ul className="nav-list">
-            <li className="nav-item active">
-              <IconDashboard />
-              <span>Overview</span>
-            </li>
-            <li className="nav-item">
-              <IconFolder />
-              <span>My Projects</span>
-            </li>
-            <li className="nav-item">
-              <IconStar />
-              <span>My Plugins</span>
-            </li>
-            <li className="nav-item">
-              <IconPeople />
-              <span>Community</span>
-            </li>
-            <li className="nav-item">
-              <IconLightbulb />
-              <span>Learn</span>
-            </li>
-            <div className="nav-divider"></div>
-            <li className="nav-item">
-              <IconPerson />
-              <span>Profile Settings</span>
-            </li>
-          </ul>
-        </aside>
+      <div
+        className="dashboard-layout pt-20 "  >
+        <div className="content-wrapper">
+          {/* SIDEBAR NAVIGATION */}
+          <aside className="sidebar">
+            <ul className="nav-list">
+              <li className="nav-item active">
+                <IconDashboard />
+                <span>Overview</span>
+              </li>
+              <li className="nav-item">
+                <IconFolder />
+                <span>My Projects</span>
+              </li>
+              <li className="nav-item">
+                <IconStar />
+                <span>My Plugins</span>
+              </li>
+              <li className="nav-item">
+                <IconPeople />
+                <span>Community</span>
+              </li>
+              <li className="nav-item">
+                <IconLightbulb />
+                <span>Learn</span>
+              </li>
+              <div className="nav-divider"></div>
+              <li className="nav-item">
+                <IconPerson />
+                <span>Profile Settings</span>
+              </li>
+            </ul>
+          </aside>
 
-        {/* MAIN CONTENT AREA */}
-        <main className="main-area">
+          {/* MAIN CONTENT AREA */}
+          <main className="main-area">
 
-                    {/* Welcome Section */}
-                    <div className="welcome-section">
-                        <div>
-                            {/* 🚀 APP SHELL: Welcome Skeletons */}
-                            {isUserLoading ? (
-                                <>
-                                    <div className="h-10 w-64 bg-gray-200 rounded-lg animate-pulse mb-2"></div>
-                                    <div className="h-5 w-96 bg-gray-200 rounded-lg animate-pulse"></div>
-                                </>
-                            ) : (
-                                <>
-                                    <h1 className="welcome-title">Hello, {userData.name}</h1>
-                                    <p className="welcome-subtitle">Here is what's happening with your designs today.</p>
-                                </>
-                            )}
-                        </div>
-                        <button className="btn-primary">
-                            <IconAdd />
-                            New Project
-                        </button>
-                    </div>
-
-                    {/* Stats Grid */}
-                    <div className="stats-grid">
-                        {/* 🚀 APP SHELL: Stat Card Skeletons */}
-                        {isUserLoading ? (
-                            <>
-                                <div className="stat-card h-40 bg-white border border-gray-100 shadow-sm animate-pulse flex flex-col justify-between">
-                                    <div className="h-4 w-32 bg-gray-200 rounded"></div>
-                                    <div className="h-8 w-16 bg-gray-200 rounded"></div>
-                                    <div className="h-2 w-full bg-gray-100 rounded-full mt-4"></div>
-                                </div>
-                                <div className="stat-card h-40 bg-white border border-gray-100 shadow-sm animate-pulse flex flex-col justify-between">
-                                    <div className="h-4 w-24 bg-gray-200 rounded"></div>
-                                    <div className="h-8 w-12 bg-gray-200 rounded"></div>
-                                    <div className="h-4 w-32 bg-gray-200 rounded mt-4"></div>
-                                </div>
-                                <div className="stat-card h-40 bg-white border border-gray-100 shadow-sm animate-pulse flex flex-col justify-between">
-                                    <div className="flex justify-between">
-                                        <div className="h-4 w-24 bg-gray-200 rounded"></div>
-                                        <div className="h-6 w-6 bg-gray-200 rounded-full"></div>
-                                    </div>
-                                    <div className="h-8 w-full bg-gray-200 rounded mt-4"></div>
-                                    <div className="h-10 w-24 bg-gray-200 rounded mt-4"></div>
-                                </div>
-                            </>
-                        ) : (
-                            /* Your Real Stat Cards Go Here! */
-                            <>
-                                {/* Plan Card */}
-                                <div className="stat-card">
-                                    <span className="stat-label">Plan Usage ({userData.plan})</span>
-                                    <div className="stat-value">
-                                        {userData.designsUsed} <span className="text-[0.5em] text-gray-400">/ {userData.designsLimit}</span>
-                                    </div>
-                                    <div className="progress-track">
-                                        <div className="progress-fill" style={{ width: `${(userData.designsUsed / userData.designsLimit) * 100}%` }}></div>
-                                    </div>
-                                    <span className="text-xs text-gray-500">
-                                        {userData.designsLimit - userData.designsUsed} generations remaining
-                                    </span>
-                                </div>
-
-                                {/* Credits Card */}
-                                <div className="stat-card">
-                                    <span className="stat-label">Credit Balance</span>
-                                    <div className="stat-value text-green-700">{userData.credits}</div>
-                                    <p className="text-sm text-gray-600 mt-2">Available for plugin purchases</p>
-                                    <button className="btn-text !px-0 mt-4 w-fit text-sm">Get More Credits</button>
-                                </div>
-
-                                {/* Marketplace Card */}
-                                <div className="stat-card">
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <span className="stat-label">Marketplace</span>
-                                            <h2 className="text-xl font-bold">Explore</h2>
-                                        </div>
-                                        <div className="marketplace-icon-wrapper">
-                                            <IconStore />
-                                        </div>
-                                    </div>
-                                    <p className="text-sm text-gray-600 my-4">Discover new designs, styles, and furnitures for your designs.</p>
-                                    <button onClick={() => navigate('/marketplace')} className="btn-secondary">Browse</button>
-                                </div>
-                            </>
-                        )}
-                    </div>
-
-          {/* Recent Projects Section */}
-          <div className="section-wrapper">
-            <div className="section-header">
-              <h2 className="section-title">Recent Projects</h2>
-              <button
-                onClick={() => navigate("/projects")}
-                className="btn-text"
-              >
-                View All Projects
+            {/* Welcome Section */}
+            <div className="welcome-section">
+              <div>
+                {/* 🚀 APP SHELL: Welcome Skeletons */}
+                {isUserLoading ? (
+                  <>
+                    <div className="h-10 w-64 bg-gray-200 rounded-lg animate-pulse mb-2"></div>
+                    <div className="h-5 w-96 bg-gray-200 rounded-lg animate-pulse"></div>
+                  </>
+                ) : (
+                  <>
+                    <h1 className="welcome-title">Hello, {userData.name}</h1>
+                    <p className="welcome-subtitle">Here is what's happening with your designs today.</p>
+                  </>
+                )}
+              </div>
+              <button className="btn-primary">
+                <IconAdd />
+                New Project
               </button>
             </div>
 
-            <div className="projects-grid">
-              {/* localized Loading State */}
-              {isProjectsLoading ? (
-                [1, 2, 3, 4, 5, 6].map((index) => (
-                  <div
-                    key={index}
-                    className="project-card flex flex-col overflow-hidden bg-white shadow-sm border border-gray-100 animate-pulse"
-                  >
-                    {/* The Image Placeholder */}
-                    <div className="h-40 w-full bg-gray-200"></div>
-
-                    {/* The Text Info Placeholder */}
-                    <div className="p-4 flex flex-col gap-3">
-                      {/* Title line */}
-                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-
-                      {/* Meta data line (Date and Star) */}
-                      <div className="flex justify-between items-center mt-2">
-                        <div className="h-3 bg-gray-200 rounded w-1/3"></div>
-                        <div className="w-5 h-5 bg-gray-200 rounded-full"></div>
-                      </div>
-                    </div>
+            {/* Stats Grid */}
+            <div className="stats-grid">
+              {/* 🚀 APP SHELL: Stat Card Skeletons */}
+              {isUserLoading ? (
+                <>
+                  <div className="stat-card h-40 bg-white border border-gray-100 shadow-sm animate-pulse flex flex-col justify-between">
+                    <div className="h-4 w-32 bg-gray-200 rounded"></div>
+                    <div className="h-8 w-16 bg-gray-200 rounded"></div>
+                    <div className="h-2 w-full bg-gray-100 rounded-full mt-4"></div>
                   </div>
-                ))
-              ) : projects.length === 0 ? (
-                <div className="col-span-full text-center py-12 text-gray-500 bg-white rounded-xl shadow-sm border border-gray-100">
-                  You haven't generated any designs yet! Click "New Project" to
-                  start.
-                </div>
+                  <div className="stat-card h-40 bg-white border border-gray-100 shadow-sm animate-pulse flex flex-col justify-between">
+                    <div className="h-4 w-24 bg-gray-200 rounded"></div>
+                    <div className="h-8 w-12 bg-gray-200 rounded"></div>
+                    <div className="h-4 w-32 bg-gray-200 rounded mt-4"></div>
+                  </div>
+                  <div className="stat-card h-40 bg-white border border-gray-100 shadow-sm animate-pulse flex flex-col justify-between">
+                    <div className="flex justify-between">
+                      <div className="h-4 w-24 bg-gray-200 rounded"></div>
+                      <div className="h-6 w-6 bg-gray-200 rounded-full"></div>
+                    </div>
+                    <div className="h-8 w-full bg-gray-200 rounded mt-4"></div>
+                    <div className="h-10 w-24 bg-gray-200 rounded mt-4"></div>
+                  </div>
+                </>
               ) : (
-                projects.slice(0, 9).map((project) => (
-                  <div
-                    key={project._id}
-                    className="project-card group cursor-pointer"
-                    onClick={() => navigate(`/projects/${project._id}`)}
-                  >
-                    <div className="project-image-wrapper h-40 w-full overflow-hidden  bg-gray-100">
-                      <img
-                        src={project.generatedImageUrl}
-                        alt={project.inputPrompt || "AI Generated Interior"}
-                        className="w-full h-full object-cover !rounded-none transition-transform duration-300 group-hover:scale-105"
-                      />
+                /* Your Real Stat Cards Go Here! */
+                <>
+                  {/* Plan Card */}
+                  <div className="stat-card">
+                    <span className="stat-label">Plan Usage ({userData.plan})</span>
+                    <div className="stat-value">
+                      {userData.designsUsed} <span className="text-[0.5em] text-gray-400">/ {userData.designsLimit}</span>
                     </div>
-                    <div className="project-info p-4">
-                      <h3
-                        className="project-title truncate"
-                        title={project.inputPrompt}
-                      >
-                        {project.inputPrompt || "Custom Design"}
-                      </h3>
-                      <div className="project-meta flex justify-between items-center mt-2">
-                        <span className="text-sm text-gray-500">
-                          {new Date(project.createdAt).toLocaleDateString()}
-                        </span>
+                    <div className="progress-track">
+                      <div className="progress-fill" style={{ width: `${(userData.designsUsed / userData.designsLimit) * 100}%` }}></div>
+                    </div>
+                    <span className="text-xs text-gray-500">
+                      {userData.designsLimit - userData.designsUsed} generations remaining
+                    </span>
+                  </div>
 
-                        <button
-                          onClick={(e) => handleToggleFavorite(e, project)}
-                          className="focus:outline-none z-10 p-1"
-                          title={
-                            project.isFavorite
-                              ? "Remove from favorites"
-                              : "Add to favorites"
-                          }
-                        >
-                          <IconStar isFavorite={project.isFavorite} />
-                        </button>
+                  {/* Credits Card */}
+                  <div className="stat-card">
+                    <span className="stat-label">Credit Balance</span>
+                    <div className="stat-value text-green-700">{userData.credits}</div>
+                    <p className="text-sm text-gray-600 mt-2">Available for plugin purchases</p>
+                    <button className="btn-text !px-0 mt-4 w-fit text-sm">Get More Credits</button>
+                  </div>
+
+                  {/* Marketplace Card */}
+                  <div className="stat-card">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <span className="stat-label">Marketplace</span>
+                        <h2 className="text-xl font-bold">Explore</h2>
+                      </div>
+                      <div className="marketplace-icon-wrapper">
+                        <IconStore />
                       </div>
                     </div>
+                    <p className="text-sm text-gray-600 my-4">Discover new designs, styles, and furnitures for your designs.</p>
+                    <button onClick={() => navigate('/marketplace')} className="btn-secondary">Browse</button>
                   </div>
-                ))
+                </>
               )}
             </div>
-          </div>
 
-          {/* Discover Styles Section */}
-          <div className="section-wrapper">
-            <div className="section-header">
-              <h2 className="section-title">Discover Styles</h2>
-              <button className="btn-text">
-                View All <IconArrowRight />
-              </button>
-            </div>
-            <div className="styles-scroll-container">
-              {designStyles.map((style) => (
-                <div key={style.id} className="style-card group">
-                  <div className="style-image-wrapper">
-                    <img
-                      src={style.img}
-                      alt={style.name}
-                      className="w-full h-full object-cover !rounded-none"
-                    />
+            {/* Recent Projects Section */}
+            <div className="section-wrapper">
+              <div className="section-header">
+                <h2 className="section-title">Recent Projects</h2>
+                <button
+                  onClick={() => navigate("/projects")}
+                  className="btn-text"
+                >
+                  View All Projects
+                </button>
+              </div>
+
+              <div className="projects-grid">
+                {/* localized Loading State */}
+                {isProjectsLoading ? (
+                  [1, 2, 3, 4, 5, 6].map((index) => (
+                    <div
+                      key={index}
+                      className="project-card flex flex-col overflow-hidden bg-white shadow-sm border border-gray-100 animate-pulse"
+                    >
+                      {/* The Image Placeholder */}
+                      <div className="h-40 w-full bg-gray-200"></div>
+
+                      {/* The Text Info Placeholder */}
+                      <div className="p-4 flex flex-col gap-3">
+                        {/* Title line */}
+                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+
+                        {/* Meta data line (Date and Star) */}
+                        <div className="flex justify-between items-center mt-2">
+                          <div className="h-3 bg-gray-200 rounded w-1/3"></div>
+                          <div className="w-5 h-5 bg-gray-200 rounded-full"></div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : projects.length === 0 ? (
+                  <div className="col-span-full text-center py-12 text-gray-500 bg-white rounded-xl shadow-sm border border-gray-100">
+                    You haven't generated any designs yet! Click "New Project" to
+                    start.
                   </div>
-                  <div className="style-info">
-                    <h3 className="style-title">{style.name}</h3>
-                    <p className="style-desc">{style.desc}</p>
-                    <button className="btn-text !px-0 text-sm">
-                      Try this style
-                    </button>
-                  </div>
-                </div>
-              ))}
+                ) : (
+                  projects.slice(0, 9).map((project) => (
+                    <div
+                      key={project._id}
+                      className="project-card group cursor-pointer"
+                      onClick={() => navigate(`/projects/${project._id}`)}
+                    >
+                      <div className="project-image-wrapper h-40 w-full overflow-hidden  bg-gray-100">
+                        <img
+                          src={project.generatedImageUrl}
+                          alt={project.inputPrompt || "AI Generated Interior"}
+                          className="w-full h-full object-cover !rounded-none transition-transform duration-300 group-hover:scale-105"
+                        />
+                      </div>
+                      <div className="project-info p-4">
+                        <h3
+                          className="project-title truncate"
+                          title={project.inputPrompt}
+                        >
+                          {project.inputPrompt || "Custom Design"}
+                        </h3>
+                        <div className="project-meta flex justify-between items-center mt-2">
+                          <span className="text-sm text-gray-500">
+                            {new Date(project.createdAt).toLocaleDateString()}
+                          </span>
+
+                          <button
+                            onClick={(e) => handleToggleFavorite(e, project)}
+                            className="focus:outline-none z-10 p-1"
+                            title={
+                              project.isFavorite
+                                ? "Remove from favorites"
+                                : "Add to favorites"
+                            }
+                          >
+                            <IconStar isFavorite={project.isFavorite} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
-          </div>
-        </main>
+
+            {/* Discover Styles Section */}
+            <div className="section-wrapper">
+              <div className="section-header">
+                <h2 className="section-title">Discover Styles</h2>
+                <button className="btn-text">
+                  View All <IconArrowRight />
+                </button>
+              </div>
+              <div className="styles-scroll-container">
+                {designStyles.map((style) => (
+                  <div key={style.id} className="style-card group">
+                    <div className="style-image-wrapper">
+                      <img
+                        src={style.img}
+                        alt={style.name}
+                        className="w-full h-full object-cover !rounded-none"
+                      />
+                    </div>
+                    <div className="style-info">
+                      <h3 className="style-title">{style.name}</h3>
+                      <p className="style-desc">{style.desc}</p>
+                      <button className="btn-text !px-0 text-sm">
+                        Try this style
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -580,11 +584,10 @@ const IconArrowRight = () => (
 );
 const IconStar = ({ isFavorite }) => (
   <svg
-    className={`w-6 h-6 transition-all duration-300 ease-in-out cursor-pointer active:scale-90 ${
-      isFavorite
-        ? "text-yellow-400 fill-current scale-110"
-        : "text-gray-400 fill-transparent hover:text-yellow-400 hover:scale-110"
-    }`}
+    className={`w-6 h-6 transition-all duration-300 ease-in-out cursor-pointer active:scale-90 ${isFavorite
+      ? "text-yellow-400 fill-current scale-110"
+      : "text-gray-400 fill-transparent hover:text-yellow-400 hover:scale-110"
+      }`}
     stroke="currentColor"
     viewBox="0 0 24 24"
   >
@@ -595,4 +598,5 @@ const IconStar = ({ isFavorite }) => (
       d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
     ></path>
   </svg>
+
 );

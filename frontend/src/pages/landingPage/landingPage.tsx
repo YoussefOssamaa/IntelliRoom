@@ -80,7 +80,7 @@ function App() {
       <div className="noise-overlay" />
 
       {/* Navigation */}
-      <Navigation progress={scrollProgress} />
+      <Navigation progress={scrollProgress} isSticky={true} />
 
       {/* Sections */}
       <main className="relative">

@@ -147,21 +147,6 @@ export default function Navigation({ progress, isSticky = false }: NavigationPro
                   Join Now
                 </button>
               )}
-              {/* 
-              {isLoggedIn && (
-                <div className="flex items-center gap-4">
-                  <span className="font-body text-xs tracking-widest text-text-primary">
-                    {user?.name}
-                  </span>
-                  <button
-                    className="bg-text-primary text-cream px-6 py-2.5 rounded-full font-body text-xs uppercase tracking-widest hover:bg-opacity-80 transition-all shadow-sm"
-                    onClick={handleLogout}
-                  >
-                    Logout
-                  </button>
-                </div>
-              )}*/}
-
 
 
               {isLoggedIn && (
@@ -171,7 +156,7 @@ export default function Navigation({ progress, isSticky = false }: NavigationPro
                     onClick={handleToggleMenu}
                     className="flex items-center gap-2 bg-text-primary text-cream px-5 py-2.5 rounded-full font-body text-xs uppercase tracking-widest hover:bg-opacity-90 transition-all shadow-sm focus:outline-none"
                   >
-                    <span>{user?.name || "Account"}</span>
+                    <span>{user.firstName || "Account"}</span>
                     {/* Simple Down Arrow Chevron */}
                     <svg
                       className={`w-3 h-3 transition-transform duration-200 ${isDroppedDownMenu ? "rotate-180" : ""}`}

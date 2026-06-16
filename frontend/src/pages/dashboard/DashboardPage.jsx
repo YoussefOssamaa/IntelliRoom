@@ -5,90 +5,24 @@ import "./DashboardPage.css";
 import Header from "./Header";
 import Bohemian from "./Bohemian.jpg";
 import Navigation from "../../components/common/Navigation";
+import { useAuth } from "../../utils/authContext";
+
 
 export default function DashboardPage() {
   const navigate = useNavigate();
 
   // User State
   const [isUserLoading, setIsUserLoading] = useState(true);
-  const [userData, setUserData] = useState({
-    name: "User.",
-    plan: "Not available",
-    designsUsed: 12, // Keeping hardcoded for now
-    designsLimit: 20, // Keeping hardcoded for now
-    credits: 0,
-  });
+
+
+  const { isLoggedIn, user, logout } = useAuth();
+
 
   // Projects State
   const [isProjectsLoading, setIsProjectsLoading] = useState(true);
   const [projects, setProjects] = useState([]);
 
-  // Hardcoded Styles State
-  const [designStyles] = useState([
-    {
-      id: 1,
-      name: "Minimalist Zen",
-      desc: "Clean lines and calming neutrals.",
-      img: "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 2,
-      name: "Industrial Loft",
-      desc: "Raw brick, metal, and wood.",
-      img: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 3,
-      name: "Bohemian Chic",
-      desc: "Vibrant colors and organic textures.",
-      img: Bohemian,
-    },
-    {
-      id: 4,
-      name: "Scandinavian",
-      desc: "Functional, simple, and bright.",
-      img: "https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      id: 5,
-      name: "Modern Luxury",
-      desc: "Sleek finishes and bold accents.",
-      img: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=600&q=80",
-    },
-  ]);
 
-  // Fetch User Data
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-
-        //delay
-        // await new Promise((resolve) => setTimeout(resolve, 4000));
-        const response = await axios.get("/dashboard", {
-          withCredentials: true,
-        });
-        if (response.data && response.data.user_name) {
-          const dbUser = response.data;
-          setUserData((prevState) => ({
-            ...prevState,
-            name: dbUser.user_name,
-            plan: dbUser.plan
-              ? dbUser.plan.charAt(0).toUpperCase() + dbUser.plan.slice(1)
-              : "Free",
-            credits: dbUser.credits,
-            profilePicture: dbUser.profilePicture || null,
-            initial: (dbUser.firstName || dbUser.user_name)
-              .charAt(0),
-          }));
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      } finally {
-        setIsUserLoading(false);
-      }
-    };
-    fetchUserData();
-  }, []);
 
   // Fetch Generated Images
   useEffect(() => {
@@ -150,52 +84,11 @@ export default function DashboardPage() {
     return "status-draft";
   };
 
-  // Full screen loader ONLY waits for User Data now
-  // if (isUserLoading) {
-  // return (
-  // <div className="flex items-center justify-center min-h-screen bg-[#f8f9fa]">
-  //   <div className="relative flex items-center justify-center">
-  //     <div className="w-24 h-24 rounded-full border-4 border-[#e0e0e0] border-t-[#00e676] animate-spin"></div>
-  //     <span className="absolute text-sm font-bold text-[#333333] animate-pulse">
-  //       Loading
-  //     </span>
-  //   </div>
-  // </div>
-  // <div className="flex flex-col items-center justify-center min-h-screen bg-[#0f172a] relative overflow-hidden">
-  //           {/* The Architectural Grid Background */}
-  //           <div 
-  //               className="absolute inset-0 opacity-20" 
-  //               style={{ 
-  //                   backgroundImage: 'linear-gradient(#38bdf8 1px, transparent 1px), linear-gradient(90deg, #38bdf8 1px, transparent 1px)', 
-  //                   backgroundSize: '40px 40px' 
-  //               }}
-  //           ></div>
-
-  //           <div className="relative z-10 flex flex-col items-center">
-  //               {/* The Drawing House SVG */}
-  //               <svg className="w-24 h-24 text-sky-400 animate-pulse" fill="none" stroke="currentColor" strokeWidth="1" viewBox="0 0 24 24">
-  //                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
-  //                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 22V12h6v10"></path>
-  //               </svg>
-
-  //               {/* Thematic Loading Bar & Text */}
-  //               <div className="mt-8 flex flex-col items-center w-64">
-  //                   <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
-  //                       <div className="h-full bg-sky-400 w-1/2 animate-pulse rounded-full"></div>
-  //                   </div>
-  //                   <span className="mt-4 text-sm font-medium text-sky-400 tracking-widest uppercase animate-pulse">
-  //                       Drafting Studio...
-  //                   </span>
-  //               </div>
-  //           </div>
-  //       </div>
-  // );
-  // }
 
   return (
     <>
       <div>
-        <Navigation user={userData} />
+        <Navigation user />
       </div>
 
       <div
@@ -208,24 +101,16 @@ export default function DashboardPage() {
                 <IconDashboard />
                 <span>Overview</span>
               </li>
-              <li className="nav-item">
+              <li onClick={() => navigate("/projects")} className="nav-item">
                 <IconFolder />
                 <span>My Projects</span>
               </li>
-              <li className="nav-item">
-                <IconStar />
-                <span>My Plugins</span>
-              </li>
-              <li className="nav-item">
-                <IconPeople />
-                <span>Community</span>
-              </li>
-              <li className="nav-item">
-                <IconLightbulb />
-                <span>Learn</span>
+              <li onClick={() => navigate("/ecomm")} className="nav-item">
+                <IconCart />
+                <span>Store</span>
               </li>
               <div className="nav-divider"></div>
-              <li className="nav-item">
+              <li onClick={() => navigate("/updateProfile")} className="nav-item">
                 <IconPerson />
                 <span>Profile Settings</span>
               </li>
@@ -239,89 +124,112 @@ export default function DashboardPage() {
             <div className="welcome-section">
               <div>
                 {/* 🚀 APP SHELL: Welcome Skeletons */}
-                {isUserLoading ? (
-                  <>
-                    <div className="h-10 w-64 bg-gray-200 rounded-lg animate-pulse mb-2"></div>
-                    <div className="h-5 w-96 bg-gray-200 rounded-lg animate-pulse"></div>
-                  </>
-                ) : (
-                  <>
-                    <h1 className="welcome-title">Hello, {userData.name}</h1>
-                    <p className="welcome-subtitle">Here is what's happening with your designs today.</p>
-                  </>
-                )}
+
+                <>
+                  <h1 className="welcome-title">Hello, {user.firstName || "user"}</h1>
+                  <p className="welcome-subtitle">Here is what's happening with your designs today.</p>
+                </>
+
               </div>
-              <button className="btn-primary">
-                <IconAdd />
-                New Project
-              </button>
             </div>
 
             {/* Stats Grid */}
             <div className="stats-grid">
               {/* 🚀 APP SHELL: Stat Card Skeletons */}
-              {isUserLoading ? (
-                <>
-                  <div className="stat-card h-40 bg-white border border-gray-100 shadow-sm animate-pulse flex flex-col justify-between">
-                    <div className="h-4 w-32 bg-gray-200 rounded"></div>
-                    <div className="h-8 w-16 bg-gray-200 rounded"></div>
-                    <div className="h-2 w-full bg-gray-100 rounded-full mt-4"></div>
-                  </div>
-                  <div className="stat-card h-40 bg-white border border-gray-100 shadow-sm animate-pulse flex flex-col justify-between">
-                    <div className="h-4 w-24 bg-gray-200 rounded"></div>
-                    <div className="h-8 w-12 bg-gray-200 rounded"></div>
-                    <div className="h-4 w-32 bg-gray-200 rounded mt-4"></div>
-                  </div>
-                  <div className="stat-card h-40 bg-white border border-gray-100 shadow-sm animate-pulse flex flex-col justify-between">
-                    <div className="flex justify-between">
-                      <div className="h-4 w-24 bg-gray-200 rounded"></div>
-                      <div className="h-6 w-6 bg-gray-200 rounded-full"></div>
-                    </div>
-                    <div className="h-8 w-full bg-gray-200 rounded mt-4"></div>
-                    <div className="h-10 w-24 bg-gray-200 rounded mt-4"></div>
-                  </div>
-                </>
-              ) : (
-                /* Your Real Stat Cards Go Here! */
-                <>
-                  {/* Plan Card */}
-                  <div className="stat-card">
-                    <span className="stat-label">Plan Usage ({userData.plan})</span>
-                    <div className="stat-value">
-                      {userData.designsUsed} <span className="text-[0.5em] text-gray-400">/ {userData.designsLimit}</span>
-                    </div>
-                    <div className="progress-track">
-                      <div className="progress-fill" style={{ width: `${(userData.designsUsed / userData.designsLimit) * 100}%` }}></div>
-                    </div>
-                    <span className="text-xs text-gray-500">
-                      {userData.designsLimit - userData.designsUsed} generations remaining
-                    </span>
-                  </div>
 
-                  {/* Credits Card */}
-                  <div className="stat-card">
-                    <span className="stat-label">Credit Balance</span>
-                    <div className="stat-value text-green-700">{userData.credits}</div>
-                    <p className="text-sm text-gray-600 mt-2">Available for plugin purchases</p>
-                    <button className="btn-text !px-0 mt-4 w-fit text-sm">Get More Credits</button>
-                  </div>
+              <>
 
-                  {/* Marketplace Card */}
-                  <div className="stat-card">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <span className="stat-label">Marketplace</span>
-                        <h2 className="text-xl font-bold">Explore</h2>
+
+                {/* Credits Card */}
+                <div className="stat-card">
+                  <span className="stat-label">Credit Balance</span>
+                  <div className="stat-value text-green-700">{user.credits}</div>
+                  <p className="text-sm text-gray-600 mt-2">Available for plugin purchases</p>
+                  <button className="btn-text !px-0 mt-4 w-fit text-sm">Get More Credits</button>
+                </div>
+
+
+
+                <div className="stat-card">
+                  {/* Container Heading */}
+                  <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-4">
+                    Create New Project
+                  </h2>
+
+                  {/* Grid wrapper matching standard dashboard spacing */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                    {/* Option 1: AI Studio */}
+                    <div className="stat-card">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <span className="stat-label">AI Generation</span>
+                          <h2 className="text-xl font-bold">AI Studio</h2>
+                        </div>
+                        {/* Kept your exact wrapper class layout naming */}
+                        <div className="marketplace-icon-wrapper">
+                          <IconAIStudio />
+                        </div>
                       </div>
-                      <div className="marketplace-icon-wrapper">
-                        <IconStore />
-                      </div>
+                      <p className="text-sm text-gray-600 my-4">
+                        Generate instant concepts, styles, and interior variations using advanced AI guidance.
+                      </p>
+                      <button
+                        onClick={() => navigate('/create/ai-studio')}
+                        className="btn-secondary w-full sm:w-auto"
+                      >
+                        Launch Studio
+                      </button>
                     </div>
-                    <p className="text-sm text-gray-600 my-4">Discover new designs, styles, and furnitures for your designs.</p>
-                    <button onClick={() => navigate('/marketplace')} className="btn-secondary">Browse</button>
+
+                    {/* Option 2: Architect Mode */}
+                    <div className="stat-card">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <span className="stat-label">Precision Layout</span>
+                          <h2 className="text-xl font-bold">Architect Mode</h2>
+                        </div>
+                        <div className="marketplace-icon-wrapper">
+                          <IconBlueprint />
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-600 my-4">
+                        Build structural floor plans, exact measurements, and professional blueprints from scratch.
+                      </p>
+                      <button
+                        onClick={() => navigate('/create/architect')}
+                        className="btn-secondary w-full sm:w-auto"
+                      >
+                        Start Building
+                      </button>
+                    </div>
+
                   </div>
-                </>
-              )}
+                </div>
+
+
+
+                {/* Marketplace Card */}
+                <div className="stat-card">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="stat-label">Marketplace</span>
+                      <h2 className="text-xl font-bold">Explore</h2>
+                    </div>
+                    <div className="marketplace-icon-wrapper">
+                      <IconStore />
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600 my-4">Discover new designs, styles, and furnitures for your designs.</p>
+                  <button onClick={() => navigate('/ecomm')} className="btn-secondary">Browse</button>
+                </div>
+
+
+
+
+
+
+              </>
             </div>
 
             {/* Recent Projects Section */}
@@ -410,35 +318,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Discover Styles Section */}
-            <div className="section-wrapper">
-              <div className="section-header">
-                <h2 className="section-title">Discover Styles</h2>
-                <button className="btn-text">
-                  View All <IconArrowRight />
-                </button>
-              </div>
-              <div className="styles-scroll-container">
-                {designStyles.map((style) => (
-                  <div key={style.id} className="style-card group">
-                    <div className="style-image-wrapper">
-                      <img
-                        src={style.img}
-                        alt={style.name}
-                        className="w-full h-full object-cover !rounded-none"
-                      />
-                    </div>
-                    <div className="style-info">
-                      <h3 className="style-title">{style.name}</h3>
-                      <p className="style-desc">{style.desc}</p>
-                      <button className="btn-text !px-0 text-sm">
-                        Try this style
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+
           </main>
         </div>
       </div>
@@ -522,6 +402,14 @@ const IconLightbulb = () => (
     ></path>
   </svg>
 );
+
+const IconCart = () => (
+  <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+  </svg>
+);
+
+
 const IconPerson = () => (
   <svg
     className="w-5 h-5"
@@ -598,5 +486,18 @@ const IconStar = ({ isFavorite }) => (
       d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
     ></path>
   </svg>
+);
 
+
+
+const IconAIStudio = () => (
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 21l-.813-5.096A4 4 0 005.096 12.813L0 12l5.096-.813a4 4 0 003.091-3.091L9 3l.813 5.096a4 4 0 003.091 3.091L18 12l-5.096.813a4 4 0 00-3.091 3.091zM19.5 7.5L19 10l-.5-2.5L16 7l2.5-.5L19 4l.5 2.5L22 7l-2.5.5z" />
+  </svg>
+);
+
+const IconBlueprint = () => (
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+  </svg>
 );

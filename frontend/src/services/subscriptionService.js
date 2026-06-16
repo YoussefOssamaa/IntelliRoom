@@ -67,8 +67,14 @@ export const changePlan = async (newPlanId) => {
     }
 };
 
+export const getPublicPlans = async () => {
+    const response = await axios.get('/api/plans');
+    return response.data;
+};
+
 export default {
     getMySubscription,
     subscribeToPlan,
-    changePlan
+    changePlan,
+    getPublicPlans
 };

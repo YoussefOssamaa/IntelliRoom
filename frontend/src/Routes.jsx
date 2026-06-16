@@ -17,7 +17,6 @@ import AboutPage from './pages/about/AboutPage';
 import PlannerPage from './pages/planner/PlannerPage';
 import { UpdateProfile } from './pages/updateProfile/updateProfile';
 import { Community } from './pages/community/community';
-import Checkout from './pages/checkout/Checkout';
 
 import { ShopProvider } from './context/ShopContext';
 import CartPage from './pages/marketplace/CartPage';
@@ -44,6 +43,7 @@ import UsersDashboard from "./pages/admin/UsersDashboard";
 import ManageAdmins from "./pages/admin/ManageAdmins";
 import AdminLogs from "./pages/admin/AdminLogs";
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
+import AdminPlansPage from "./pages/admin/AdminPlansPage";
 const MarketplaceLayout = () => {
   return (
     <ShopProvider>
@@ -70,6 +70,7 @@ const AppRoutes = () => {
               <Route path="/dashboard/users" element={<UsersDashboard />} />
               <Route path="/manage-admins" element={<ManageAdmins />} />
               <Route path="/logs" element={<AdminLogs />} />
+              <Route path="/plans" element={<AdminPlansPage />} />
             </Route>
           </Route>
 
@@ -169,7 +170,6 @@ const AppRoutes = () => {
         <Route path="/planner" element={<PlannerPage />} />
         <Route path="/planner/:projectId" element={<PlannerPage />} />
         <Route path="/community" element={<Community />} />
-        <Route path="/checkout" element={<Checkout />} />
       </Routes>
     </Router>
   );

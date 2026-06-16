@@ -173,6 +173,13 @@ const AdminLayout = () => {
             Manage Rooms
           </Link>
 
+          <Link
+            to="/plans"
+            className={`block px-4 py-3 rounded-xl font-bold transition-all ${location.pathname.includes("/plans") ? "bg-text-accent text-white shadow-md" : "text-gray-500 hover:bg-gray-100"}`}
+          >
+            Subscription Plans
+          </Link>
+
           {/* Orders */}
           <Link
             to="/ecomm/admin/orders"

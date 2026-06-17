@@ -44,7 +44,7 @@ export const registerHandler = async (req, res) => {
             return res.status(400).json({ success: false, message: genericError })
         }
         const hashedPassword = await bcrypt.hash(password, 10)
-        await User.create({
+        const newUser = await User.create({
             email,
             firstName,
             lastName,
@@ -55,12 +55,12 @@ export const registerHandler = async (req, res) => {
             success: true,
             message: "User registered successfully.",
             user: {
-                email: logging_user.email,
-                firstName: logging_user.firstName,
-                lastName: logging_user.lastName,
-                user_name: logging_user.user_name,
-                plan: logging_user.plan,
-                credits: logging_user.credits
+                email: newUser.email,
+                firstName: newUser.firstName,
+                lastName: newUser.lastName,
+                user_name: newUser.user_name,
+                plan: newUser.plan,
+                credits: newUser.credits
             }
         })
 

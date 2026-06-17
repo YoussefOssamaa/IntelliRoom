@@ -8,6 +8,7 @@ import { buildComfyWorkflow, COMFYUI_OUTPUT_NODE } from '../../../../ai/ComfyUI_
 import { getRecommendations } from './getRecommendations.js';
 import { getMatchedProductsFromDB } from './getMatchedProductsFromDB.js';
 import axios from 'axios';
+import { postGeneratedImageController } from '../generatedImage/generatedImageController.js';
 
 const TEST_MODE = false;  // set to true to skip ComfyUI processing and return test recommendations
 
@@ -138,6 +139,18 @@ export const postImageController = async (req, res) => {
         }
 
         await setTimeout(500);  /// delay to allow the output image to appear on the frontend page
+
+
+        postingImage = {
+            user: req.userId,
+            inputPrompt: inputPrompt,
+            originalImageUrl: `/uploads/uploadedImages/${mainImage.filename}`,
+            referenceImageUrl: referenceImage ? `/uploads/referenceImages/${referenceImage.filename}` : null,
+            generatedImageUrl: `/uploads/comfyOutputs/${localFileName}`,
+            isFavorite: false
+        }
+
+        await postGeneratedImageController(postingImage);
 
         return res.status(200).json({
             success: true,

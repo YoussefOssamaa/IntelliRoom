@@ -32,7 +32,7 @@ export function PricingPlansPage() {
     try {
       const billingCycle = isAnnual ? 'annual' : 'monthly';
       const response = await subscribeToPlan(planId, billingCycle);
-      if (response?.checkoutUrl) {
+      if (response.success && response.checkoutUrl) {
         window.location.href = response.checkoutUrl;
         return;
       }

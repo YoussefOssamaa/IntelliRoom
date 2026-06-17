@@ -65,7 +65,7 @@ export const getAdminLogs = async (req, res) => {
 export const signIn = async (req, res) => {
   try {
     const { email, password } = req.body;
-    // console.log(email);
+    // console.log(await Admin.find({}));
 
     if (!email || !password) {
       return res

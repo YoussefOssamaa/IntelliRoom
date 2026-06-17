@@ -37,7 +37,6 @@ import AdminOrdersPage from './pages/marketplace/admin/AdminOrdersPage';
 import SearchInput from "./components/common/SearchInput";
 import AdminRoomFormPage from "./pages/marketplace/admin/AdminRoomFormPage";
 
-// استدعاءات لوحة تحكم الأدمن (كودك)
 import AdminLogin from "./pages/admin/AdminLogin";
 import UsersDashboard from "./pages/admin/UsersDashboard";
 import ManageAdmins from "./pages/admin/ManageAdmins";
@@ -56,7 +55,6 @@ const MarketplaceLayout = () => {
 const AppRoutes = () => {
   const hostname = window.location.hostname;
 
-  // فحص النطاق الفرعي للأدمن
   const isAdminSubdomain = hostname.split(".")[0] === "admin" || hostname === "admin.localhost";
 
   if (isAdminSubdomain) {
@@ -119,10 +117,7 @@ const AppRoutes = () => {
           <Route path="/ecomm/checkout" element={<CheckoutPage />} />
         </Route>
 
-        {/* The Private Admin Dashboard */}
         <Route path="/ecomm/admin" element={<AdminLayout />}>
-          {/* <Route index element={<AdminOverview />} /> */}
-
           <Route
             index
             element={
@@ -165,7 +160,6 @@ const AppRoutes = () => {
           element={<PluginReviewPage />}
         />
         <Route path="/upload" element={<UploadImagePage />} />
-        {/* <Route path="/dashboard" element={<DashboardPage />} /> */}
         <Route path="/updateProfile" element={<UpdateProfile />} />
         <Route path="/planner" element={<PlannerPage />} />
         <Route path="/planner/:projectId" element={<PlannerPage />} />

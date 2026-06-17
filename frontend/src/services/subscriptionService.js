@@ -50,7 +50,7 @@ export const changePlan = async (newPlanId) => {
 };
 
 export const getPublicPlans = async () => {
-    const response = await axios.get('/api/plans');
+    const response = await axios.get('/plans');
     return response.data;
 };
 

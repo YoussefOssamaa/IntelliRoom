@@ -45,15 +45,17 @@ export const getMySubscription = async (req, res) => {
 export const subscribePlan = async (req, res) => { 
   try { 
     const { planId, billingCycle } = req.body; 
-    const user = req.user; 
-
+    const user = req.userId; 
+    
+    // console.log(user)
+    
     const plan = await Plan.findById(planId); 
     if (!plan) { 
       return res.status(404).json({ success: false, message: "Plan not found" }); 
     } 
 
     const existingSub = await Subscription.findOne({ 
-      userId: user._id, 
+      userId: user, 
       status: 'active' 
     }); 
     
@@ -71,7 +73,7 @@ export const subscribePlan = async (req, res) => {
       else endDate.setMonth(endDate.getMonth() + 1); 
 
       const newSubscription = await Subscription.create({ 
-        userId: user._id, 
+        userId: user, 
         planId, 
         status: 'active', 
         billingCycle, 
@@ -81,14 +83,14 @@ export const subscribePlan = async (req, res) => {
       }); 
 
       await Usage.create({ 
-        userId: user._id, 
+        userId: user, 
         subscriptionId: newSubscription._id, 
         remainingRenders: plan.renderLimit, 
         periodStart: startDate, 
         periodEnd: endDate 
       }); 
 
-      await User.findByIdAndUpdate(user._id, { plan: plan.name }); 
+      await User.findByIdAndUpdate(user, { plan: plan.name }); 
 
       return res.status(201).json({ 
         success: true, 
@@ -103,9 +105,10 @@ export const subscribePlan = async (req, res) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.FAWATERK_API_KEY}`
+          'Authorization': `Bearer ${process.env.FAWATERAK_API_KEY}`
         },
         body: JSON.stringify({
+          payment_method_id: 2,
           cartTotal: plan.price.toString(),
           currency: "EGP",
           customer: {
@@ -132,7 +135,7 @@ export const subscribePlan = async (req, res) => {
 
         // إنشاء سجل دفع معلق لحين وصول تأكيد الـ Webhook
         await Payment.create({
-            userId: user._id,
+            userId: user,
             planId: planId, // نحتفظ بالخطة لمعرفتها وقت التفعيل
             provider: 'fawaterak',
             fawaterkOrderId: invoiceId,

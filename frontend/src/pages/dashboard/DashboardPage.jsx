@@ -8,30 +8,48 @@ import { useAuth } from "../../utils/authContext";
 export default function DashboardPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  /*
+    const [isProjectsLoading, setIsProjectsLoading] = useState(true);
+    const [projects, setProjects] = useState([]);*/
 
-  const [isProjectsLoading, setIsProjectsLoading] = useState(true);
-  const [projects, setProjects] = useState([]);
+  const [isGeneratedImagesLoading, setIsGeneratedImagesLoading] = useState(true);
+  const [generatedImages, setGeneratedImages] = useState([]);
 
-  /* ── Fetch generated images ── */
+
+  const [isArchitectProjectLoading, setIsArchitectProjectLoading] = useState(true);
+  const [architectProjects, setArchitectProjects] = useState([]);
+
   useEffect(() => {
-    const fetchProjectsData = async () => {
+    const fetchGeneratedImagesData = async () => {
       try {
         const response = await axios.get("/generatedImage", { withCredentials: true });
-        if (response.data) setProjects(response.data);
+        if (response.data) setGeneratedImages(response.data);
       } catch (error) {
-        console.error("Error fetching projects data:", error);
+        console.error("Error fetching generated images data:", error);
       } finally {
-        setIsProjectsLoading(false);
+        setIsGeneratedImagesLoading(false);
       }
     };
-    fetchProjectsData();
+
+    const fetchArchitectProjectsData = async () => {
+      try {
+        const response = await axios.get("/design2D3D", { withCredentials: true });
+        if (response.data) setArchitectProjects(response.data);
+      } catch (error) {
+        console.error("Error fetching architect projects data:", error);
+      } finally {
+        setIsArchitectProjectLoading(false);
+      }
+    };
+    fetchGeneratedImagesData();
+    fetchArchitectProjectsData();
   }, []);
 
   /* ── Toggle favourite ── */
-  const handleToggleFavorite = async (e, project) => {
+  const handleGeneratedImageToggleFavorite = async (e, project) => {
     e.stopPropagation();
     const newFav = !project.isFavorite;
-    setProjects((prev) =>
+    setGeneratedImages((prev) =>
       prev.map((p) => (p._id === project._id ? { ...p, isFavorite: newFav } : p))
     );
     try {
@@ -41,11 +59,63 @@ export default function DashboardPage() {
         { withCredentials: true }
       );
     } catch {
-      setProjects((prev) =>
+      setGeneratedImages((prev) =>
         prev.map((p) => (p._id === project._id ? { ...p, isFavorite: project.isFavorite } : p))
       );
     }
   };
+
+  const handleArchitectProjectFavorite = async (e, project) => {
+    e.stopPropagation();
+    const newFav = !project.isFavorite;
+    setArchitectProjects((prev) =>
+      prev.map((p) => (p._id === project._id ? { ...p, isFavorite: newFav } : p))
+    );
+    try {
+      await axios.put(
+        `/design2D3D/${project._id}`,
+        { ...project, isFavorite: newFav },
+        { withCredentials: true }
+      );
+    } catch {
+      setArchitectProjects((prev) =>
+        prev.map((p) => (p._id === project._id ? { ...p, isFavorite: project.isFavorite } : p))
+      );
+    }
+  };
+
+
+
+
+  const handleGeneratedImageDelete = async (e, project) => {
+    e.stopPropagation();
+    const confirmDelete = window.confirm("Are you sure you want to delete this generated image?");
+    if (!confirmDelete) return;
+    try {
+      await axios.delete(`/generatedImage/${project._id}`, { withCredentials: true });
+      setGeneratedImages((prev) => prev.filter((p) => p._id !== project._id));
+    } catch (error) {
+      console.error("Error deleting generated image:", error);
+    }
+  };
+
+  const handleArchitectProjectDelete = async (e, project) => {
+    e.stopPropagation();
+    const confirmDelete = window.confirm("Are you sure you want to delete this project?");
+    if (!confirmDelete) return;
+    try {
+      await axios.delete(`/design2D3D/${project._id}`, { withCredentials: true });
+      setArchitectProjects((prev) => prev.filter((p) => p._id !== project._id));
+    } catch (error) {
+      console.error("Error deleting architect project:", error);
+    }
+  };
+
+
+
+
+
+
 
   return (
     <>
@@ -116,13 +186,25 @@ export default function DashboardPage() {
                 </button>
               </div>
 
-              {/* Projects count */}
+
+
+              {/* {Projects} count */}
               <div className="stat-card">
                 <span className="stat-label">Total Designs</span>
                 <div className="stat-value">
-                  {isProjectsLoading ? "—" : projects.length}
+                  {isGeneratedImagesLoading || isArchitectProjectLoading
+                    ? "—"
+                    : generatedImages.length + architectProjects.length}
                 </div>
-                <p className="credits-hint">Generated with AI</p>
+
+                <p className="credits-hint" style={{ marginTop: "0.25rem" }}>
+                  {isGeneratedImagesLoading || isArchitectProjectLoading ? (
+                    "Loading breakdown..."
+                  ) : (
+                    `${generatedImages.length}\u00A0AI Studio\u00A0\u00A0\u00A0|\u00A0\u00A0\u00A0${architectProjects.length}\u00A0Architect`
+                  )}
+                </p>
+
                 <button
                   onClick={() => navigate("/projects")}
                   className="btn-text"
@@ -131,6 +213,8 @@ export default function DashboardPage() {
                   View all →
                 </button>
               </div>
+
+
 
               {/* Marketplace teaser */}
               <div className="stat-card">
@@ -218,7 +302,7 @@ export default function DashboardPage() {
               <div className="section-header">
                 <div>
                   <p className="section-eyebrow">Recents</p>
-                  <h2 className="section-title">Recent Projects</h2>
+                  <h2 className="section-title">Recent AI Studio Projects</h2>
                 </div>
                 <button onClick={() => navigate("/projects")} className="btn-text">
                   View All →
@@ -226,7 +310,7 @@ export default function DashboardPage() {
               </div>
 
               <div className="projects-grid">
-                {isProjectsLoading ? (
+                {isGeneratedImagesLoading ? (
                   [1, 2, 3, 4, 5, 6].map((i) => (
                     <div key={i} className="project-card" style={{ cursor: "default" }}>
                       <div className="project-image-wrapper">
@@ -238,16 +322,16 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   ))
-                ) : projects.length === 0 ? (
+                ) : generatedImages.length === 0 ? (
                   <div className="empty-state">
                     No designs yet — launch the AI Studio to get started.
                   </div>
                 ) : (
-                  projects.slice(0, 9).map((project) => (
+                  generatedImages.slice(0, 9).map((project) => (
                     <div
                       key={project._id}
                       className="project-card group"
-                      onClick={() => navigate(`/projects/${project._id}`)}
+                      onClick={() => navigate(`/generatedImages/${project._id}`)}
                     >
                       <div className="project-image-wrapper">
                         <img
@@ -265,13 +349,22 @@ export default function DashboardPage() {
                               day: "2-digit", month: "short", year: "numeric",
                             })}
                           </span>
-                          <button
-                            onClick={(e) => handleToggleFavorite(e, project)}
-                            style={{ background: "none", border: "none", cursor: "pointer", padding: "4px" }}
-                            title={project.isFavorite ? "Remove from favourites" : "Add to favourites"}
-                          >
-                            <IconStar isFavorite={project.isFavorite} />
-                          </button>
+                          <div className="project-actions">
+                            <button
+                              onClick={(e) => handleGeneratedImageToggleFavorite(e, project)}
+                              className="project-action-btn"
+                              title={project.isFavorite ? "Remove from favourites" : "Add to favourites"}
+                            >
+                              <IconStar isFavorite={project.isFavorite} />
+                            </button>
+                            <button
+                              onClick={(e) => handleGeneratedImageDelete(e, project)}
+                              className="project-action-btn delete-btn"
+                              title="Delete project"
+                            >
+                              <IconTrash />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -279,6 +372,88 @@ export default function DashboardPage() {
                 )}
               </div>
             </div>
+
+
+
+
+            {/* Recent Architect Projects */}
+            <div className="section-wrapper">
+              <div className="section-header">
+                <div>
+                  <p className="section-eyebrow">Recents</p>
+                  <h2 className="section-title">Recent Architect Projects</h2>
+                </div>
+                <button onClick={() => navigate("/projects")} className="btn-text">
+                  View All →
+                </button>
+              </div>
+
+              <div className="projects-grid">
+                {isArchitectProjectLoading ? (
+                  [1, 2, 3, 4, 5, 6].map((i) => (
+                    <div key={i} className="project-card" style={{ cursor: "default" }}>
+                      <div className="project-image-wrapper">
+                        <div className="skeleton-block" style={{ width: "100%", height: "100%" }} />
+                      </div>
+                      <div className="project-info">
+                        <div className="skeleton-block" style={{ height: "14px", width: "70%", marginBottom: "8px" }} />
+                        <div className="skeleton-block" style={{ height: "10px", width: "40%" }} />
+                      </div>
+                    </div>
+                  ))
+                ) : architectProjects.length === 0 ? (
+                  <div className="empty-state">
+                    No designs yet — launch the Architect Mode to get started.
+                  </div>
+                ) : (
+                  architectProjects.slice(0, 9).map((project) => (
+                    <div
+                      key={project._id}
+                      className="project-card group"
+                      onClick={() => navigate(`/2D3DProjects/${project._id}`)}
+                    >
+                      <div className="project-image-wrapper">
+                        <img
+                          src={project.thumbnailUrl}
+                          alt={project.title || "Architect Project"}
+                        />
+                      </div>
+                      <div className="project-info">
+                        <h3 className="project-title" title={project.title}>
+                          {project.title || "Architect Project"}
+                        </h3>
+                        <div className="project-meta">
+                          <span className="project-date">
+                            {new Date(project.createdAt).toLocaleDateString("en-GB", {
+                              day: "2-digit", month: "short", year: "numeric",
+                            })}
+                          </span>
+                          <div className="project-actions">
+                            <button
+                              onClick={(e) => handleArchitectProjectFavorite(e, project)}
+                              className="project-action-btn"
+                              title={project.isFavorite ? "Remove from favourites" : "Add to favourites"}
+                            >
+                              <IconStar isFavorite={project.isFavorite} />
+                            </button>
+                            <button
+                              onClick={(e) => handleArchitectProjectDelete(e, project)}
+                              className="project-action-btn delete-btn"
+                              title="Delete project"
+                            >
+                              <IconTrash />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+
+
 
           </main>
         </div>
@@ -322,9 +497,8 @@ const IconStore = () => (
 );
 const IconStar = ({ isFavorite }) => (
   <svg
-    className={`w-5 h-5 transition-all duration-200 ${
-      isFavorite ? "fill-current" : "fill-transparent hover:fill-current"
-    }`}
+    className={`w-5 h-5 transition-all duration-200 ${isFavorite ? "fill-current" : "fill-transparent hover:fill-current"
+      }`}
     stroke="currentColor"
     strokeWidth="2"
     viewBox="0 0 24 24"
@@ -344,5 +518,11 @@ const IconBlueprint = () => (
   <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round"
       d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+  </svg>
+);
+const IconTrash = () => (
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round"
+      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
   </svg>
 );

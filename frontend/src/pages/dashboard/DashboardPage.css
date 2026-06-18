@@ -378,6 +378,37 @@
   margin-top: 0.75rem;
 }
 
+.project-actions {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.project-action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.project-action-btn:hover {
+  background-color: var(--cream-dark);
+}
+
+.project-action-btn.delete-btn {
+  color: var(--carbon-30);
+}
+
+.project-action-btn.delete-btn:hover {
+  color: hsl(0, 84%, 60%);
+  background-color: hsl(0, 100%, 96%);
+}
+
 /* ---------- Empty / Loading state ---------- */
 .empty-state {
   grid-column: 1 / -1;

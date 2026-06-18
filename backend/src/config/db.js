@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 
 const connectDB = async () => {
   try {
-      const atlasUri = String(process.env.MONGO_URI).trim();
+    const atlasUri = String(process.env.MONGO_URI).trim()
     if (!atlasUri) {
       throw new Error("MONGO_URI is required");
     }

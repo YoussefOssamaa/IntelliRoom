@@ -18,7 +18,7 @@ export const postGeneratedImageController = async (postingImage) => {
         }
 
 
-        const newPost = await GeneratedImage.create({
+        const newImage = await GeneratedImage.create({
             user: user_id,
             inputPrompt,
             originalImageUrl,
@@ -31,7 +31,7 @@ export const postGeneratedImageController = async (postingImage) => {
         await deductCredits(user_id, 50, "Generated Image");
 
 
-        return res.status(201).json(newPost);
+        return res.status(201).json({ message: "Image created successfully", image: newImage });
 
     } catch (error) {
         return res.status(500).json({ error: error.message });

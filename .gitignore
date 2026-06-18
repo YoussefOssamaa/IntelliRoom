@@ -62,3 +62,6 @@ database/restore/
 
 /frontend/.env
 /frontend/.env/*
+
+
+furniture_images/

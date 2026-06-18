@@ -1,0 +1,31 @@
+FROM node:20-alpine
+
+### the container path starts with /app then the rest of the backend folder, ex: /app/src/controllers
+WORKDIR /app
+
+# Install pnpm
+RUN npm install -g pnpm
+
+# Copy dependency definitions and preinstall scripts
+COPY backend/package.json backend/pnpm-lock.yaml* ./
+COPY backend/scripts ./scripts
+
+RUN pnpm install --prod --no-frozen-lockfile
+
+# Copy the rest of the backend source code and AI directory
+COPY backend . 
+
+
+RUN cd src/utils && mkdir -p src/keys && node generateKeyPair.util.js
+
+# Ensure the uploads directory exists 
+RUN mkdir -p /app/uploads/comfyOutputs
+
+ENV NODE_ENV=production
+# Install dependencies (only production ones)
+
+EXPOSE 5000
+
+
+# Start the server directly with node
+CMD ["node", "src/server.js"]

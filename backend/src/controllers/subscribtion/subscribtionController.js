@@ -9,7 +9,7 @@ const FAWATERK_BASE_URL = process.env.FAWATERK_BASE_URL || 'https://staging.fawa
 
 export const getMySubscription = async (req, res) => { 
     try { 
-        const userId = req.user._id; 
+        const userId = req.userId || (req.user && req.user._id); 
 
         const subscription = await Subscription.findOne({ 
             userId, 
@@ -45,9 +45,8 @@ export const getMySubscription = async (req, res) => {
 export const subscribePlan = async (req, res) => { 
   try { 
     const { planId, billingCycle } = req.body; 
-    const user = req.userId; 
-    
-    // console.log(user)
+    const userId = req.userId || (req.user && req.user._id); 
+    const userObj = req.user || await User.findById(userId);
     
     const plan = await Plan.findById(planId); 
     if (!plan) { 
@@ -55,7 +54,7 @@ export const subscribePlan = async (req, res) => {
     } 
 
     const existingSub = await Subscription.findOne({ 
-      userId: user, 
+      userId: userId, 
       status: 'active' 
     }); 
     
@@ -73,7 +72,7 @@ export const subscribePlan = async (req, res) => {
       else endDate.setMonth(endDate.getMonth() + 1); 
 
       const newSubscription = await Subscription.create({ 
-        userId: user, 
+        userId: userId, 
         planId, 
         status: 'active', 
         billingCycle, 
@@ -83,14 +82,14 @@ export const subscribePlan = async (req, res) => {
       }); 
 
       await Usage.create({ 
-        userId: user, 
+        userId: userId, 
         subscriptionId: newSubscription._id, 
         remainingRenders: plan.renderLimit, 
         periodStart: startDate, 
         periodEnd: endDate 
       }); 
 
-      await User.findByIdAndUpdate(user, { plan: plan.name }); 
+      await User.findByIdAndUpdate(userId, { plan: plan.name }); 
 
       return res.status(201).json({ 
         success: true, 
@@ -112,10 +111,10 @@ export const subscribePlan = async (req, res) => {
           cartTotal: plan.price.toString(),
           currency: "EGP",
           customer: {
-            first_name: user.firstName || "IntelliRoom",
-            last_name: user.lastName || "User",
-            email: user.email,
-            phone: user.phone || "01000000000"
+            first_name: userObj?.firstName || "IntelliRoom",
+            last_name: userObj?.lastName || "User",
+            email: userObj?.email,
+            phone: userObj?.phone || "01000000000"
           },
           cartItems: [
             {
@@ -135,7 +134,7 @@ export const subscribePlan = async (req, res) => {
 
         // إنشاء سجل دفع معلق لحين وصول تأكيد الـ Webhook
         await Payment.create({
-            userId: user,
+            userId: userId,
             planId: planId, // نحتفظ بالخطة لمعرفتها وقت التفعيل
             provider: 'fawaterak',
             fawaterkOrderId: invoiceId,
@@ -169,7 +168,8 @@ export const subscribePlan = async (req, res) => {
 export const createFawaterkCheckout = async (req, res) => { 
   try { 
     const { planId } = req.body; 
-    const user = req.user; 
+    const userId = req.userId || (req.user && req.user._id); 
+    const userObj = req.user || await User.findById(userId);
 
     const plan = await Plan.findById(planId); 
     if (!plan) { 
@@ -187,10 +187,10 @@ export const createFawaterkCheckout = async (req, res) => {
         cartTotal: plan.price.toString(),
         currency: "EGP",
         customer: {
-          first_name: user.firstName || "IntelliRoom",
-          last_name: user.lastName || "User",
-          email: user.email,
-          phone: user.phone || "01000000000"
+          first_name: userObj?.firstName || "IntelliRoom",
+          last_name: userObj?.lastName || "User",
+          email: userObj?.email,
+          phone: userObj?.phone || "01000000000"
         },
         cartItems: [
           {
@@ -209,7 +209,7 @@ export const createFawaterkCheckout = async (req, res) => {
       
       // حفظ العملية كقيد الانتظار
       await Payment.create({
-          userId: user._id,
+          userId: userId,
           planId: planId,
           provider: 'fawaterak',
           fawaterkOrderId: invoiceId,
@@ -236,7 +236,7 @@ export const createFawaterkCheckout = async (req, res) => {
 
 export const unsubscribePlan = async (req, res) => { 
   try { 
-    const userId = req.user._id; 
+    const userId = req.userId || (req.user && req.user._id); 
 
     const subscription = await Subscription.findOne({ userId, status: 'active' }); 
 
@@ -273,7 +273,8 @@ export const unsubscribePlan = async (req, res) => {
 export const changePlan = async (req, res) => { 
   try { 
     const { newPlanId } = req.body; 
-    const user = req.user; 
+    const userId = req.userId || (req.user && req.user._id); 
+    const userObj = req.user || await User.findById(userId);
     
     const newPlan = await Plan.findById(newPlanId); 
     if (!newPlan) { 
@@ -281,7 +282,7 @@ export const changePlan = async (req, res) => {
     } 
 
     const currentSubscription = await Subscription.findOne({ 
-      userId: user._id, 
+      userId: userId, 
       status: 'active' 
     }).populate('planId'); 
     
@@ -312,7 +313,7 @@ export const changePlan = async (req, res) => {
         await currentUsage.save(); 
       } 
 
-      await User.findByIdAndUpdate(user._id, { plan: newPlan.name }); 
+      await User.findByIdAndUpdate(userId, { plan: newPlan.name }); 
 
       return res.status(200).json({ 
         success: true, 
@@ -333,10 +334,10 @@ export const changePlan = async (req, res) => {
           cartTotal: priceDifference.toString(),
           currency: "EGP",
           customer: {
-            first_name: user.firstName || "IntelliRoom",
-            last_name: user.lastName || "User",
-            email: user.email,
-            phone: user.phone || "01000000000"
+            first_name: userObj?.firstName || "IntelliRoom",
+            last_name: userObj?.lastName || "User",
+            email: userObj?.email,
+            phone: userObj?.phone || "01000000000"
           },
           cartItems: [
             {
@@ -354,7 +355,7 @@ export const changePlan = async (req, res) => {
         const invoiceId = invoiceData.data.invoice_id;
 
         await Payment.create({
-            userId: user._id,
+            userId: userId,
             planId: newPlanId, // الخطة الجديدة
             provider: 'fawaterak',
             fawaterkOrderId: invoiceId,

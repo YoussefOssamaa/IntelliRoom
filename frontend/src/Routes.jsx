@@ -43,6 +43,9 @@ import ManageAdmins from "./pages/admin/ManageAdmins";
 import AdminLogs from "./pages/admin/AdminLogs";
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
 import AdminPlansPage from "./pages/admin/AdminPlansPage";
+import PaymentSuccess from './pages/payment/PaymentSuccess';
+import PaymentFailed from './pages/payment/PaymentFailed';
+
 const MarketplaceLayout = () => {
   return (
     <ShopProvider>
@@ -99,6 +102,8 @@ const AppRoutes = () => {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/marketplace" element={<MarketplacePage />} />
         <Route path="/pricingPlans" element={<PricingPlansPage />} />
+        <Route path="/payment-success" element={<PaymentSuccess />} />
+        <Route path="/payment-failed" element={<PaymentFailed />} />
         <Route path="/pluginReview/:id" element={<PluginReviewPage />} />
 
         <Route element={<MarketplaceLayout />}>

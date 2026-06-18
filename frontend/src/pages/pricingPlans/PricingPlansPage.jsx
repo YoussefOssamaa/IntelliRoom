@@ -3,7 +3,7 @@ import './PricingPlansPage.css';
 import Header from '../../pages/dashboard/Header';
 import Footer from '../../components/common/Footer';
 import { useNavigate } from 'react-router-dom';
-import { subscribeToPlan, getPublicPlans } from '../../services/subscriptionService';
+import { subscribeToPlan, getPublicPlans, getMySubscription } from '../../services/subscriptionService';
 
 export function PricingPlansPage() {
   const [plans, setPlans] = useState([]);
@@ -11,23 +11,42 @@ export function PricingPlansPage() {
   const [loadingPlan, setLoadingPlan] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentPlanId, setCurrentPlanId] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchPlans = async () => {
+    const fetchData = async () => {
       try {
         const response = await getPublicPlans();
         setPlans(response.data || []);
-        setLoading(false);
       } catch (err) {
         setError(err.message || 'Error fetching plans');
+      }
+
+      try {
+        // Attempt to fetch current user's subscription
+        const subResponse = await getMySubscription();
+        setIsLoggedIn(true); // If this succeeds, the user is logged in
+        if (subResponse?.data?.subscription?.planId) {
+          setCurrentPlanId(subResponse.data.subscription.planId._id || subResponse.data.subscription.planId);
+        }
+      } catch (err) {
+        // Request fails (e.g., 401 Unauthorized), meaning user is not logged in
+        setIsLoggedIn(false);
+      } finally {
         setLoading(false);
       }
     };
-    fetchPlans();
+    fetchData();
   }, []);
 
   const handleSubscribe = async (planId) => {
+    if (!isLoggedIn) {
+      navigate('/login');
+      return;
+    }
+
     setLoadingPlan(planId);
     try {
       const billingCycle = isAnnual ? 'annual' : 'monthly';
@@ -94,12 +113,22 @@ export function PricingPlansPage() {
       </div>
 
       <div className='cards-container'>
-        {plans.map((plan) => (
-          <div 
-            key={plan._id} 
-            className="card"
-          >
-            <h3 className='plan-name'>{plan.name}</h3>
+        {plans.map((plan) => {
+          const isCurrentPlan = currentPlanId === plan._id;
+          
+          return (
+            <div 
+              key={plan._id} 
+              className={`card ${isCurrentPlan ? 'border-2 border-indigo-500' : ''}`}
+            >
+              <h3 className='plan-name'>
+                {plan.name}
+                {isCurrentPlan && (
+                  <span className="ml-2 text-xs font-bold bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full align-middle">
+                    Current
+                  </span>
+                )}
+              </h3>
             <p className='description'>{plan.description || ''}</p>
             
             <div className="price-tag">
@@ -126,12 +155,14 @@ export function PricingPlansPage() {
             <button 
               className="cta-button" 
               onClick={() => handleSubscribe(plan._id)} 
-              disabled={loadingPlan === plan._id}
+              disabled={loadingPlan === plan._id || isCurrentPlan}
+              style={isCurrentPlan ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
             >
-              {loadingPlan === plan._id ? 'Processing...' : `Choose ${plan.name}`}
+              {isCurrentPlan ? 'Current Plan' : loadingPlan === plan._id ? 'Processing...' : `Choose ${plan.name}`}
             </button>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
     <Footer />

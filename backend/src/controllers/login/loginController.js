@@ -9,6 +9,9 @@ import Refresh from '../../models/refreshToken.js';
 import { sendEmail } from '../../utils/sendEmail.util.js';
 import ForgetPassword from '../../models/forgetPassword.js';
 import { fileURLToPath } from 'url';
+import Plan from '../../models/billing system/plan.js';
+import Subscription from '../../models/billing system/Subscription.js';
+import Usage from '../../models/billing system/usage.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -44,13 +47,53 @@ export const registerHandler = async (req, res) => {
             return res.status(400).json({ success: false, message: genericError })
         }
         const hashedPassword = await bcrypt.hash(password, 10)
-        await User.create({
+        const newUser = await User.create({
             email,
             firstName,
             lastName,
             user_name,
             password: hashedPassword
         })
+
+        // --- START OF FREE PLAN AUTO-SUBSCRIPTION ---
+        try {
+            const freePlan = await Plan.findOne({ price: 0 });
+            
+            if (freePlan) {
+                const startDate = new Date();
+                const endDate = new Date();
+                endDate.setMonth(endDate.getMonth() + 1); // 1 month billing cycle
+
+                // Create the subscription
+                const newSubscription = await Subscription.create({
+                    userId: newUser._id,
+                    planId: freePlan._id,
+                    status: 'active',
+                    billingCycle: 'monthly',
+                    startDate,
+                    endDate,
+                    renewalDate: endDate
+                });
+
+                // Create the usage limits tracker
+                await Usage.create({
+                    userId: newUser._id,
+                    subscriptionId: newSubscription._id,
+                    remainingRenders: freePlan.renderLimit,
+                    periodStart: startDate,
+                    periodEnd: endDate
+                });
+
+                // Update user document with the plan name
+                newUser.plan = freePlan.name;
+                await newUser.save();
+            }
+        } catch (subError) {
+            console.error("Error auto-subscribing new user to free plan:", subError);
+            // We log the error but don't fail the signup process just because the subscription failed
+        }
+        // --- END OF FREE PLAN AUTO-SUBSCRIPTION ---
+
         return res.status(201).json({ success: true, message: "User registered successfully." })
 
     } catch (e) {

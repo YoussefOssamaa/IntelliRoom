@@ -1,13 +1,22 @@
 import bcrypt from "bcryptjs";
 import Admin from "../models/admin/admin.js";
-import User from "../models/user.js";
 import mongoose from "mongoose";
+import User from "../models/user.js";
+import Subscription from "../models/billing system/Subscription.js";
+import Plan from "../models/billing system/plan.js";
+import Usage from "../models/billing system/usage.js";
+import dotenv from "dotenv";
 
 const DEFAULT_PASSWORD = "password123";
+dotenv.config();
 
 export const seedAccounts = async () => {
   try {
     console.log("⏳ Starting to seed accounts...");
+    // Connect to DB if not already connected (useful if running standalone)
+    if (mongoose.connection.readyState === 0) {
+        await mongoose.connect(process.env.MONGO_URI);
+    }
 
     const adminsData = [
       {
@@ -80,6 +89,49 @@ export const seedAccounts = async () => {
   }
 };
 
+export const assignFreePlanToUsers = async () => {
+  try {
+    if (mongoose.connection.readyState === 0) {
+        await mongoose.connect(process.env.MONGO_URI);
+    }
+    // 1. Find the Free Plan (Assuming price is 0)
+    const freePlan = await Plan.findOne({ price: 0 });
+    if (!freePlan) {
+      console.log("No free plan found in the database. Please create one first.");
+      return;
+    }
+
+    // 2. Find all non-admin users
+    const users = await User.find({ role: { $ne: 'admin' } });
+    let count = 0;
+
+    for (const user of users) {
+      // 3. Check if user already has an active subscription
+      const existingSub = await Subscription.findOne({
+        userId: user._id,
+        status: { $in: ['active', 'trial'] }
+      });
+
+      // 4. If no active subscription, give them the free plan
+      if (!existingSub) {
+        const startDate = new Date();
+        const endDate = new Date();
+        endDate.setMonth(endDate.getMonth() + 1); // 1 month cycle
+
+        // We can reuse the existing `subscribePlan` logic roughly here:
+        const newSubscription = await Subscription.create({ userId: user._id, planId: freePlan._id, status: 'active', billingCycle: 'monthly', startDate, endDate, renewalDate: endDate });
+        await Usage.create({ userId: user._id, subscriptionId: newSubscription._id, remainingRenders: freePlan.renderLimit, periodStart: startDate, periodEnd: endDate });
+        await User.findByIdAndUpdate(user._id, { plan: freePlan.name });
+
+        count++;
+      }
+    }
+    console.log(`✅ Successfully assigned the free plan to ${count} users.`);
+  } catch (error) {
+    console.error("❌ Error assigning free plans:", error);
+  }
+};
+
 export const clearAccounts = async () => {
   try {
     console.log("⏳ Starting to clear seeded accounts...");
@@ -101,9 +153,11 @@ export const clearAccounts = async () => {
     console.error("❌ Error clearing accounts:", error.message);
   }
 };
+
 const fetchAdmins = async ()=>{
     console.log(await Admin.find());
 }
+
 const runSeeder = async () => {
   try {
     await mongoose.connect(
@@ -111,9 +165,11 @@ const runSeeder = async () => {
     );
     console.log("✅ Connected to MongoDB");
 
-    await seedAccounts();
+    // await seedAccounts();
+    // await assignFreePlanToUsers();
     // await clearAccounts();
     // await fetchAdmins();
+    
     await mongoose.disconnect();
     console.log("🔌 Disconnected from MongoDB");
     process.exit(0);
@@ -123,8 +179,4 @@ const runSeeder = async () => {
   }
 };
 
-// تشغيل السكريبت
 // runSeeder();
-
-// seedAccounts();
-// clearAccounts();

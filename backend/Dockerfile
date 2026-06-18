@@ -7,8 +7,8 @@ WORKDIR /app
 RUN npm install -g pnpm
 
 # Copy dependency definitions and preinstall scripts
-COPY backend/package.json backend/pnpm-lock.yaml* ./
-COPY backend/scripts ./scripts
+COPY package.json pnpm-lock.yaml* ./
+COPY scripts ./scripts
 
 RUN pnpm install --prod --no-frozen-lockfile
 

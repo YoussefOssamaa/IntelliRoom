@@ -13,7 +13,7 @@ COPY backend/scripts ./scripts
 RUN pnpm install --prod --no-frozen-lockfile
 
 # Copy the rest of the backend source code and AI directory
-COPY backend . 
+COPY . . 
 
 
 RUN cd src/utils && mkdir -p src/keys && node generateKeyPair.util.js

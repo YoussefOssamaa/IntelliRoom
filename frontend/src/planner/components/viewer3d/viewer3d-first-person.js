@@ -10,6 +10,16 @@ import {initPointerLock} from "./pointer-lock-navigation";
 import {firstPersonOnKeyDown, firstPersonOnKeyUp} from "./libs/first-person-controls";
 import * as SharedStyle from '../../shared-style';
 import PlannerContext from '../../context/PlannerContext';
+import { getSharedViewerEnvironment } from './viewer-environment';
+
+const SHARED_CAMERA_TRANSITION_STATE_KEY = "__plannerSharedViewerCameraPose";
+
+const consumeSharedCameraTransitionState = () => {
+  if (typeof window === "undefined") return null;
+  const storedPose = window[SHARED_CAMERA_TRANSITION_STATE_KEY];
+  window[SHARED_CAMERA_TRANSITION_STATE_KEY] = null;
+  return storedPose || null;
+};
 
 export default class Viewer3DFirstPerson extends React.Component {
 
@@ -38,8 +48,35 @@ export default class Viewer3DFirstPerson extends React.Component {
     this._cameraWorldQuaternion = new Three.Quaternion();
     this._lastRendererWidth = this.width;
     this._lastRendererHeight = this.height;
+    this._lastRenderLoopErrorAt = 0;
+    this._cameraInitializedWithContent = false;
+    this._pendingRecenterAfterProjectChange = false;
     this.renderer = window.__threeRenderer || new Three.WebGLRenderer({preserveDrawingBuffer: true});
     window.__threeRenderer = this.renderer;
+  }
+
+  _isRenderLoopDebugEnabled() {
+    if (typeof window === 'undefined') return false;
+    const explicitDebugFlag = window.__INTELLIROOM_DEBUG_RENDER_LOOP;
+    if (explicitDebugFlag === true) return true;
+    if (explicitDebugFlag === false) return false;
+    return import.meta.env.DEV === true;
+  }
+
+  _debugRenderLoop(message, details) {
+    if (!this._isRenderLoopDebugEnabled()) return;
+    if (details !== undefined) {
+      console.info(`[Viewer3DFirstPerson][RenderLoop] ${message}`, details);
+      return;
+    }
+    console.info(`[Viewer3DFirstPerson][RenderLoop] ${message}`);
+  }
+
+  _reportRenderLoopError(error) {
+    const now = Date.now();
+    if (now - this._lastRenderLoopErrorAt < 2000) return;
+    this._lastRenderLoopErrorAt = now;
+    console.error('[Viewer3DFirstPerson][RenderLoop] Frame crashed', error);
   }
 
   emitRenderCameraVerticalRotationChange(verticalDegrees) {
@@ -59,6 +96,95 @@ export default class Viewer3DFirstPerson extends React.Component {
     const lodMap = (planData && planData.sceneGraph && planData.sceneGraph.LODs) || {};
     this._lodEntries = Object.values(lodMap).filter(Boolean);
     this._lodDirty = false;
+  }
+
+  _getCameraFitCenter(planData, options = {}) {
+    const pd = planData || this.planData;
+    if (!pd) return null;
+    const requireGeometry = !!options.requireGeometry;
+
+    const storedCenter = pd.boundingBoxCenter;
+    const hasValidStoredCenter =
+      storedCenter &&
+      Number.isFinite(storedCenter.x) &&
+      Number.isFinite(storedCenter.y) &&
+      Number.isFinite(storedCenter.z) &&
+      Number.isFinite(storedCenter.lenX) &&
+      Number.isFinite(storedCenter.lenZ) &&
+      storedCenter.lenX > 0 &&
+      storedCenter.lenZ > 0;
+
+    if (hasValidStoredCenter && (!requireGeometry || pd.boundingBoxHasGeometry)) {
+      return { center: storedCenter, source: 'bounding-box' };
+    }
+
+    const boxMin = pd.boundingBox?.min;
+    const boxMax = pd.boundingBox?.max;
+    const hasValidBoundingBox =
+      boxMin &&
+      boxMax &&
+      Number.isFinite(boxMin.x) &&
+      Number.isFinite(boxMin.y) &&
+      Number.isFinite(boxMin.z) &&
+      Number.isFinite(boxMax.x) &&
+      Number.isFinite(boxMax.y) &&
+      Number.isFinite(boxMax.z) &&
+      (
+        Math.abs(boxMax.x - boxMin.x) > 1e-6 ||
+        Math.abs(boxMax.y - boxMin.y) > 1e-6 ||
+        Math.abs(boxMax.z - boxMin.z) > 1e-6
+      );
+
+    if (hasValidBoundingBox && (!requireGeometry || pd.boundingBoxHasGeometry)) {
+      const lenX = Math.max(boxMax.x - boxMin.x, 1);
+      const lenZ = Math.max(boxMax.z - boxMin.z, 1);
+      const center = new Three.Vector3(
+        (boxMax.x - boxMin.x) / 2 + boxMin.x,
+        (boxMax.y - boxMin.y) / 2 + boxMin.y,
+        (boxMax.z - boxMin.z) / 2 + boxMin.z,
+      );
+      center.lenX = lenX;
+      center.lenZ = lenZ;
+      pd.boundingBoxCenter = center;
+      return { center, source: 'bounding-box-derived' };
+    }
+
+    if (requireGeometry) {
+      return null;
+    }
+
+    const width = pd.sceneGraph?.width || 12000;
+    const height = pd.sceneGraph?.height || 12000;
+    const center = new Three.Vector3(width / 2, 0, -height / 2);
+    center.lenX = width;
+    center.lenZ = height;
+    pd.boundingBoxCenter = center;
+    pd.boundingBox = {
+      min: new Three.Vector3(0, 0, -height),
+      max: new Three.Vector3(width, 0, 0),
+    };
+    return { center, source: 'scene-size-fallback' };
+  }
+
+  _recenterCameraToPlanBounds(planData, options = {}) {
+    const fitData = this._getCameraFitCenter(planData, options);
+    const controlObject = this.controls?.getObject?.();
+    if (!fitData?.center || !controlObject) return false;
+
+    const { center } = fitData;
+    const floorY = this.getRenderFloorLevel();
+    controlObject.position.set(center.x, floorY + this.renderCameraHeight, center.z);
+    this._hasLastFrameCameraState = false;
+    this._sceneDirtyForFrame = true;
+    return true;
+  }
+
+  _isCameraRecoveryNeeded(planData) {
+    const fitData = this._getCameraFitCenter(planData, { requireGeometry: true });
+    const controlObject = this.controls?.getObject?.();
+    if (!fitData?.center || !controlObject) return false;
+
+    return Math.abs(controlObject.position.x) < 1e-4 && Math.abs(controlObject.position.z) < 1e-4;
   }
 
   _didCameraStateChange(camera) {
@@ -249,7 +375,7 @@ export default class Viewer3DFirstPerson extends React.Component {
     this.camera.getWorldDirection(direction);
     target.copy(position).add(direction.multiplyScalar(220));
 
-    return { position, target };
+    return { position, target, source: 'first-person' };
   }
 
   setRenderPreviewState(nextState = {}) {
@@ -259,25 +385,55 @@ export default class Viewer3DFirstPerson extends React.Component {
     const previewState = this.getRenderPreviewState();
     const nextPosition = nextState.position || previewState?.position;
     const nextTarget = nextState.target || previewState?.target;
+    const fromOrbit = nextState.source === 'orbit';
 
-    if (nextPosition) {
-      const nextX = Number(nextPosition.x);
-      const nextZ = Number(nextPosition.z);
+    const nextEye = fromOrbit && nextTarget ? nextTarget : nextPosition;
+
+    if (nextEye) {
+      const nextX = Number(nextEye.x);
+      const nextZ = Number(nextEye.z);
 
       if (!Number.isNaN(nextX)) controlObject.position.x = nextX;
       if (!Number.isNaN(nextZ)) controlObject.position.z = nextZ;
     }
 
     const cameraWorldY = this.camera?.getWorldPosition(new Three.Vector3()).y ?? controlObject.position.y;
-    if (nextTarget) {
-      const dx = Number(nextTarget.x) - controlObject.position.x;
-      const dz = Number(nextTarget.z) - controlObject.position.z;
+    const lookTarget = (() => {
+      if (fromOrbit && nextPosition && nextTarget) {
+        const orbitEye = new Three.Vector3(
+          Number(nextPosition.x),
+          Number(nextPosition.y),
+          Number(nextPosition.z),
+        );
+        const orbitTarget = new Three.Vector3(
+          Number(nextTarget.x),
+          Number(nextTarget.y),
+          Number(nextTarget.z),
+        );
+        const forward = orbitTarget.sub(orbitEye);
+        forward.y = 0;
+        if (forward.lengthSq() > 1e-6) {
+          forward.normalize();
+          return new Three.Vector3(
+            controlObject.position.x + forward.x * 220,
+            cameraWorldY,
+            controlObject.position.z + forward.z * 220,
+          );
+        }
+      }
+
+      return nextTarget;
+    })();
+
+    if (lookTarget) {
+      const dx = Number(lookTarget.x) - controlObject.position.x;
+      const dz = Number(lookTarget.z) - controlObject.position.z;
       const horizontalDistance = Math.hypot(dx, dz);
 
       if (horizontalDistance > 1e-6) {
         controlObject.rotation.y = Math.atan2(-dx, -dz);
 
-        const nextTargetY = Number(nextTarget.y);
+        const nextTargetY = Number(lookTarget.y);
         if (!Number.isNaN(nextTargetY)) {
           const nextPitch = Three.MathUtils.radToDeg(Math.atan2(nextTargetY - cameraWorldY, horizontalDistance));
           this.setRenderCameraVerticalRotation(nextPitch);
@@ -286,7 +442,25 @@ export default class Viewer3DFirstPerson extends React.Component {
     }
 
     controlObject.position.y = this.getRenderFloorLevel() + this.renderCameraHeight;
+    this._hasLastFrameCameraState = false;
     this._sceneDirtyForFrame = true;
+  }
+
+  _storeSharedCameraTransitionState() {
+    const previewState = this.getRenderPreviewState();
+    if (!previewState || typeof window === "undefined") return;
+
+    window[SHARED_CAMERA_TRANSITION_STATE_KEY] = previewState;
+  }
+
+  _applySharedCameraTransitionState() {
+    const previewState = consumeSharedCameraTransitionState();
+    if (!previewState) return false;
+
+    this.setRenderPreviewState(previewState);
+    this._cameraInitializedWithContent = true;
+    this._pendingRecenterAfterProjectChange = false;
+    return true;
   }
 
   componentDidMount() {
@@ -316,11 +490,15 @@ export default class Viewer3DFirstPerson extends React.Component {
     let canvasWrapper = this.canvasWrapperRef.current;
 
     let scene3D = new Three.Scene();
+    scene3D.environment = getSharedViewerEnvironment(this.renderer);
 
     // As I need to show the pointer above all scene objects, I use this workaround http://stackoverflow.com/a/13309722
     let sceneOnTop = new Three.Scene();
 
     //RENDERER
+    this.renderer.outputColorSpace = Three.SRGBColorSpace;
+    this.renderer.toneMapping = Three.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.0;
     this.renderer.setClearColor(new Three.Color(SharedStyle.COLORS.white));
     this.renderer.setSize(this.width, this.height);
 
@@ -330,15 +508,29 @@ export default class Viewer3DFirstPerson extends React.Component {
 
     // Called once all GLB assets finish loading — reposition camera to plan center
     const onBoundingBoxReady = (planData) => {
-      const center = planData.boundingBoxCenter;
-      const floorY = this.getRenderFloorLevel();
-      if (center) {
-        this.controls.getObject().position.set(center.x, floorY + this.renderCameraHeight, center.z);
+      const shouldRecenter =
+        !this._cameraInitializedWithContent ||
+        this._pendingRecenterAfterProjectChange ||
+        this._isCameraRecoveryNeeded(planData);
+
+      if (!shouldRecenter) {
+        return;
+      }
+
+      const recentered = this._recenterCameraToPlanBounds(planData, {
+        requireGeometry: true,
+      });
+      if (recentered) {
+        this._cameraInitializedWithContent = !!planData?.boundingBoxHasGeometry;
+        this._pendingRecenterAfterProjectChange = false;
       }
     };
 
     // LOAD DATA
-    this.planData = parseData(data, actions, catalog, onBoundingBoxReady);
+    this.planData = parseData(data, actions, catalog, {
+      onSceneReady: onBoundingBoxReady,
+      onBoundsUpdated: onBoundingBoxReady,
+    });
     this._refreshLodEntries(this.planData);
 
     scene3D.add(this.planData.plan);
@@ -358,11 +550,17 @@ export default class Viewer3DFirstPerson extends React.Component {
     // scene3D.add(axisHelper);
 
     // LIGHT
-    let light = new Three.AmbientLight(0xafafaf); // soft white light
+    let light = new Three.AmbientLight(0xffffff, 0.78);
     scene3D.add(light);
 
-    // Add another light
-    let pointLight = new Three.PointLight(SharedStyle.COLORS.white, 0.4, 1000);
+    let directionalLight = new Three.DirectionalLight(0xffffff, 1.1);
+    directionalLight.position.set(120, 240, 80);
+    scene3D.add(directionalLight);
+
+    let hemisphereLight = new Three.HemisphereLight(0xfffff0, 0x4b5563, 0.55);
+    scene3D.add(hemisphereLight);
+
+    let pointLight = new Three.PointLight(SharedStyle.COLORS.white, 0.45, 1000);
     pointLight.position.set(0, 0, 0);
     scene3D.add(pointLight);
 
@@ -396,6 +594,10 @@ export default class Viewer3DFirstPerson extends React.Component {
     // Place camera at origin until onBoundingBoxReady fires and moves it to plan center
     this.controls.getObject().position.set(0, this.getRenderFloorLevel() + this.renderCameraHeight, 0);
     sceneOnTop.add(this.controls.getObject()); // Add the pointer lock controls to the scene that will be rendered on top
+    this._pendingRecenterAfterProjectChange = !this._recenterCameraToPlanBounds(this.planData, {
+      requireGeometry: true,
+    });
+    this._applySharedCameraTransitionState();
 
     // Add move controls on the page
     this.keyDownEvent = (event) => {
@@ -567,8 +769,11 @@ export default class Viewer3DFirstPerson extends React.Component {
     this.renderer.autoClear = false;
 
     let render = () => {
-
-      if (!this.stopRendering) {
+      if (this.stopRendering) {
+        this._debugRenderLoop('Loop stopped');
+        return;
+      }
+      try {
         const floorY = this.getRenderFloorLevel();
         const minWorldY = floorY;
         const maxWorldY = floorY + this.getRenderCameraHeightLimit();
@@ -646,8 +851,12 @@ export default class Viewer3DFirstPerson extends React.Component {
         this.renderer.clearDepth();                // clear depth buffer
         this.renderer.render(sceneOnTop, camera);  // render scene 2
 
-        requestAnimationFrame(render);
+      } catch (error) {
+        this._sceneDirtyForFrame = true;
+        this._reportRenderLoopError(error);
       }
+
+      requestAnimationFrame(render);
     };
 
     render();
@@ -661,6 +870,7 @@ export default class Viewer3DFirstPerson extends React.Component {
   }
 
   componentWillUnmount() {
+    this._storeSharedCameraTransitionState();
 
     if (window.__viewer3D === this) {
       window.__viewer3D = null;
@@ -790,9 +1000,85 @@ export default class Viewer3DFirstPerson extends React.Component {
     this.width = width;
     this.height = height;
 
+    const prevFirstScene =
+      prevProps.state && prevProps.state.sceneHistory
+        ? prevProps.state.sceneHistory.first
+        : null;
+    const nextFirstScene =
+      this.props.state && this.props.state.sceneHistory
+        ? this.props.state.sceneHistory.first
+        : null;
+    const firstSceneChanged = (() => {
+      if (!prevFirstScene || !nextFirstScene) return false;
+      if (
+        typeof prevFirstScene.hashCode === 'function' &&
+        typeof nextFirstScene.hashCode === 'function'
+      ) {
+        return prevFirstScene.hashCode() !== nextFirstScene.hashCode();
+      }
+      return prevFirstScene !== nextFirstScene;
+    })();
+    const prevHistorySize =
+      prevProps.state.getIn(['sceneHistory', 'list', 'size']) || 0;
+    const nextHistorySize =
+      this.props.state.getIn(['sceneHistory', 'list', 'size']) || 0;
+    const historyReset = prevHistorySize > 0 && nextHistorySize === 0;
+    const sceneIdentityChanged =
+      this.props.state.scene !== prevProps.state.scene;
+    const historyObjectChanged =
+      prevProps.state.sceneHistory !== this.props.state.sceneHistory;
+    const nextHistoryFirst = this.props.state.sceneHistory?.first;
+    const nextHistoryLast = this.props.state.sceneHistory?.last;
+    const nextScene = this.props.state.scene;
+    const nextHistoryLooksFreshProject =
+      nextHistorySize === 0 &&
+      historyObjectChanged &&
+      nextHistoryFirst &&
+      nextHistoryLast &&
+      typeof nextHistoryFirst.hashCode === 'function' &&
+      typeof nextHistoryLast.hashCode === 'function' &&
+      typeof nextScene?.hashCode === 'function' &&
+      nextHistoryFirst.hashCode() === nextHistoryLast.hashCode() &&
+      nextHistoryLast.hashCode() === nextScene.hashCode();
+    const projectChanged =
+      sceneIdentityChanged &&
+      (historyReset || firstSceneChanged || nextHistoryLooksFreshProject);
+
+    if (projectChanged) {
+      this._pendingRecenterAfterProjectChange = true;
+      this._cameraInitializedWithContent = false;
+      this._hasLastFrameCameraState = false;
+      this._sceneDirtyForFrame = true;
+    }
+
     if (this.props.state.scene !== prevProps.state.scene) {
       let changedValues = diff(prevProps.state.scene, this.props.state.scene);
-      updateScene(planData, this.props.state.scene, prevProps.state.scene, changedValues.toJS(), actions, this.context.catalog);
+      updateScene(
+        planData,
+        this.props.state.scene,
+        prevProps.state.scene,
+        changedValues.toJS(),
+        actions,
+        this.context.catalog,
+        (pd) => {
+          if (this._pendingRecenterAfterProjectChange) {
+            const recentered = this._recenterCameraToPlanBounds(pd, {
+              requireGeometry: true,
+            });
+            if (recentered) {
+              this._pendingRecenterAfterProjectChange = false;
+              this._cameraInitializedWithContent = !!pd?.boundingBoxHasGeometry;
+            }
+          } else if (this._isCameraRecoveryNeeded(pd)) {
+            const recovered = this._recenterCameraToPlanBounds(pd, {
+              requireGeometry: true,
+            });
+            if (recovered) {
+              this._cameraInitializedWithContent = !!pd?.boundingBoxHasGeometry;
+            }
+          }
+        },
+      );
       this._lodDirty = true;
       this._sceneDirtyForFrame = true;
       this.setRenderCameraHeight(this.renderCameraHeight);

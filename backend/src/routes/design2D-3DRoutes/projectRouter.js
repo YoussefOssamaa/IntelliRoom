@@ -1,5 +1,5 @@
 import express from 'express';
-import { deleteProjectController, getProjectByIDController, getProjectsController, postProjectController, updateProjectController } from '../../controllers/design2D/design2D3DController.js';
+import { deleteProjectController, getProjectByIDController, getProjectsController, postProjectController, updateProjectController } from '../../controllers/design2D-3D/design2D3DController.js';
 
 
 

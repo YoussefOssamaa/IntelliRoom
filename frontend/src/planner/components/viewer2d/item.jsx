@@ -19,45 +19,86 @@ const STYLE_CIRCLE2 = {
   cursor: "ew-resize"
 };
 
-const PREVIEW_FRAME_STYLE = {
-  fill: 'rgba(255,255,255,0.92)',
-  stroke: '#0096fd',
-  strokeWidth: '2px'
+const STYLE_FALLBACK_ITEM = {
+  fill: "rgba(91, 141, 239, 0.18)",
+  stroke: "#5b8def",
+  strokeWidth: 1,
 };
 
-const PREVIEW_ARROW_STYLE = {
-  stroke: '#0096fd',
-  strokeWidth: '2px',
-  fill: 'none',
-  strokeLinecap: 'round'
-};
+function getCatalogElement(catalog, type) {
+  if (!catalog || !type) return null;
 
-function renderPlacementPreview(item, catalog, layer, scene) {
+  if (typeof catalog.hasElement === "function" && !catalog.hasElement(type)) {
+    return null;
+  }
+
+  try {
+    return catalog.getElement(type);
+  } catch (_) {
+    return null;
+  }
+}
+
+function getItemPreviewImage(item, catalogElement) {
+  const catalogInfo = catalogElement?.info || {};
+
+  const asset = item?.asset;
+  const assetTopView =
+    (typeof asset?.get === "function" ? asset.get("topViewUrl") : asset?.topViewUrl) ||
+    "";
+  const assetThumbnail =
+    (typeof asset?.get === "function"
+      ? asset.get("thumbnailUrl")
+      : asset?.thumbnailUrl) || "";
+  const catalogThumbnail = catalogInfo?.thumbnailUrl || "";
+
+  return (
+    catalogInfo?.topViewUrl ||
+    item?.topViewUrl ||
+    assetTopView ||
+    catalogInfo?.image ||
+    catalogThumbnail ||
+    item?.thumbnailUrl ||
+    assetThumbnail ||
+    null
+  );
+}
+
+function renderPlacementPreview(item, catalogElement, layer, scene) {
   const width = item.properties?.getIn(['width', 'length']) || 200;
   const depth = item.properties?.getIn(['depth', 'length']) || 100;
-  const image = catalog.getElement(item.type)?.info?.image;
+  const image = getItemPreviewImage(item, catalogElement);
 
   if (!image) {
-    return catalog.getElement(item.type).render2D(item, layer, scene);
+    if (catalogElement?.render2D) {
+      return catalogElement.render2D(item, layer, scene);
+    }
+
+    return (
+      <rect
+        x={-width / 2}
+        y={-depth / 2}
+        width={width}
+        height={depth}
+        style={STYLE_FALLBACK_ITEM}
+      />
+    );
   }
 
   return (
     <g transform={`translate(${-width / 2},${-depth / 2})`}>
-      <rect x="0" y="0" width={width} height={depth} rx="12" ry="12" style={PREVIEW_FRAME_STYLE} />
       <image
         href={image}
+        xlinkHref={image}
         x="0"
         y="0"
         width={width}
         height={depth}
-        opacity="0.92"
-        preserveAspectRatio="xMidYMid meet"
-        transform={`translate(0, ${depth}) scale(1, -1)`}
+        opacity="1"
+        preserveAspectRatio="none"
+        style={{ backgroundColor: "transparent" }}
+        transform={`translate(0, ${depth}) scale(1, -1) rotate(180 ${width / 2} ${depth / 2})`}
       />
-      <rect x="0" y="0" width={width} height={depth} rx="12" ry="12" fill="none" stroke="#0096fd" strokeWidth="2" />
-      <line x1={width / 2} y1={depth} x2={width / 2} y2={depth + 28} style={PREVIEW_ARROW_STYLE} />
-      <line x1={width / 2} y1={depth + 28} x2={width / 2 - 9} y2={depth + 18} style={PREVIEW_ARROW_STYLE} />
-      <line x1={width / 2} y1={depth + 28} x2={width / 2 + 9} y2={depth + 18} style={PREVIEW_ARROW_STYLE} />
     </g>
   );
 }
@@ -73,9 +114,13 @@ export default function Item({layer, item, scene, catalog, drawingItemID, isDraw
     return null;
   }
 
+  const catalogElement = getCatalogElement(catalog, item.type);
+
   let renderedItem = isPlacementPreview
-    ? renderPlacementPreview(item, catalog, layer, scene)
-    : catalog.getElement(item.type).render2D(item, layer, scene);
+    ? renderPlacementPreview(item, catalogElement, layer, scene)
+    : (catalogElement?.render2D
+      ? catalogElement.render2D(item, layer, scene)
+      : renderPlacementPreview(item, catalogElement, layer, scene));
 
   return (
     <g
@@ -112,4 +157,3 @@ Item.propTypes = {
   drawingItemID: PropTypes.string,
   isDrawingItem: PropTypes.bool
 };
-

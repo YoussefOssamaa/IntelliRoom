@@ -1,14 +1,17 @@
 import mongoose from "mongoose";
+import dotenv from "dotenv";
 
 
 
 
 const connectDB = async () => {
   try {
+    const atlasUri = String(process.env.MONGO_URI).trim()
+    if (!atlasUri) {
+      throw new Error("MONGO_URI is required");
+    }
 
-    // const mongo_uri = process.env.DATABASE_URL
-    const MONGO_URI = process.env.MONGO_URI || `mongodb://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@${process.env.MONGO_HOST}:${process.env.MONGO_PORT}/${process.env.MONGO_DB}?authSource=${process.env.MONGO_AUTH_DB}`;
-    await mongoose.connect(MONGO_URI);
+    await mongoose.connect(atlasUri);
 
     console.log("MongoDB connected successfully");
 

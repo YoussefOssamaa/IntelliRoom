@@ -73,11 +73,11 @@ export default function WallFactory(name, info, textures) {
     },
 
     render3D: function (element, layer, scene) {
-      return buildWall(element, layer, scene, textures);
+      return buildWall(element, layer, scene, wallElement.textures || textures);
     },
 
     updateRender3D: (element, layer, scene, mesh, oldElement, differences, selfDestroy, selfBuild) => {
-      return updatedWall(element, layer, scene, textures, mesh, oldElement, differences, selfDestroy, selfBuild);
+      return updatedWall(element, layer, scene, wallElement.textures || textures, mesh, oldElement, differences, selfDestroy, selfBuild);
     }
 
   };
@@ -94,14 +94,14 @@ export default function WallFactory(name, info, textures) {
     }
 
     wallElement.properties.textureA = {
-      label: translator.t('texture') + ' A',
+      label: translator.t('Finishes') + ' A',
       type: 'enum',
       defaultValue: textureValues.bricks ? 'bricks' : 'none',
       values: textureValues
     };
 
     wallElement.properties.textureB = {
-      label: translator.t('texture') + ' B',
+      label: translator.t('Finishes') + ' B',
       type: 'enum',
       defaultValue: textureValues.bricks ? 'bricks' : 'none',
       values: textureValues

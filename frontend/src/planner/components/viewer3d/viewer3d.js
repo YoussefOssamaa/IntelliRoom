@@ -1,7 +1,6 @@
 "use strict";
 
 import React from "react";
-import { useEffect } from "react";
 import PropTypes from "prop-types";
 import * as Three from "three";
 import { Map, fromJS } from "immutable";
@@ -37,6 +36,16 @@ import SelectionGizmoManager from "./selection-gizmo-manager";
 import HoleMeasurementGuides from "./hole-measurement-guides";
 import MeasureTool from "./measure-tool";
 import PlannerContext from "../../context/PlannerContext";
+import { getSharedViewerEnvironment } from "./viewer-environment";
+
+const SHARED_CAMERA_TRANSITION_STATE_KEY = "__plannerSharedViewerCameraPose";
+
+const consumeSharedCameraTransitionState = () => {
+  if (typeof window === "undefined") return null;
+  const storedPose = window[SHARED_CAMERA_TRANSITION_STATE_KEY];
+  window[SHARED_CAMERA_TRANSITION_STATE_KEY] = null;
+  return storedPose || null;
+};
 
 export default class Scene3DViewer extends React.Component {
   constructor(props) {
@@ -143,6 +152,11 @@ export default class Scene3DViewer extends React.Component {
     this._lastRendererWidth = this.width;
     this._lastRendererHeight = this.height;
     this._viewerActive = false;
+    this._lastRenderLoopBlockKey = "";
+    this._lastRenderLoopErrorAt = 0;
+    this._endGizmoDragOnWindowMouseUp = null;
+    this._resizeObserver = null;
+    this._handleViewportResize = null;
 
     this._renderFrame = this._renderFrame.bind(this);
     this._markSceneDirty = this._markSceneDirty.bind(this);
@@ -153,6 +167,41 @@ export default class Scene3DViewer extends React.Component {
       (planData && planData.sceneGraph && planData.sceneGraph.LODs) || {};
     this._lodEntries = Object.values(lodMap).filter(Boolean);
     this._lodDirty = false;
+  }
+
+  _getViewportSize() {
+    const wrapper = this.canvasWrapperRef?.current;
+    const width = Math.max(
+      1,
+      Math.floor(wrapper?.clientWidth || this.props.width || this.width || 1),
+    );
+    const height = Math.max(
+      1,
+      Math.floor(wrapper?.clientHeight || this.props.height || this.height || 1),
+    );
+    return { width, height };
+  }
+
+  _applyViewportSize(force = false) {
+    const { width, height } = this._getViewportSize();
+    this.width = width;
+    this.height = height;
+
+    if (!this.camera || !this.renderer) return false;
+    if (
+      !force &&
+      width === this._lastRendererWidth &&
+      height === this._lastRendererHeight
+    ) {
+      return false;
+    }
+
+    this.camera.aspect = width / height;
+    this.camera.updateProjectionMatrix();
+    this.renderer.setSize(width, height);
+    this._lastRendererWidth = width;
+    this._lastRendererHeight = height;
+    return true;
   }
 
   _didCameraStateChange(camera, orbitController) {
@@ -181,20 +230,28 @@ export default class Scene3DViewer extends React.Component {
     return false;
   }
 
-  _recenterCameraToPlanBounds(planData) {
+  _recenterCameraToPlanBounds(planData, options = {}) {
     const pd = planData || this.planData;
-    if (!pd || !pd.boundingBoxCenter || !pd.boundingBox) return;
-    if (!this.orbitControls || !this.camera) return;
+    if (!pd || !this.orbitControls || !this.camera) return false;
 
-    const cx = pd.boundingBoxCenter.x;
-    const cy = pd.boundingBoxCenter.y;
-    const cz = pd.boundingBoxCenter.z;
-    const camX = cx - (pd.boundingBoxCenter.lenX || 500);
-    const camZ = cz + (pd.boundingBoxCenter.lenZ || 500);
+    const fitData = this._getCameraFitCenter(pd, options);
+    if (!fitData || !fitData.center) {
+      return false;
+    }
+
+    const { center } = fitData;
+    const cx = center.x;
+    const cy = center.y;
+    const cz = center.z;
+    const spanX = center.lenX || 500;
+    const spanZ = center.lenZ || 500;
+    const camX = cx - spanX;
+    const camZ = cz + spanZ;
 
     this.orbitControls.target.set(cx, cy, cz);
     this.camera.position.set(camX, 500, camZ);
     this.camera.up.set(0, 1, 0);
+    this._hasLastFrameCameraState = false;
 
     if (this.directionalLight) {
       this.directionalLight.position.set(camX + 50, 500, camZ + 50);
@@ -204,6 +261,145 @@ export default class Scene3DViewer extends React.Component {
     if (typeof this.orbitControls.update === "function") {
       this.orbitControls.update();
     }
+    return true;
+  }
+
+  _isCameraRecoveryNeeded(planData) {
+    if (!this.camera || !this.orbitControls) return false;
+
+    const center = planData?.boundingBoxCenter;
+    const hasValidCenter =
+      center &&
+      Number.isFinite(center.x) &&
+      Number.isFinite(center.y) &&
+      Number.isFinite(center.z) &&
+      Number.isFinite(center.lenX) &&
+      Number.isFinite(center.lenZ) &&
+      center.lenX > 0 &&
+      center.lenZ > 0 &&
+      planData?.boundingBoxHasGeometry;
+
+    if (!hasValidCenter) return false;
+
+    const cameraAtOrigin =
+      this.camera.position.lengthSq() < 1e-4 ||
+      this.camera.position.distanceToSquared(this.orbitControls.target) < 1e-4;
+
+    return cameraAtOrigin;
+  }
+
+  getRenderPreviewState() {
+    if (!this.camera || !this.orbitControls) return null;
+
+    return {
+      position: this.camera.position.clone(),
+      target: this.orbitControls.target.clone(),
+      source: "orbit",
+    };
+  }
+
+  setRenderPreviewState(nextState = {}) {
+    if (!this.camera || !this.orbitControls) return;
+
+    const nextPosition = nextState.position || null;
+    const nextTarget = nextState.target || null;
+    const fromFirstPerson = nextState.source === "first-person";
+    const hasValidPosition =
+      nextPosition &&
+      Number.isFinite(Number(nextPosition.x)) &&
+      Number.isFinite(Number(nextPosition.y)) &&
+      Number.isFinite(Number(nextPosition.z));
+    const hasValidTarget =
+      nextTarget &&
+      Number.isFinite(Number(nextTarget.x)) &&
+      Number.isFinite(Number(nextTarget.y)) &&
+      Number.isFinite(Number(nextTarget.z));
+
+    if (fromFirstPerson && hasValidPosition) {
+      const eye = new Three.Vector3(
+        Number(nextPosition.x),
+        Number(nextPosition.y),
+        Number(nextPosition.z),
+      );
+      const lookAt = hasValidTarget
+        ? new Three.Vector3(
+            Number(nextTarget.x),
+            Number(nextTarget.y),
+            Number(nextTarget.z),
+          )
+        : eye.clone().add(new Three.Vector3(0, 0, -220));
+      const forward = new Three.Vector3().subVectors(lookAt, eye);
+      forward.y = 0;
+      if (forward.lengthSq() < 1e-6) forward.set(0, 0, -1);
+      forward.normalize();
+
+      const fitData = this._getCameraFitCenter(this.planData, {
+        requireGeometry: false,
+      });
+      const fitCenter = fitData?.center;
+      const fitSpan = Math.max(fitCenter?.lenX || 0, fitCenter?.lenZ || 0, 300);
+      const distance = Math.max(360, Math.min(fitSpan * 0.35, 1400));
+      const focusDistance = Math.min(240, distance * 0.45);
+      const orbitTarget = eye
+        .clone()
+        .addScaledVector(forward, focusDistance);
+      orbitTarget.y = Math.max(0, eye.y - 70);
+      const orbitPosition = orbitTarget
+        .clone()
+        .addScaledVector(forward, -distance);
+      orbitPosition.y += Math.max(260, distance * 0.45);
+
+      this.camera.position.copy(orbitPosition);
+      this.orbitControls.target.copy(orbitTarget);
+    } else if (hasValidPosition) {
+      this.camera.position.set(
+        Number(nextPosition.x),
+        Number(nextPosition.y),
+        Number(nextPosition.z),
+      );
+    }
+
+    if (!fromFirstPerson && hasValidTarget) {
+      this.orbitControls.target.set(
+        Number(nextTarget.x),
+        Number(nextTarget.y),
+        Number(nextTarget.z),
+      );
+    }
+
+    this.camera.up.set(0, 1, 0);
+    this._hasLastFrameCameraState = false;
+
+    if (this.directionalLight) {
+      this.directionalLight.position.set(
+        this.camera.position.x + 50,
+        500,
+        this.camera.position.z + 50,
+      );
+    }
+
+    if (typeof this.orbitControls.update === "function") {
+      this.orbitControls.update();
+    }
+
+    this._markSceneDirty();
+  }
+
+  _storeSharedCameraTransitionState() {
+    const previewState = this.getRenderPreviewState();
+    if (!previewState || typeof window === "undefined") return;
+
+    window[SHARED_CAMERA_TRANSITION_STATE_KEY] = previewState;
+  }
+
+  _applySharedCameraTransitionState() {
+    const previewState = consumeSharedCameraTransitionState();
+    if (!previewState) return false;
+
+    this.setRenderPreviewState(previewState);
+    this._cameraInitializedWithContent = false;
+    this._pendingRecenterAfterProjectChange = true;
+    return true;
   }
 
   _markSceneDirty() {
@@ -211,17 +407,181 @@ export default class Scene3DViewer extends React.Component {
     this._ensureRenderLoop();
   }
 
+  _reportRenderLoopError(error) {
+    const now = Date.now();
+    if (now - this._lastRenderLoopErrorAt < 2000) return;
+    this._lastRenderLoopErrorAt = now;
+    console.error("[Viewer3D][RenderLoop] Frame crashed", error);
+  }
+
+  _getCameraFitCenter(planData, options = {}) {
+    const pd = planData || this.planData;
+    if (!pd) return null;
+    const requireGeometry = !!options.requireGeometry;
+
+    const storedCenter = pd.boundingBoxCenter;
+    const hasValidStoredCenter =
+      storedCenter &&
+      Number.isFinite(storedCenter.x) &&
+      Number.isFinite(storedCenter.y) &&
+      Number.isFinite(storedCenter.z) &&
+      Number.isFinite(storedCenter.lenX) &&
+      Number.isFinite(storedCenter.lenZ) &&
+      storedCenter.lenX > 0 &&
+      storedCenter.lenZ > 0;
+
+    if (hasValidStoredCenter && (!requireGeometry || pd.boundingBoxHasGeometry)) {
+      return { center: pd.boundingBoxCenter, source: "bounding-box" };
+    }
+
+    const boxMin = pd.boundingBox?.min;
+    const boxMax = pd.boundingBox?.max;
+    const hasNonDegenerateBoundingBox =
+      boxMin &&
+      boxMax &&
+      (Math.abs(boxMax.x - boxMin.x) > 1e-6 ||
+        Math.abs(boxMax.y - boxMin.y) > 1e-6 ||
+        Math.abs(boxMax.z - boxMin.z) > 1e-6);
+    const hasValidBoundingBox =
+      boxMin &&
+      boxMax &&
+      Number.isFinite(boxMin.x) &&
+      Number.isFinite(boxMin.y) &&
+      Number.isFinite(boxMin.z) &&
+      Number.isFinite(boxMax.x) &&
+      Number.isFinite(boxMax.y) &&
+      Number.isFinite(boxMax.z) &&
+      hasNonDegenerateBoundingBox;
+
+    if (hasValidBoundingBox && (!requireGeometry || pd.boundingBoxHasGeometry)) {
+      const lenX = Math.max(boxMax.x - boxMin.x, 1);
+      const lenZ = Math.max(boxMax.z - boxMin.z, 1);
+      const center = new Three.Vector3(
+        (boxMax.x - boxMin.x) / 2 + boxMin.x,
+        (boxMax.y - boxMin.y) / 2 + boxMin.y,
+        (boxMax.z - boxMin.z) / 2 + boxMin.z,
+      );
+      center.lenX = lenX;
+      center.lenZ = lenZ;
+      pd.boundingBoxCenter = center;
+      return { center, source: "bounding-box-derived" };
+    }
+
+    if (requireGeometry) {
+      return null;
+    }
+
+    if (pd.plan) {
+      const box = new Three.Box3().setFromObject(pd.plan);
+      if (
+        Number.isFinite(box.min.x) &&
+        Number.isFinite(box.min.y) &&
+        Number.isFinite(box.min.z) &&
+        Number.isFinite(box.max.x) &&
+        Number.isFinite(box.max.y) &&
+        Number.isFinite(box.max.z)
+      ) {
+        const lenX = Math.max(box.max.x - box.min.x, 1);
+        const lenZ = Math.max(box.max.z - box.min.z, 1);
+        const center = box.getCenter(new Three.Vector3());
+        center.lenX = lenX;
+        center.lenZ = lenZ;
+
+        pd.boundingBoxCenter = center;
+        pd.boundingBox = {
+          min: box.min.clone(),
+          max: box.max.clone(),
+        };
+
+        return { center, source: "plan-geometry-fallback" };
+      }
+    }
+
+    const width = pd.sceneGraph?.width || 12000;
+    const height = pd.sceneGraph?.height || 12000;
+    const center = new Three.Vector3(width / 2, 0, -height / 2);
+    center.lenX = width;
+    center.lenZ = height;
+    pd.boundingBoxCenter = center;
+    pd.boundingBox = {
+      min: new Three.Vector3(0, 0, -height),
+      max: new Three.Vector3(width, 0, 0),
+    };
+    return { center, source: "scene-size-fallback" };
+  }
+
+  _removeGizmoWindowMouseUpListener() {
+    if (!this._endGizmoDragOnWindowMouseUp) return;
+    window.removeEventListener("mouseup", this._endGizmoDragOnWindowMouseUp, true);
+    this._endGizmoDragOnWindowMouseUp = null;
+  }
+
+  _finishGizmoDrag() {
+    if (!this.gizmoManager || !this.gizmoManager.isDragging) return;
+
+    const result = this.gizmoManager.handleMouseUp();
+    this._removeGizmoWindowMouseUpListener();
+    if (this.orbitControls) this.orbitControls.enabled = true;
+    this.renderer.domElement.style.cursor = "";
+    if (result) this._commitGizmoDrag(result);
+    this.snapState.reset();
+    this.targetRotation = null;
+    this.currentRotation = 0;
+    this._markSceneDirty();
+  }
+
+  _resetTransientInteractionState() {
+    if (this._endDragOnWindowMouseUp) {
+      window.removeEventListener("mouseup", this._endDragOnWindowMouseUp);
+      this._endDragOnWindowMouseUp = null;
+    }
+    this._removeGizmoWindowMouseUpListener();
+
+    this.isDragging3D = false;
+    this.draggedItemID = null;
+    this.draggedItemLayerID = null;
+    this.draggedItemMesh = null;
+    this.dragStartPosition = null;
+    this.draggedItemFootprint = null;
+    this.targetRotation = null;
+    this.currentRotation = 0;
+    this.snapState.reset();
+
+    this.isDraggingHole3D = false;
+    this.draggedHoleID = null;
+    this.draggedHoleLayerID = null;
+
+    if (this.gizmoManager) {
+      if (this.gizmoManager.isDragging) {
+        this.gizmoManager.cancelDrag();
+      }
+      this.gizmoManager.clearAll();
+    }
+
+    if (this.orbitControls) {
+      this.orbitControls.enabled = true;
+    }
+
+    if (this.renderer?.domElement) {
+      this.renderer.domElement.style.cursor = "";
+    }
+  }
+
   _ensureRenderLoop() {
-    if (
-      this.renderingID ||
-      !this._viewerActive ||
-      !this.scene3D ||
-      !this.camera ||
-      !this.orbitControls
-    ) {
+    if (this.renderingID) {
       return;
     }
 
+    const blocked =
+      !this._viewerActive ||
+      !this.scene3D ||
+      !this.camera ||
+      !this.orbitControls;
+    if (blocked) {
+      return;
+    }
+
+    this._lastRenderLoopBlockKey = "";
     this.renderingID = requestAnimationFrame(this._renderFrame);
   }
 
@@ -247,72 +607,95 @@ export default class Scene3DViewer extends React.Component {
   _renderFrame() {
     this.renderingID = 0;
 
-    if (
-      !this._viewerActive ||
-      !this.scene3D ||
-      !this.camera ||
-      !this.orbitControls
-    ) {
-      return;
-    }
-
-    const orbitUpdated =
-      typeof this.orbitControls.update === "function"
-        ? this.orbitControls.update() === true
-        : false;
-    const cameraChanged =
-      orbitUpdated ||
-      this._didCameraStateChange(this.camera, this.orbitControls);
-
-    if (this.holeMeasurementGuides && this.holeMeasurementGuides.root) {
-      this.holeMeasurementGuides.root.visible = !this._isOrbiting;
-    }
-
-    if (cameraChanged && this.cameraSpotlight) {
-      this._tmpSpotlightDirection
-        .subVectors(this.orbitControls.target, this.camera.position)
-        .normalize();
-      this.cameraSpotlight.target.position
-        .copy(this.camera.position)
-        .add(this._tmpSpotlightDirection.multiplyScalar(100));
-      this.camera.updateMatrix();
-      this.camera.updateMatrixWorld();
-    }
-
-    const wallChanged = !!wallVisibilityManager.update(
-      cameraChanged,
-      this._sceneDirtyForFrame,
-    );
-    const gizmoChanged = this.gizmoManager
-      ? !!this.gizmoManager.update(cameraChanged, this._sceneDirtyForFrame)
-      : false;
-
-    if (this._lodDirty) {
-      this._refreshLodEntries(this.planData);
-      this._sceneDirtyForFrame = true;
-    }
-
-    let shouldRender =
-      cameraChanged || wallChanged || gizmoChanged || this._sceneDirtyForFrame;
-
-    if (cameraChanged || this._sceneDirtyForFrame) {
-      for (let index = 0; index < this._lodEntries.length; index++) {
-        this._lodEntries[index].update(this.camera);
+    try {
+      if (
+        !this._viewerActive ||
+        !this.scene3D ||
+        !this.camera ||
+        !this.orbitControls
+      ) {
+        return;
       }
-      shouldRender = true;
+
+      const orbitUpdated =
+        typeof this.orbitControls.update === "function"
+          ? this.orbitControls.update() === true
+          : false;
+      const controlsNeedContinuousFrames =
+        !!this.orbitControls &&
+        (this.orbitControls.enableDamping || this.orbitControls.autoRotate);
+      const cameraChanged =
+        orbitUpdated ||
+        this._didCameraStateChange(this.camera, this.orbitControls);
+
+      if (this.holeMeasurementGuides && this.holeMeasurementGuides.root) {
+        this.holeMeasurementGuides.root.visible = !this._isOrbiting;
+      }
+
+      if (cameraChanged && this.cameraSpotlight) {
+        this._tmpSpotlightDirection
+          .subVectors(this.orbitControls.target, this.camera.position)
+          .normalize();
+        this.cameraSpotlight.target.position
+          .copy(this.camera.position)
+          .add(this._tmpSpotlightDirection.multiplyScalar(100));
+        this.camera.updateMatrix();
+        this.camera.updateMatrixWorld();
+      }
+
+      const wallChanged = !!wallVisibilityManager.update(
+        cameraChanged,
+        this._sceneDirtyForFrame,
+      );
+      const gizmoChanged = this.gizmoManager
+        ? !!this.gizmoManager.update(cameraChanged, this._sceneDirtyForFrame)
+        : false;
+      const wallTransitionsActive = wallVisibilityManager.hasActiveTransitions();
+      const gizmoAnimationsActive = this.gizmoManager
+        ? this.gizmoManager.hasActiveAnimations()
+        : false;
+
+      if (this._lodDirty) {
+        this._refreshLodEntries(this.planData);
+        this._sceneDirtyForFrame = true;
+      }
+
+      let shouldRender =
+        cameraChanged ||
+        wallChanged ||
+        gizmoChanged ||
+        wallTransitionsActive ||
+        gizmoAnimationsActive ||
+        this._sceneDirtyForFrame;
+
+      if (cameraChanged || this._sceneDirtyForFrame) {
+        for (let index = 0; index < this._lodEntries.length; index++) {
+          this._lodEntries[index].update(this.camera);
+        }
+        shouldRender = true;
+      }
+
+      if (shouldRender) {
+        this.renderer.render(this.scene3D, this.camera);
+        this._sceneDirtyForFrame = false;
+      }
+
+      const shouldContinueLoop =
+        this._viewerActive &&
+        (this._sceneDirtyForFrame ||
+          (controlsNeedContinuousFrames && cameraChanged) ||
+          wallTransitionsActive ||
+          gizmoAnimationsActive);
+
+      if (shouldContinueLoop) {
+        this._ensureRenderLoop();
+      }
+    } catch (error) {
+      this._sceneDirtyForFrame = true;
+      this._reportRenderLoopError(error);
     }
 
-    if (shouldRender) {
-      this.renderer.render(this.scene3D, this.camera);
-      this._sceneDirtyForFrame = false;
-    }
-
-    if (
-      this._viewerActive &&
-      (this._sceneDirtyForFrame ||
-        wallVisibilityManager.hasActiveTransitions() ||
-        (this.gizmoManager && this.gizmoManager.hasActiveAnimations()))
-    ) {
+    if (this._viewerActive && this._sceneDirtyForFrame && !this.renderingID) {
       this._ensureRenderLoop();
     }
   }
@@ -401,6 +784,124 @@ export default class Scene3DViewer extends React.Component {
     return null;
   }
 
+  _getLayerFloorTop(layerID = null) {
+    const scene = this.props.state.get("scene");
+    const resolvedLayerID = layerID || scene?.get("selectedLayer");
+    const layer = resolvedLayerID
+      ? scene?.getIn(["layers", resolvedLayerID])
+      : null;
+
+    let slabHeight = 20;
+
+    try {
+      layer?.get?.("areas")?.forEach((area) => {
+        const floorThickness = Number(
+          area?.getIn?.(["properties", "floorThickness", "length"]),
+        );
+        if (Number.isFinite(floorThickness) && floorThickness > 0) {
+          slabHeight = floorThickness;
+          return false;
+        }
+      });
+    } catch (_) {
+      return slabHeight;
+    }
+
+    return slabHeight;
+  }
+
+  _clampItemMeshToFloor(mesh, desiredY, layerID = null) {
+    if (!mesh) return desiredY;
+
+    const floorTop = this._getLayerFloorTop(layerID);
+    mesh.position.y = desiredY;
+    mesh.updateMatrixWorld(true);
+
+    const boundingBox = new Three.Box3().setFromObject(mesh);
+    if (!Number.isFinite(boundingBox.min.y)) {
+      return desiredY;
+    }
+
+    const correction = floorTop - boundingBox.min.y;
+    if (correction > 0) {
+      mesh.position.y = desiredY + correction;
+      mesh.updateMatrixWorld(true);
+    }
+
+    return mesh.position.y;
+  }
+
+  _syncSelectionGizmoTransform(mesh) {
+    if (
+      this.gizmoManager &&
+      this.gizmoManager.selectedTarget === mesh &&
+      typeof this.gizmoManager.syncSelectionTransform === "function"
+    ) {
+      this.gizmoManager.syncSelectionTransform();
+    }
+  }
+
+  _applyDraggedItemTransform({
+    mesh,
+    x,
+    z,
+    y,
+    itemID,
+    footprint,
+    surfaceHint = null,
+    snapResultOverride = null,
+    syncGizmo = false,
+    updateIndicator = false,
+  }) {
+    if (!mesh) return null;
+
+    const resolvedFootprint = footprint || computeItemFootprint(mesh);
+    const snapResult =
+      snapResultOverride ||
+      applySnapping(
+        x,
+        z,
+        this.props.state.get("scene"),
+        this.snapConfig,
+        itemID,
+        this.snapState,
+        {
+          footprint: resolvedFootprint,
+          sceneGraph: this.planData?.sceneGraph,
+          currentRotation: this.currentRotation,
+          surfaceHint,
+        },
+      );
+
+    if (
+      snapResult.snapped &&
+      snapResult.snapType === SNAP_3D_WALL &&
+      snapResult.snapInfo?.suggestedRotation !== undefined
+    ) {
+      this.targetRotation = snapResult.snapInfo.suggestedRotation;
+      this.currentRotation = snapResult.snapInfo.suggestedRotation;
+    } else {
+      this.targetRotation = null;
+    }
+
+    mesh.position.set(snapResult.x, y, snapResult.z);
+    mesh.rotation.y = this.currentRotation;
+
+    if (syncGizmo) {
+      this._syncSelectionGizmoTransform(mesh);
+    }
+
+    if (updateIndicator && this.placementIndicator) {
+      this.placementIndicator.position.set(snapResult.x, 0.5, snapResult.z);
+      if (snapResult.snapped && this.currentSnapType !== snapResult.snapType) {
+        this.currentSnapType = snapResult.snapType;
+        updateSnapIndicatorColor(this.placementIndicator, snapResult.snapType);
+      }
+    }
+
+    return snapResult;
+  }
+
   componentDidMount() {
     // Reconfigure renderer on every mount (fixes texture loss on 2D↔3D switch)
     this.renderer.outputColorSpace = Three.SRGBColorSpace;
@@ -420,6 +921,7 @@ export default class Scene3DViewer extends React.Component {
     let canvasWrapper = this.canvasWrapperRef.current;
 
     let scene3D = new Three.Scene();
+    scene3D.environment = getSharedViewerEnvironment(this.renderer);
     let world = new Three.Group();
     scene3D.add(world);
     let axisHelper = new Three.AxesHelper(100);
@@ -453,6 +955,9 @@ export default class Scene3DViewer extends React.Component {
     scene3D.add(sky);
 
     //RENDERER
+    const initialViewport = this._getViewportSize();
+    this.width = initialViewport.width;
+    this.height = initialViewport.height;
     this.renderer.setSize(this.width, this.height);
 
     let aspectRatio = this.width / this.height;
@@ -470,6 +975,7 @@ export default class Scene3DViewer extends React.Component {
     cameraSpotlight.penumbra = 0.3;
     cameraSpotlight.decay = 2;
     camera.add(cameraSpotlight);
+    scene3D.add(cameraSpotlight.target);
 
     scene3D.add(camera);
 
@@ -495,26 +1001,49 @@ export default class Scene3DViewer extends React.Component {
 
     // Callback to initialize camera position after first bounding box update
     const onBoundingBoxReady = (planData) => {
-      let cameraPositionX =
-        planData.boundingBoxCenter.x - planData.boundingBoxCenter.lenX;
-      let cameraPositionZ =
-        planData.boundingBoxCenter.z + planData.boundingBoxCenter.lenZ;
-      orbitController.target.set(
-        planData.boundingBoxCenter.x,
-        planData.boundingBoxCenter.y,
-        planData.boundingBoxCenter.z,
-      );
-      camera.position.set(cameraPositionX, 500, cameraPositionZ);
-      camera.up = new Three.Vector3(0, 1, 0);
-      directionalLight.position.set(
-        cameraPositionX + 50,
-        500,
-        cameraPositionZ + 50,
-      );
+      const shouldRecenter =
+        !this._cameraInitializedWithContent ||
+        this._pendingRecenterAfterProjectChange ||
+        this._isCameraRecoveryNeeded(planData);
 
-      // If the bounding box was computed from real geometry mark camera as ready
-      if (planData.boundingBoxHasGeometry) {
-        this._cameraInitializedWithContent = true;
+      if (shouldRecenter) {
+        const center = planData?.boundingBoxCenter;
+        const hasValidCenter =
+          center &&
+          Number.isFinite(center.x) &&
+          Number.isFinite(center.y) &&
+          Number.isFinite(center.z) &&
+          Number.isFinite(center.lenX) &&
+          Number.isFinite(center.lenZ) &&
+          center.lenX > 0 &&
+          center.lenZ > 0;
+
+        if (!hasValidCenter) {
+          this._markSceneDirty();
+          return;
+        }
+
+        const cameraPositionX =
+          center.x - center.lenX;
+        const cameraPositionZ =
+          center.z + center.lenZ;
+        orbitController.target.set(
+          center.x,
+          center.y,
+          center.z,
+        );
+        camera.position.set(cameraPositionX, 500, cameraPositionZ);
+        camera.up = new Three.Vector3(0, 1, 0);
+        directionalLight.position.set(
+          cameraPositionX + 50,
+          500,
+          cameraPositionZ + 50,
+        );
+
+        if (planData.boundingBoxHasGeometry) {
+          this._cameraInitializedWithContent = true;
+          this._pendingRecenterAfterProjectChange = false;
+        }
       }
 
       this._markSceneDirty();
@@ -525,7 +1054,10 @@ export default class Scene3DViewer extends React.Component {
       data,
       actions,
       this.context.catalog,
-      onBoundingBoxReady,
+      {
+        onSceneReady: onBoundingBoxReady,
+        onBoundsUpdated: onBoundingBoxReady,
+      },
     );
 
     scene3D.add(planData.plan);
@@ -535,12 +1067,16 @@ export default class Scene3DViewer extends React.Component {
     this._refreshLodEntries(planData);
 
     // AMBIENT LIGHT - provides base illumination
-    let ambientLight = new Three.AmbientLight(0xffffff, 0.6);
+    let ambientLight = new Three.AmbientLight(0xffffff, 0.8);
     world.add(ambientLight);
 
     // Add hemisphere light for natural outdoor lighting
-    let hemisphereLight = new Three.HemisphereLight(0xffffbb, 0x080820, 0.5);
+    let hemisphereLight = new Three.HemisphereLight(0xfffff0, 0x5b6475, 0.65);
     world.add(hemisphereLight);
+
+    let fillDirectionalLight = new Three.DirectionalLight(0xffffff, 0.85);
+    fillDirectionalLight.position.set(-120, 180, -80);
+    world.add(fillDirectionalLight);
 
     // OBJECT PICKING
     let toIntersect = [planData.plan];
@@ -592,8 +1128,23 @@ export default class Scene3DViewer extends React.Component {
 
       // If in 3D dragging mode, handle the drag start
       if (mode === MODE_DRAGGING_ITEM_3D && event.button === 0) {
+        if (!this.isDragging3D) {
+          this.context.projectActions.setMode(MODE_3D_VIEW);
+          if (this.orbitControls) this.orbitControls.enabled = true;
+          this._markSceneDirty();
+          return;
+        }
         event.preventDefault();
         return;
+      }
+
+      if (mode === MODE_DRAGGING_HOLE_3D && event.button === 0) {
+        if (!this.isDraggingHole3D) {
+          this.context.projectActions.setMode(MODE_3D_VIEW);
+          if (this.orbitControls) this.orbitControls.enabled = true;
+          this._markSceneDirty();
+          return;
+        }
       }
 
       // Check if clicking on a selected item to start 3D dragging
@@ -616,6 +1167,20 @@ export default class Scene3DViewer extends React.Component {
           this.gizmoManager &&
           this.gizmoManager.handleMouseDown(mouse.x, mouse.y)
         ) {
+          this._removeGizmoWindowMouseUpListener();
+          this._endGizmoDragOnWindowMouseUp = (upEvent) => {
+            if (upEvent.button !== 0) return;
+            this._finishGizmoDrag();
+          };
+          window.addEventListener("mouseup", this._endGizmoDragOnWindowMouseUp, true);
+          this.snapState.reset();
+          this.targetRotation = null;
+          if (
+            this.gizmoManager.selectedInfo?.elementType === "items" &&
+            this.gizmoManager.selectedTarget
+          ) {
+            this.currentRotation = this.gizmoManager.selectedTarget.rotation.y;
+          }
           this.orbitControls.enabled = false;
           event.preventDefault();
           event.stopPropagation();
@@ -739,10 +1304,7 @@ export default class Scene3DViewer extends React.Component {
       ) {
         event.preventDefault();
         event.stopPropagation();
-        const result = this.gizmoManager.handleMouseUp();
-        if (this.orbitControls) this.orbitControls.enabled = true;
-        this.renderer.domElement.style.cursor = "";
-        if (result) this._commitGizmoDrag(result);
+        this._finishGizmoDrag();
         return;
       }
 
@@ -922,6 +1484,11 @@ export default class Scene3DViewer extends React.Component {
             if (textureApplication) {
               const textureKey = textureApplication.get("textureKey");
               const targetType = textureApplication.get("targetType");
+              console.error("[PlannerTextures][Trace] Click in texture mode", {
+                textureKey: textureKey || null,
+                targetType: targetType || null,
+                intersectionsCount: intersects.length,
+              });
 
               // Find the element associated with the closest intersection
               for (let i = 0; i < intersects.length; i++) {
@@ -943,37 +1510,62 @@ export default class Scene3DViewer extends React.Component {
                 const { elementType, elementID, layerID } = elementData;
 
                 // Apply wall texture
-                if (targetType === "wall" && elementType === "lines") {
+                if ((targetType === "wall" || targetType === "both") && elementType === "lines") {
                   const materialIndex = intersection.face
                     ? intersection.face.materialIndex
                     : -1;
+                  const lineElement = this.props.state.getIn([
+                    "scene",
+                    "layers",
+                    layerID,
+                    "lines",
+                    elementID,
+                  ]);
 
-                  // Only apply to front (0) or back (1) faces, not top/bottom/sides
-                  if (materialIndex === 0 || materialIndex === 1) {
-                    // Get sideAInside from the element state
-                    const lineElement = this.props.state.getIn([
-                      "scene",
-                      "layers",
-                      layerID,
-                      "lines",
-                      elementID,
-                    ]);
-                    if (lineElement) {
+                  if (lineElement) {
+                    const lineType = lineElement.get("type");
+                    const textureFaceMode =
+                      this.props.state.getIn([
+                        "catalog",
+                        "elements",
+                        lineType,
+                        "info",
+                        "textureFaceMode",
+                      ]) || "wall";
+
+                    let propertyName = null;
+                    if (textureFaceMode === "four-faces") {
+                      if (
+                        materialIndex === 0 ||
+                        materialIndex === 1 ||
+                        materialIndex === 2 ||
+                        materialIndex === 3
+                      ) {
+                        propertyName =
+                          materialIndex === 0 || materialIndex === 2
+                            ? "textureA"
+                            : "textureB";
+                      }
+                    } else if (materialIndex === 0 || materialIndex === 1) {
                       const sideAInside = lineElement.getIn([
                         "properties",
                         "sideAInside",
                       ]);
-                      // materialTextureA = sideAInside ? 1 : 0
-                      // materialTextureB = sideAInside ? 0 : 1
                       const materialTextureA = sideAInside ? 1 : 0;
+                      propertyName =
+                        materialIndex === materialTextureA
+                          ? "textureA"
+                          : "textureB";
+                    }
 
-                      let propertyName;
-                      if (materialIndex === materialTextureA) {
-                        propertyName = "textureA";
-                      } else {
-                        propertyName = "textureB";
-                      }
-
+                    if (propertyName) {
+                      console.error("[PlannerTextures][Trace] Applying wall texture", {
+                        layerID,
+                        elementID,
+                        textureKey: textureKey || null,
+                        materialIndex,
+                        propertyName,
+                      });
                       this.context.textureActions.applyTextureToElement(
                         layerID,
                         elementID,
@@ -981,14 +1573,25 @@ export default class Scene3DViewer extends React.Component {
                         propertyName,
                         textureKey,
                       );
+                    } else {
+                      console.error("[PlannerTextures][Trace] Wall click did not resolve texture face", {
+                        layerID,
+                        elementID,
+                        materialIndex,
+                        textureFaceMode,
+                      });
                     }
-                  } else {
                   }
                   break;
                 }
 
                 // Apply floor texture
-                if (targetType === "floor" && elementType === "areas") {
+                if ((targetType === "floor" || targetType === "both") && elementType === "areas") {
+                  console.error("[PlannerTextures][Trace] Applying floor texture", {
+                    layerID,
+                    elementID,
+                    textureKey: textureKey || null,
+                  });
                   this.context.textureActions.applyTextureToElement(
                     layerID,
                     elementID,
@@ -1043,7 +1646,42 @@ export default class Scene3DViewer extends React.Component {
 
       // ── Gizmo drag in progress: pass mouse to gizmo manager, skip everything else ──
       if (this.gizmoManager && this.gizmoManager.isDragging) {
-        this.gizmoManager.handleMouseMove(mouse.x, mouse.y);
+        const gizmoResult = this.gizmoManager.handleMouseMove(mouse.x, mouse.y);
+
+        if (
+          gizmoResult?.type === "translate" &&
+          gizmoResult.elementInfo?.elementType === "items" &&
+          this.gizmoManager.selectedTarget
+        ) {
+          const selectedMesh = this.gizmoManager.selectedTarget;
+
+          if (gizmoResult.axis === "y") {
+            const clampedY = this._clampItemMeshToFloor(
+              selectedMesh,
+              gizmoResult.position.y,
+              gizmoResult.elementInfo.layerID,
+            );
+            selectedMesh.position.y = clampedY;
+            gizmoResult.position.y = clampedY;
+            this._syncSelectionGizmoTransform(selectedMesh);
+          } else {
+            const snapResult = this._applyDraggedItemTransform({
+              mesh: selectedMesh,
+              x: gizmoResult.position.x,
+              z: gizmoResult.position.z,
+              y: selectedMesh.position.y,
+              itemID: gizmoResult.elementInfo.elementID,
+              footprint: computeItemFootprint(selectedMesh),
+              syncGizmo: true,
+            });
+
+            if (snapResult) {
+              gizmoResult.position.copy(selectedMesh.position);
+              gizmoResult.rotation = selectedMesh.rotation.y;
+            }
+          }
+        }
+
         this._markSceneDirty();
         return;
       }
@@ -1117,43 +1755,17 @@ export default class Scene3DViewer extends React.Component {
         if (isDragging) {
           // Move mesh directly — no Redux update during drag
           const dragY = this.dragStartPosition ? this.dragStartPosition.y : 0;
-
-          // Auto-rotate to face away from wall when wall-snapping (instant snap)
-          if (
-            snapResult.snapped &&
-            snapResult.snapType === SNAP_3D_WALL &&
-            snapResult.snapInfo?.suggestedRotation !== undefined
-          ) {
-            const suggested = snapResult.snapInfo.suggestedRotation;
-            if (this.targetRotation !== suggested) {
-              this.targetRotation = suggested;
-              this.currentRotation = suggested;
-            }
-          } else {
-            this.targetRotation = null;
-          }
-
-          this.draggedItemMesh.position.set(snapResult.x, dragY, snapResult.z);
-          this.draggedItemMesh.rotation.y = this.currentRotation;
-
-          // Update snap indicator
-          if (this.placementIndicator) {
-            this.placementIndicator.position.set(
-              snapResult.x,
-              0.5,
-              snapResult.z,
-            );
-            if (
-              snapResult.snapped &&
-              this.currentSnapType !== snapResult.snapType
-            ) {
-              this.currentSnapType = snapResult.snapType;
-              updateSnapIndicatorColor(
-                this.placementIndicator,
-                snapResult.snapType,
-              );
-            }
-          }
+          this._applyDraggedItemTransform({
+            mesh: this.draggedItemMesh,
+            x: snapResult.x,
+            z: snapResult.z,
+            y: dragY,
+            itemID: this.draggedItemID,
+            footprint: this.draggedItemFootprint,
+            surfaceHint,
+            snapResultOverride: snapResult,
+            updateIndicator: true,
+          });
         }
 
         // Handle hole placement mode - move hole bounding box to nearest wall
@@ -1254,6 +1866,10 @@ export default class Scene3DViewer extends React.Component {
       ) {
         event.preventDefault();
         this.gizmoManager.cancelDrag();
+        this._removeGizmoWindowMouseUpListener();
+        this.snapState.reset();
+        this.targetRotation = null;
+        this.currentRotation = 0;
         if (this.orbitControls) this.orbitControls.enabled = true;
         this._markSceneDirty();
         return;
@@ -1375,6 +1991,20 @@ export default class Scene3DViewer extends React.Component {
     );
     window.addEventListener("keydown", this.keyDownEvent);
     this.renderer.domElement.style.display = "block";
+    this.renderer.domElement.style.width = "100%";
+    this.renderer.domElement.style.height = "100%";
+
+    this._handleViewportResize = () => {
+      if (this._applyViewportSize()) {
+        this._markSceneDirty();
+      }
+    };
+    if (typeof ResizeObserver !== "undefined" && this.canvasWrapperRef.current) {
+      this._resizeObserver = new ResizeObserver(this._handleViewportResize);
+      this._resizeObserver.observe(this.canvasWrapperRef.current);
+    } else {
+      window.addEventListener("resize", this._handleViewportResize);
+    }
 
     // Set camera spotlight to point forward
     cameraSpotlight.target.position.set(0, 0, -1);
@@ -1387,9 +2017,18 @@ export default class Scene3DViewer extends React.Component {
     this.planData = planData;
     this.cameraSpotlight = cameraSpotlight;
     this.directionalLight = directionalLight;
+    this._applyViewportSize(true);
 
     // Expose for mini-preview viewport
     window.__viewer3D = this;
+
+    this._onPlannerTextureMapsUpdated = () => {
+      this._markSceneDirty();
+    };
+    window.addEventListener(
+      "planner-texture-maps-updated",
+      this._onPlannerTextureMapsUpdated,
+    );
 
     // Initialize wall visibility manager
     wallVisibilityManager.init(planData, camera);
@@ -1405,10 +2044,12 @@ export default class Scene3DViewer extends React.Component {
       );
     }
 
+    this._applySharedCameraTransitionState();
     this._setViewerActive(this.props.isActive);
   }
 
   componentWillUnmount() {
+    this._storeSharedCameraTransitionState();
     this._stopRenderLoop();
 
     if (this.orbitControls) {
@@ -1428,12 +2069,27 @@ export default class Scene3DViewer extends React.Component {
       domElement.removeEventListener("mousemove", this.mouseMoveEvent, true);
     }
     window.removeEventListener("keydown", this.keyDownEvent);
+    if (this._onPlannerTextureMapsUpdated) {
+      window.removeEventListener(
+        "planner-texture-maps-updated",
+        this._onPlannerTextureMapsUpdated,
+      );
+      this._onPlannerTextureMapsUpdated = null;
+    }
 
     // Clean up window-level drag mouseup listener
     if (this._endDragOnWindowMouseUp) {
       window.removeEventListener("mouseup", this._endDragOnWindowMouseUp);
       this._endDragOnWindowMouseUp = null;
     }
+    this._removeGizmoWindowMouseUpListener();
+    if (this._resizeObserver) {
+      this._resizeObserver.disconnect();
+      this._resizeObserver = null;
+    } else if (this._handleViewportResize) {
+      window.removeEventListener("resize", this._handleViewportResize);
+    }
+    this._handleViewportResize = null;
 
     // Clean up placement and dragging
     this.cleanupPreview();
@@ -1489,8 +2145,6 @@ export default class Scene3DViewer extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    let { width, height } = this.props;
-
     let actions = {
       areaActions: this.context.areaActions,
       holesActions: this.context.holesActions,
@@ -1499,11 +2153,19 @@ export default class Scene3DViewer extends React.Component {
       projectActions: this.context.projectActions,
     };
 
-    this.width = width;
-    this.height = height;
-
     if (prevProps.isActive !== this.props.isActive) {
       this._setViewerActive(this.props.isActive);
+    }
+
+    if (
+      this.orbitControls &&
+      !this.orbitControls.enabled &&
+      !this.isDragging3D &&
+      !this.isDraggingHole3D &&
+      !(this.gizmoManager && this.gizmoManager.isDragging)
+    ) {
+      this.orbitControls.enabled = true;
+      this._markSceneDirty();
     }
 
     // Detect NEW_PROJECT / LOAD_PROJECT.
@@ -1534,12 +2196,32 @@ export default class Scene3DViewer extends React.Component {
     const historyReset = prevHistorySize > 0 && nextHistorySize === 0;
     const sceneIdentityChanged =
       this.props.state.scene !== prevProps.state.scene;
+    const historyObjectChanged =
+      prevProps.state.sceneHistory !== this.props.state.sceneHistory;
+    const nextHistoryFirst = this.props.state.sceneHistory?.first;
+    const nextHistoryLast = this.props.state.sceneHistory?.last;
+    const nextScene = this.props.state.scene;
+    const nextHistoryLooksFreshProject =
+      nextHistorySize === 0 &&
+      historyObjectChanged &&
+      nextHistoryFirst &&
+      nextHistoryLast &&
+      typeof nextHistoryFirst.hashCode === "function" &&
+      typeof nextHistoryLast.hashCode === "function" &&
+      typeof nextScene?.hashCode === "function" &&
+      nextHistoryFirst.hashCode() === nextHistoryLast.hashCode() &&
+      nextHistoryLast.hashCode() === nextScene.hashCode();
     const projectChanged =
-      sceneIdentityChanged && (historyReset || firstSceneChanged);
+      sceneIdentityChanged &&
+      (historyReset || firstSceneChanged || nextHistoryLooksFreshProject);
 
-    if (projectChanged) {
-      this._pendingRecenterAfterProjectChange = true;
+        if (projectChanged) {
+          this._resetTransientInteractionState();
+          this._pendingRecenterAfterProjectChange = true;
       this._cameraInitializedWithContent = false;
+      this._hasLastFrameCameraState = false;
+      this._sceneDirtyForFrame = true;
+      this._lodDirty = true;
 
       // Viewer3D is intentionally kept mounted across projects; reset wall
       // visibility internal caches so previous project's wall states don't leak.
@@ -1628,9 +2310,6 @@ export default class Scene3DViewer extends React.Component {
         (pd) => {
           this._markSceneDirty();
 
-          // If a project changed while already in 3D, recenter as soon as bounds are ready.
-          if (!this._pendingRecenterAfterProjectChange) return;
-
           const modeNow = this.props.state.get("mode");
           const _3D_MODES = [
             MODE_3D_VIEW,
@@ -1644,10 +2323,25 @@ export default class Scene3DViewer extends React.Component {
           const in3D = _3D_MODES.indexOf(modeNow) !== -1;
           if (!in3D) return;
 
-          this._recenterCameraToPlanBounds(pd);
-          this._pendingRecenterAfterProjectChange = false;
-          this._cameraInitializedWithContent = true;
-          this._markSceneDirty();
+          // If a project changed while already in 3D, recenter as soon as bounds are ready.
+          if (this._pendingRecenterAfterProjectChange) {
+            const recentered = this._recenterCameraToPlanBounds(pd, {
+              requireGeometry: true,
+            });
+            if (recentered) {
+              this._pendingRecenterAfterProjectChange = false;
+              this._cameraInitializedWithContent = !!pd.boundingBoxHasGeometry;
+              this._markSceneDirty();
+            }
+          } else if (this._isCameraRecoveryNeeded(pd)) {
+            const recovered = this._recenterCameraToPlanBounds(pd, {
+              requireGeometry: true,
+            });
+            if (recovered) {
+              this._cameraInitializedWithContent = !!pd.boundingBoxHasGeometry;
+              this._markSceneDirty();
+            }
+          }
         },
       );
       // Sync selection / hover gizmos with updated scene
@@ -1683,7 +2377,7 @@ export default class Scene3DViewer extends React.Component {
       this._markSceneDirty();
     }
 
-    // Re-centre camera on first 3D entry that has real geometry
+    // Re-centre camera on every transition into the orbit 3D modes.
     const _3D_MODES = [
       MODE_3D_VIEW,
       MODE_DRAWING_ITEM_3D,
@@ -1693,43 +2387,43 @@ export default class Scene3DViewer extends React.Component {
       MODE_APPLYING_TEXTURE,
       MODE_3D_MEASURE,
     ];
+    const wasIn3D = _3D_MODES.indexOf(currentMode) !== -1;
     const nowIn3D = _3D_MODES.indexOf(nextMode) !== -1;
 
-    // If a project changed while in 2D, apply the one-time recenter on the first 2D→3D switch.
+    const entered3D = nowIn3D && !wasIn3D;
+    if (entered3D) {
+      const recentered = this.planData
+        ? this._recenterCameraToPlanBounds(this.planData, {
+            requireGeometry: true,
+          })
+        : false;
+      if (recentered) {
+        this._pendingRecenterAfterProjectChange = false;
+        this._cameraInitializedWithContent = !!this.planData?.boundingBoxHasGeometry;
+        this._markSceneDirty();
+      } else {
+        this._cameraInitializedWithContent = false;
+        this._pendingRecenterAfterProjectChange = true;
+      }
+    }
+
+    // If bounds were not ready on 2D->3D entry (or after project load), retry while in 3D.
     if (
       nowIn3D &&
       this._pendingRecenterAfterProjectChange &&
-      this.planData &&
-      this.planData.boundingBox
+      this.planData
     ) {
-      this._recenterCameraToPlanBounds(this.planData);
-      this._pendingRecenterAfterProjectChange = false;
-      this._cameraInitializedWithContent = true;
-      this._markSceneDirty();
+      const recentered = this._recenterCameraToPlanBounds(this.planData, {
+        requireGeometry: true,
+      });
+      if (recentered) {
+        this._pendingRecenterAfterProjectChange = false;
+        this._cameraInitializedWithContent = !!this.planData?.boundingBoxHasGeometry;
+        this._markSceneDirty();
+      }
     }
 
-    if (
-      nowIn3D &&
-      !this._cameraInitializedWithContent &&
-      this.planData &&
-      this.planData.boundingBox &&
-      this.planData.boundingBoxHasGeometry
-    ) {
-      // We have real geometry now — re-centre camera
-      this._recenterCameraToPlanBounds(this.planData);
-      this._cameraInitializedWithContent = true;
-      this._markSceneDirty();
-    }
-
-    if (
-      width !== this._lastRendererWidth ||
-      height !== this._lastRendererHeight
-    ) {
-      this.camera.aspect = width / height;
-      this.camera.updateProjectionMatrix();
-      this.renderer.setSize(width, height);
-      this._lastRendererWidth = width;
-      this._lastRendererHeight = height;
+    if (this._applyViewportSize()) {
       this._markSceneDirty();
     }
 
@@ -1748,6 +2442,7 @@ export default class Scene3DViewer extends React.Component {
       this._markSceneDirty();
     }
   }
+
 
   /**
    * Commit gizmo drag result to Redux.
@@ -1773,6 +2468,11 @@ export default class Scene3DViewer extends React.Component {
           result.position.y,
         );
         this.context.itemsActions.endDraggingItem3D(x2D, y2D, 0);
+
+        const rotDeg = ((result.rotation * 180) / Math.PI) % 360;
+        this.context.projectActions.setItemsAttributes(
+          fromJS({ rotation: rotDeg }),
+        );
       } else if (result.type === "rotate") {
         // Convert radians → degrees for Redux
         const rotDeg = ((result.rotation * 180) / Math.PI) % 360;

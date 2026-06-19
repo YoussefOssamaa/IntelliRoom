@@ -1,35 +1,30 @@
-import React from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Outlet,
-} from "react-router-dom";
-import MarketplacePage from "./screens/PluginMarketplace";
-import { PricingPlansPage } from "./pages/pricingPlans/PricingPlansPage";
-import { PluginReviewPage } from "./pages/plugins-review/PluginReviewPage";
-import UploadImagePage from "./pages/uploadImage/uploadImagePage";
-import DashboardPage from "./pages/dashboard/DashboardPage";
-import LoginModal from "./pages/auth/login";
-import SignUpModal from "./pages/auth/signUp";
-import ProtectedRoute from "./components/protectedRoute";
-import LandingPage from "./pages/landingPage/landingPage";
-import Ecomm from "./pages/marketplace/MarketPlacePage";
-import CategoryPage from "./pages/marketplace/CategoryPage";
-import ProductDetailsPage from "./pages/marketplace/ProductDetailsPage";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from 'react-router-dom';
+import MarketplacePage from './screens/PluginMarketplace';
+import { PricingPlansPage } from './pages/pricingPlans/PricingPlansPage';
+import { PluginReviewPage } from './pages/plugins-review/PluginReviewPage';
+import UploadImagePage from './pages/uploadImage/uploadImagePage';
+import DashboardPage from './pages/dashboard/DashboardPage';
+import LoginModal from './pages/auth/login';
+import SignUpModal from './pages/auth/signUp';
+import ProtectedRoute from './components/protectedRoute';
+import LandingPage from './pages/landingPage/landingPage';
+import Ecomm from './pages/marketplace/MarketPlacePage';
+import CategoryListingPage from './pages/marketplace/CategoryListingPage';
+import ProductDetailsPage from './pages/marketplace/ProductDetailsPage';
+import AboutPage from './pages/about/AboutPage';
 
-import PlannerPage from "./pages/planner/PlannerPage";
-import { UpdateProfile } from "./pages/updateProfile/updateProfile";
-import { Community } from "./pages/community/community";
-import Checkout from "./pages/checkout/Checkout";
+import PlannerPage from './pages/planner/PlannerPage';
+import { UpdateProfile } from './pages/updateProfile/updateProfile';
+import { Community } from './pages/community/community';
+import Checkout from './pages/checkout/Checkout';
 
-import { ShopProvider } from "./context/ShopContext";
-import CartPage from "./pages/marketplace/CartPage";
-import MarketHeader from "./pages/marketplace/MarketHeader";
-import FavoritesPage from "./pages/marketplace/FavoritesPage";
-import RoomPage from "./pages/marketplace/RoomPage";
+import { ShopProvider } from './context/ShopContext';
+import CartPage from './pages/marketplace/CartPage';
+import MarketHeader from './pages/marketplace/MarketHeader';
+import FavoritesPage from './pages/marketplace/FavoritesPage';
+import RoomPage from './pages/marketplace/RoomPage';
 import CheckoutPage from "./pages/marketplace/CheckoutPage";
-
 import AdminLayout from "./pages/marketplace/admin/AdminLayout";
 import AdminProductsPage from "./pages/marketplace/admin/AdminProductsPage";
 import AdminProductGridPage from "./pages/marketplace/admin/AdminProductGridPage";
@@ -49,7 +44,6 @@ import UsersDashboard from "./pages/admin/UsersDashboard";
 import ManageAdmins from "./pages/admin/ManageAdmins";
 import AdminLogs from "./pages/admin/AdminLogs";
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
-
 const MarketplaceLayout = () => {
   return (
     <ShopProvider>
@@ -103,6 +97,7 @@ const AppRoutes = () => {
         />
 
         <Route path="/" element={<LandingPage />} />
+        <Route path="/about" element={<AboutPage />} />
         <Route path="/marketplace" element={<MarketplacePage />} />
         <Route path="/pricingPlans" element={<PricingPlansPage />} />
         <Route path="/pluginReview/:id" element={<PluginReviewPage />} />
@@ -112,7 +107,7 @@ const AppRoutes = () => {
           <Route path="/ecomm/product/:slug" element={<ProductDetailsPage />} />
           <Route
             path="/ecomm/category/:categoryId"
-            element={<CategoryPage />}
+            element={<CategoryListingPage />}
           />
           <Route path="/ecomm/cart" element={<CartPage />} />
           <Route
@@ -172,6 +167,7 @@ const AppRoutes = () => {
         {/* <Route path="/dashboard" element={<DashboardPage />} /> */}
         <Route path="/updateProfile" element={<UpdateProfile />} />
         <Route path="/planner" element={<PlannerPage />} />
+        <Route path="/planner/:projectId" element={<PlannerPage />} />
         <Route path="/community" element={<Community />} />
         <Route path="/checkout" element={<Checkout />} />
       </Routes>

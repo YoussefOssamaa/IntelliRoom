@@ -14,6 +14,16 @@ import { Layer as LayerModel } from '../models';
 import { Vector2 } from 'three';
 
 const sameSet = (set1, set2) => set1.size === set2.size && set1.isSuperset(set2) && set1.isSubset(set2);
+const lineParticipatesInAreaDetection = (state, line) => {
+  const flagValue = state.getIn([
+    'catalog',
+    'elements',
+    line.type,
+    'info',
+    'participatesInAreaDetection'
+  ]);
+  return flagValue !== false;
+};
 
 class Layer{
 
@@ -100,7 +110,10 @@ class Layer{
       verticesArrayIndex_to_vertexID[latestVertexIndex] = vertex.id;
     });
 
-    linesArray = state.getIn(['scene', 'layers', layerID, 'lines'])
+    const layerLines = state.getIn(['scene', 'layers', layerID, 'lines']);
+    const areaBoundaryLines = layerLines.filter(line => lineParticipatesInAreaDetection(state, line));
+
+    linesArray = areaBoundaryLines
       .map(line => line.vertices.map(vertexID => vertexID_to_verticesArrayIndex[vertexID]).toArray());
 
     let innerCyclesByVerticesArrayIndex = GraphInnerCycles.calculateInnerCycles(verticesArray, linesArray);
@@ -121,7 +134,7 @@ class Layer{
     // Clear sideAInside from ALL lines first.
     // It will be re-set below only for walls that are part of detected areas.
     // This ensures standalone walls have sideAInside = undefined and remain always visible.
-    state.getIn(['scene', 'layers', layerID, 'lines']).forEach((line, lineID) => {
+    layerLines.forEach((line, lineID) => {
       if (line.properties && line.properties.get('sideAInside') !== undefined) {
         state = state.deleteIn(['scene', 'layers', layerID, 'lines', lineID, 'properties', 'sideAInside']);
       }
@@ -223,7 +236,7 @@ class Layer{
         let v1 = state.getIn(['scene', 'layers', layerID, 'vertices', v1ID]);
         
         // Check each line to find the one connecting v0 and v1
-      const lines = state.getIn(['scene', 'layers', layerID, 'lines']);
+      const lines = areaBoundaryLines;
       for (let [lineID, line] of lines.entries()) {
         let lineV0ID = line.vertices.get(0);
         let lineV1ID = line.vertices.get(1);

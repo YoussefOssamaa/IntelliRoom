@@ -3,7 +3,7 @@ import Icon from '../../../components/AppIcon';
 import { useTranslator } from '../../../../translator/TranslatorContext';
 import './FloorPlanSidebar.css';
 
-const FloorPlanSidebar = ({ isOpen, onClose, linesActions, holesActions }) => {
+const FloorPlanSidebar = ({ isOpen, onClose, linesActions, holesActions, projectActions }) => {
   const { t } = useTranslator();
   const [expandedSection, setExpandedSection] = useState('drawRoom');
 
@@ -12,18 +12,24 @@ const FloorPlanSidebar = ({ isOpen, onClose, linesActions, holesActions }) => {
 
     switch(toolId) {
       case 'straightWall':
-        linesActions.selectToolDrawingLine('wall');
+        linesActions?.selectToolDrawingLine('wall');
+        break;
+      case 'beam':
+        projectActions?.selectToolEdit?.();
+        linesActions?.selectToolDrawingLine('beam');
+        break;
+      case 'column':
+        projectActions?.selectToolEdit?.();
+        linesActions?.selectToolDrawingLine('column');
         break;
       case 'doorOpening':
-        holesActions.selectToolDrawingHole('door');
+        holesActions?.selectToolDrawingHole('door');
         break;
       case 'windowOpening':
-        holesActions.selectToolDrawingHole('window');
+        holesActions?.selectToolDrawingHole('window');
         break;
       case 'drawArea':
       case 'arcWall':
-      case 'beam':
-      case 'column':
         console.log(`Tool ${toolId} is not implemented yet`);
         break;
       default:
@@ -53,8 +59,8 @@ const FloorPlanSidebar = ({ isOpen, onClose, linesActions, holesActions }) => {
       id: 'structure',
       title: 'Structure',
       tools: [
-        { id: 'beam', icon: 'Columns', label: 'Beam', enabled: false },
-        { id: 'column', icon: 'Pilcrow', label: 'Column', enabled: false }
+        { id: 'beam', icon: 'Columns', label: 'Beam', enabled: true },
+        { id: 'column', icon: 'Pilcrow', label: 'Column', enabled: true }
       ]
     }
   ];

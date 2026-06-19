@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import '../../styles/auth/signup.css';
 import axios from '../../config/axios.config';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../utils/authContext.jsx';
 
 const SignUpModal = () => {
 
@@ -19,28 +20,30 @@ const SignUpModal = () => {
     });
 
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     const handleChange = (e) => {
         formData.current[e?.target?.name] = e?.target?.value;
         setIsMessageVisible((prev) => false);
         setLoginMessage((p) => '');
-
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            if (formData.current.password !== formData.current.repeatPassword) {
+            const { repeatPassword, ...submitData } = formData.current;
+
+            if (submitData.password !== repeatPassword) {
                 setIsSuccessFullLogin((p) => false);
                 setIsMessageVisible((p) => true);
                 setLoginMessage((p) => "passwords don't match");
-                return
+                return;
             }
-            delete formData.current.repeatPassword;
 
-            const res = await axios.post('/auth/signup', formData.current);
+            const res = await axios.post('auth/signup', submitData);
 
             if (res?.data?.success) {
+                login(res.data.user);
                 setIsSuccessFullLogin((p) => true);
                 setIsMessageVisible((p) => true);
                 setLoginMessage((p) => 'Logged in successfully');
@@ -49,27 +52,31 @@ const SignUpModal = () => {
                 }, 1500);
             }
 
-        } catch (e) {
-            console.log("badr",e)
+        } catch (error) {
             setIsSuccessFullLogin((p) => false);
             setIsMessageVisible((p) => true);
-            setLoginMessage((p) => e?.response?.data?.message || "internal server error");
-
+            if (error.response) {
+                console.error("Backend Error Data:", error.response.data);
+                setLoginMessage((p) => error.response.data.message || "Signup failed");
+            } else {
+                console.error("Error Message:", error.message);
+                setLoginMessage((p) => error.message || "Network error");
+            }
         }
     }
+
     useEffect(() => {
-    if (isMessageVisible && messageRef.current) {
-        messageRef.current.scrollIntoView({ 
-            behavior: 'smooth', // حركة ناعمة
-            block: 'start'      // يخلي الرسالة في أعلى الكارد
-        });
-    }
-}, [isMessageVisible]);
+        if (isMessageVisible && messageRef.current) {
+            messageRef.current.scrollIntoView({
+                behavior: 'smooth', // حركة ناعمة
+                block: 'start'      // يخلي الرسالة في أعلى الكارد
+            });
+        }
+    }, [isMessageVisible]);
 
     return (
         <div className="overlay">
             <div className="login-card">
-                {/* <button className="close-btn">&times;</button> */}
                 {isMessageVisible && (
                     <div
                         ref={messageRef}
@@ -99,7 +106,6 @@ const SignUpModal = () => {
                             type="input"
                             name="firstName"
                             placeholder="badr"
-                            value={formData.firstName}
                             onChange={handleChange}
                             required
                         />
@@ -110,7 +116,6 @@ const SignUpModal = () => {
                             type="input"
                             name="lastName"
                             placeholder="sayed"
-                            value={formData.lasttName}
                             onChange={handleChange}
                             required
                         />
@@ -121,7 +126,6 @@ const SignUpModal = () => {
                             type="email"
                             name="email"
                             placeholder="your@email.com"
-                            value={formData.email}
                             onChange={handleChange}
                             required
                         />
@@ -132,12 +136,10 @@ const SignUpModal = () => {
                             type="input"
                             name="user_name"
                             placeholder="badr21"
-                            value={formData.user_name}
                             onChange={handleChange}
                             required
                         />
                     </div>
-
 
                     <div className="input-group">
                         <label>Password</label>
@@ -145,7 +147,6 @@ const SignUpModal = () => {
                             type="password"
                             name="password"
                             placeholder="********"
-                            value={formData.password}
                             onChange={handleChange}
                             required
                         />
@@ -156,19 +157,18 @@ const SignUpModal = () => {
                             type="password"
                             name="repeatPassword"
                             placeholder="********"
-                            value={formData.repeatPassword}
                             onChange={handleChange}
                             required
                         />
                     </div>
 
                     <button type="submit" className="sign-in-btn">Sign up</button>
-             </form>
-                                 <br></br>
+                </form>
+                <br></br>
 
-                            <p className="signup-text">
+                <p className="signup-text">
                     Already have an account? <a href="/login">Login</a>
-                </p>    
+                </p>
             </div>
         </div>
     );

@@ -2,6 +2,7 @@ import express from 'express';
 import { deleteProjectController, getProjectByIDController, getProjectsController, postProjectController, updateProjectController } from '../../controllers/design2D/design2DController.js';
 import { getAssetsByCategoryController, getAssetsCatergoriesController } from '../../controllers/design2D/assetsController.js';
 import { getFloorPlanByCategoryController, getFloorPlanCategoriesController } from '../../controllers/design2D/floorPlanController.js';
+import { requireCredits } from '../../middleware/creditMiddleware.js';
 
 
 
@@ -15,7 +16,7 @@ router.get('/floorPlan/categories', getFloorPlanCategoriesController); /////Fetc
 router.get('/floorPlan', getFloorPlanByCategoryController);  /// Fetch floor plan tools by category, for ex: /floorPlan?category=wall  or fetch all floor plan tools if no category is provided
 
 
-router.post('/', postProjectController );
+router.post('/', requireCredits(50), postProjectController );
 router.get('/', getProjectsController );    ///// will be used to fetch all projects of a user, for ex: in the dashboard show all the projects' images
 router.get('/:id', getProjectByIDController );
 router.put('/:id', updateProjectController );

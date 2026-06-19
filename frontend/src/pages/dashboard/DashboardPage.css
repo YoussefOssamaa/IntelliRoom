@@ -1,190 +1,488 @@
-/* DashboardPage.css */
+/* ============================================================
+   DashboardPage.css  — IntelliRoom editorial design system
+   Mirrors the landing page palette: warm cream, carbon text,
+   coral accent (#ff6b3d-ish), IBM Plex Mono labels.
+   ============================================================ */
 
-.dashboard-layout {
-    @apply flex flex-col min-h-screen font-sans text-slate-800;
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&family=League+Spartan:wght@700;800&display=swap');
+
+/* ---------- Design Tokens ---------- */
+:root {
+  --cream:       hsl(36, 20%, 94%);
+  --cream-dark:  hsl(34, 14%, 88%);
+  --carbon:      hsl(24, 12%, 8%);
+  --carbon-60:   hsl(24, 6%, 38%);
+  --carbon-30:   hsl(30, 8%, 62%);
+  --carbon-10:   hsl(30, 10%, 80%);
+  --accent:      hsl(17, 100%, 62%);
+  --accent-pale: hsl(17, 100%, 95%);
+  --radius-sm:   0.5rem;
+  --radius-md:   1rem;
+  --radius-lg:   1.5rem;
 }
 
-.header-wrapper {
-    @apply sticky top-0 z-[1300] bg-white border-b border-slate-200 shadow-sm;
+/* ---------- Layout ---------- */
+.dashboard-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--cream);
+  font-family: 'Inter', sans-serif;
+  color: var(--carbon);
 }
 
 .content-wrapper {
-    @apply flex grow;
+  display: flex;
+  flex: 1;
 }
 
-/* Sidebar Navigation - Added a subtle slate tint and vibrant active states */
+/* ---------- Sidebar ---------- */
 .sidebar {
-    @apply w-[240px] shrink-0 border-r border-slate-200 bg-slate-50 h-full relative;
+  width: 220px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--carbon-10);
+  background-color: var(--cream);
+  position: sticky;
+  top: 72px;
+  height: calc(100vh - 72px);
+  overflow-y: auto;
 }
 
 .nav-list {
-    @apply flex flex-col py-4 overflow-y-auto h-full m-0 p-0 list-none;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 0;
+  margin: 0;
+  list-style: none;
+  gap: 0.25rem;
 }
 
 .nav-item {
-    @apply flex items-center gap-4 px-6 py-3 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 cursor-pointer transition-colors font-medium;
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.65rem 1.5rem;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--carbon-60);
+  cursor: pointer;
+  transition: color 0.2s ease, background-color 0.2s ease;
+  border-left: 2px solid transparent;
+}
+
+.nav-item:hover {
+  color: var(--carbon);
+  background-color: var(--cream-dark);
 }
 
 .nav-item.active {
-    @apply bg-indigo-100 text-indigo-700 border-r-4 border-indigo-600;
+  color: var(--carbon);
+  border-left-color: var(--accent);
+  background-color: var(--cream-dark);
+  font-weight: 600;
 }
 
 .nav-divider {
-    @apply h-px bg-slate-200 my-4 mx-4;
+  height: 1px;
+  background-color: var(--carbon-10);
+  margin: 1rem 1.25rem;
 }
 
-/* Main Area - Warmer, softer background */
+/* ---------- Main Area ---------- */
 .main-area {
-    @apply grow p-8 bg-[#f8fafc] min-h-screen min-w-0 overflow-x-hidden;
+  flex: 1;
+  padding: 3rem 3rem 4rem;
+  min-height: 100vh;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
+/* ---------- Welcome Section ---------- */
 .welcome-section {
-    @apply mb-8 flex justify-between items-center;
+  margin-bottom: 3rem;
+  border-bottom: 1px solid var(--carbon-10);
+  padding-bottom: 2rem;
+}
+
+.welcome-eyebrow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--carbon-30);
+  margin-bottom: 0.5rem;
 }
 
 .welcome-title {
-    @apply text-3xl font-extrabold mb-1 text-slate-900 tracking-tight;
+  font-family: 'League Spartan', sans-serif;
+  font-size: 2.75rem;
+  font-weight: 800;
+  line-height: 1.05;
+  color: var(--carbon);
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+}
+
+.welcome-title span {
+  color: var(--accent);
 }
 
 .welcome-subtitle {
-    @apply text-slate-500 text-lg;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  color: var(--carbon-60);
+  max-width: 480px;
 }
 
-/* Buttons - Upgraded to a sleek gradient */
-.btn-primary {
-    @apply bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-6 py-3 rounded-xl hover:from-indigo-700 hover:to-violet-700 transition-all shadow-md hover:shadow-lg flex items-center gap-2 font-medium border-0;
-}
-
-.btn-secondary {
-    @apply border-2 border-indigo-100 text-indigo-700 bg-indigo-50 px-4 py-2 rounded-lg hover:bg-indigo-100 transition-colors w-full font-bold mt-auto;
-}
-
-.btn-text {
-    @apply text-indigo-600 font-bold hover:bg-indigo-50 px-4 py-2 rounded-lg transition-colors flex items-center gap-2;
-}
-
-/* Stats Cards - Added subtle top borders and hover lifts */
+/* ---------- Stats Grid ---------- */
 .stats-grid {
-    @apply grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 3rem;
 }
 
+/* ---------- Stat / Action Cards ---------- */
 .stat-card {
-    @apply bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col h-full transition-all hover:shadow-md hover:-translate-y-1;
+  background-color: #fff;
+  border: 1px solid var(--carbon-10);
+  border-radius: var(--radius-md);
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(20, 18, 16, 0.08);
 }
 
 .stat-label {
-    @apply text-slate-500 text-sm font-bold tracking-wide uppercase mb-2;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--carbon-30);
+  margin-bottom: 0.5rem;
 }
 
 .stat-value {
-    @apply text-4xl font-extrabold text-slate-800;
+  font-family: 'League Spartan', sans-serif;
+  font-size: 3rem;
+  font-weight: 800;
+  color: var(--carbon);
+  line-height: 1;
 }
 
-/* Progress Bar - Upgraded to a vibrant gradient */
-.progress-track {
-    @apply w-full bg-slate-100 rounded-full h-2.5 mt-4 mb-2 overflow-hidden;
+.stat-value-accent {
+  color: var(--accent);
 }
 
-.progress-fill {
-    @apply bg-gradient-to-r from-indigo-500 to-violet-500 h-full rounded-full transition-all duration-500;
+/* ---------- Credits Card specific ---------- */
+.credits-hint {
+  font-size: 0.82rem;
+  color: var(--carbon-60);
+  margin-top: 0.5rem;
 }
 
-/* Icons */
+/* ---------- Marketplace icon wrapper ---------- */
 .marketplace-icon-wrapper {
-    @apply bg-violet-100 text-violet-600 p-3 rounded-2xl flex items-center justify-center shadow-inner;
+  background-color: var(--accent-pale);
+  color: var(--accent);
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-/* Section Headers */
+/* ---------- Buttons ---------- */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--carbon);
+  color: var(--cream);
+  padding: 0.65rem 1.5rem;
+  border-radius: 999px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+.btn-primary:hover { background-color: hsl(24, 12%, 16%); }
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background-color: transparent;
+  color: var(--carbon);
+  padding: 0.55rem 1.25rem;
+  border-radius: 999px;
+  border: 1px solid var(--carbon-10);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+  margin-top: auto;
+}
+.btn-secondary:hover {
+  border-color: var(--carbon);
+  background-color: var(--cream-dark);
+}
+
+.btn-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: none;
+  border: none;
+  color: var(--carbon-60);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 0.4rem 0;
+  transition: color 0.2s;
+}
+.btn-text:hover { color: var(--carbon); }
+
+.btn-accent {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--accent);
+  color: #fff;
+  padding: 0.65rem 1.5rem;
+  border-radius: 999px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+.btn-accent:hover { opacity: 0.85; }
+
+/* ---------- Section Headers ---------- */
 .section-wrapper {
-    @apply mb-12;
+  margin-bottom: 3rem;
 }
 
 .section-header {
-    @apply flex items-center justify-between mb-6; /* Changed to space them out */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.875rem;
+  border-bottom: 1px solid var(--carbon-10);
+}
+
+.section-eyebrow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--carbon-30);
+  margin-bottom: 0.25rem;
 }
 
 .section-title {
-    @apply text-2xl font-extrabold text-slate-800;
+  font-family: 'League Spartan', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--carbon);
+  letter-spacing: -0.01em;
 }
 
-/* Projects Grid */
+/* ---------- Projects Grid ---------- */
 .projects-grid {
-    @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
 }
 
 .project-card {
-    @apply bg-white rounded-2xl shadow-sm border border-slate-100 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-xl overflow-hidden;
+  background-color: #fff;
+  border: 1px solid var(--carbon-10);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-/* Project Image - Replaced dull gray with a soft tinted background */
-.project-image-placeholder {
-    @apply h-[160px] bg-gradient-to-br from-indigo-50 to-violet-50 flex items-center justify-center text-indigo-200 transition-colors group-hover:text-indigo-300;
+.project-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(20, 18, 16, 0.1);
+}
+
+.project-image-wrapper {
+  height: 160px;
+  width: 100%;
+  overflow: hidden;
+  background-color: var(--cream-dark);
+}
+
+.project-image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.project-card:hover .project-image-wrapper img {
+  transform: scale(1.06);
 }
 
 .project-info {
-    @apply p-5;
+  padding: 1rem 1.25rem 1.25rem;
 }
 
 .project-title {
-    @apply text-lg font-bold mb-2 text-slate-800 group-hover:text-indigo-600 transition-colors;
+  font-family: 'League Spartan', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--carbon);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 0.25rem;
+}
+
+.project-date {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  color: var(--carbon-30);
 }
 
 .project-meta {
-    @apply flex justify-between items-center mt-3;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.75rem;
 }
 
-/* Status Badges - Made the colors richer and more distinct */
-.status-badge {
-    @apply px-3 py-1 rounded-full text-xs font-bold tracking-wide;
+.project-actions {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
 }
 
-.status-completed {
-    @apply bg-emerald-100 text-emerald-700 border border-emerald-200;
+.project-action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.status-draft {
-    @apply bg-amber-100 text-amber-700 border border-amber-200;
+.project-action-btn:hover {
+  background-color: var(--cream-dark);
 }
 
-.status-rendering {
-    @apply bg-indigo-100 text-indigo-700 border border-indigo-200;
+.project-action-btn.delete-btn {
+  color: var(--carbon-30);
 }
 
-/* Styles Scroll Area */
-.styles-scroll-container {
-    @apply flex gap-6 overflow-x-auto pb-6 w-full pt-2;
+.project-action-btn.delete-btn:hover {
+  color: hsl(0, 84%, 60%);
+  background-color: hsl(0, 100%, 96%);
 }
 
-.styles-scroll-container::-webkit-scrollbar {
-    @apply h-2.5;
-}
-.styles-scroll-container::-webkit-scrollbar-track {
-    @apply bg-slate-100 rounded-full;
-}
-.styles-scroll-container::-webkit-scrollbar-thumb {
-    @apply bg-slate-300 rounded-full hover:bg-indigo-400 transition-colors;
-}
-
-.style-card {
-    @apply min-w-[280px] max-w-[280px] bg-white rounded-2xl shadow-sm border border-slate-100 shrink-0 cursor-pointer transition-all duration-300 hover:scale-[1.03] hover:shadow-xl overflow-hidden;
-}
-
-.style-image-wrapper {
-    @apply relative h-48 w-full overflow-hidden;
+/* ---------- Empty / Loading state ---------- */
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 4rem 2rem;
+  border: 1px dashed var(--carbon-10);
+  border-radius: var(--radius-md);
+  color: var(--carbon-60);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
 }
 
-.style-image-wrapper img {
-    @apply transition-transform duration-700 group-hover:scale-110;
+/* ---------- Pulse Skeleton ---------- */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
 }
 
-.style-info {
-    @apply p-5;
+.skeleton-block {
+  background-color: var(--cream-dark);
+  border-radius: 4px;
+  animation: pulse 1.6s ease-in-out infinite;
 }
 
-.style-title {
-    @apply text-xl font-bold mb-1 text-slate-800;
+/* ---------- Quick Actions row (create new) ---------- */
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
 }
 
-.style-desc {
-    @apply text-slate-500 text-sm line-clamp-2 overflow-hidden mb-4;
+.action-card {
+  background-color: #fff;
+  border: 1px solid var(--carbon-10);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  cursor: pointer;
+}
+
+.action-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 32px rgba(20, 18, 16, 0.08);
+}
+
+.action-card-title {
+  font-family: 'League Spartan', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--carbon);
+}
+
+.action-card-desc {
+  font-size: 0.82rem;
+  color: var(--carbon-60);
+  line-height: 1.55;
+  flex: 1;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1024px) {
+  .stats-grid     { grid-template-columns: repeat(2, 1fr); }
+  .projects-grid  { grid-template-columns: repeat(2, 1fr); }
+  .quick-actions-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .sidebar        { display: none; }
+  .main-area      { padding: 1.5rem 1.25rem 3rem; }
+  .stats-grid     { grid-template-columns: 1fr; }
+  .projects-grid  { grid-template-columns: 1fr; }
+  .welcome-title  { font-size: 2rem; }
 }

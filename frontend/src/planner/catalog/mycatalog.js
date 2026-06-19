@@ -21,13 +21,11 @@ function pathToKey(path, typePrefix) {
 const areaModules = import.meta.glob('./areas/**/planner-element.{jsx,js}', { eager: true });
 const lineModules = import.meta.glob('./lines/**/planner-element.{jsx,js}', { eager: true });
 const holeModules = import.meta.glob('./holes/**/planner-element.{jsx,js}', { eager: true });
-const itemModules = import.meta.glob('./items/**/planner-element.{jsx,js}', { eager: true });
 
 // Build lookup objects and register elements
 const Areas = {};
 const Lines = {};
 const Holes = {};
-const Items = {};
 
 for (const [path, module] of Object.entries(areaModules)) {
   const key = pathToKey(path, 'areas');
@@ -47,13 +45,6 @@ for (const [path, module] of Object.entries(holeModules)) {
   const key = pathToKey(path, 'holes');
   const element = module.default || module;
   Holes[key] = element;
-  catalog.registerElement(element);
-}
-
-for (const [path, module] of Object.entries(itemModules)) {
-  const key = pathToKey(path, 'items');
-  const element = module.default || module;
-  Items[key] = element;
   catalog.registerElement(element);
 }
 

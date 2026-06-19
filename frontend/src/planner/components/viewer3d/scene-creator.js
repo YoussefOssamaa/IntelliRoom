@@ -1,101 +1,73 @@
 import * as Three from 'three';
-import createGrid from './grid-creator';
 import { disposeObject } from './three-memory-cleaner';
 import { wallVisibilityManager } from './wall-visibility-manager';
+import {
+  addStreamedItem,
+  removeStreamedItem,
+  updateStreamedItem,
+} from './item-loader';
+import {
+  createLayerBuildTasks,
+  initializePlanData,
+} from './scene-builder';
 
-export function parseData(sceneData, actions, catalog, onBoundingBoxReady) {
+function normalizeParseCallbacks(callbacks) {
+  if (typeof callbacks === 'function') {
+    return {
+      onSceneReady: callbacks,
+      onBoundsUpdated: null,
+    };
+  }
 
-  let planData = {};
-
-  planData.sceneGraph = {
-    unit: sceneData.unit,
-    layers: {},
-    busyResources: { layers: {} },
-    width: sceneData.width,
-    height: sceneData.height,
-    LODs: {}
+  return {
+    onSceneReady:
+      typeof callbacks?.onSceneReady === 'function'
+        ? callbacks.onSceneReady
+        : null,
+    onBoundsUpdated:
+      typeof callbacks?.onBoundsUpdated === 'function'
+        ? callbacks.onBoundsUpdated
+        : null,
   };
+}
 
-  planData.plan = new Three.Object3D();
-  planData.plan.name = 'plan';
-
-  // Add a grid to the plan
-  planData.grid = createGrid(sceneData);
-  planData.grid.name = 'grid';
-
-  // Invisible plane for stable raycasting (LineSegments grid gives jittery hits)
-  const _planeW = sceneData.width  * 3;
-  const _planeH = sceneData.height * 3;
-  planData.raycastPlane = new Three.Mesh(
-    new Three.PlaneGeometry(_planeW, _planeH),
-    new Three.MeshBasicMaterial({ visible: false, side: Three.DoubleSide })
-  );
-  planData.raycastPlane.rotation.x = -Math.PI / 2;
-  planData.raycastPlane.position.set(sceneData.width / 2, 0, -sceneData.height / 2);
-  planData.raycastPlane.name = 'raycastPlane';
-
-  planData.boundingBoxCenter = new Three.Vector3(0,0,0);
-  planData.boundingBoxHasGeometry = false;
-  planData.boundingBox = {
-    min: new Three.Vector3(0, 0, 0),
-    max: new Three.Vector3(0, 0, 0)
-  };
-
-  let promises = [];
+export function parseData(sceneData, actions, catalog, callbacks) {
+  const parseCallbacks = normalizeParseCallbacks(callbacks);
+  const planData = initializePlanData(sceneData, parseCallbacks.onBoundsUpdated);
+  let staticPromises = [];
 
   sceneData.layers.forEach(layer => {
-
     if (layer.id === sceneData.selectedLayer || layer.visible) {
-      promises = promises.concat(createLayerObjects(layer, planData, sceneData, actions, catalog));
+      const layerTasks = createLayerObjects(
+        layer,
+        planData,
+        sceneData,
+        actions,
+        catalog,
+      );
+      staticPromises = staticPromises.concat(layerTasks.staticPromises);
     }
   });
 
-  Promise.all(promises).then(value => updateBoundingBox(planData, onBoundingBoxReady));
+  Promise.all(staticPromises).then(() =>
+    updateBoundingBox(planData, parseCallbacks.onSceneReady),
+  );
 
   return planData;
 }
 
 function createLayerObjects(layer, planData, sceneData, actions, catalog) {
-
-  let promises = [];
-
-  planData.sceneGraph.layers[layer.id] = {
-    id: layer.id,
-    lines: {},
-    holes: {},
-    areas: {},
-    items: {},
-    visible: layer.visible,
-    altitude: layer.altitude
-  };
-
-  planData.sceneGraph.busyResources.layers[layer.id] = {
-    id: layer.id,
-    lines: {},
-    holes: {},
-    areas: {},
-    items: {}
-  };
-
-  // Import lines
-  layer.lines.forEach(line => {
-    promises.push(addLine(sceneData, planData, layer, line.id, catalog, actions.linesActions));
-    line.holes.forEach(holeID => {
-      promises.push(addHole(sceneData, planData, layer, holeID, catalog, actions.holesActions));
-    });
+  return createLayerBuildTasks({
+    layer,
+    planData,
+    sceneData,
+    actions,
+    catalog,
+    addLine,
+    addHole,
+    addArea,
+    addItem,
   });
-
-  // Import areas
-  layer.areas.forEach(area => {
-    promises.push(addArea(sceneData, planData, layer, area.id, catalog, actions.areaActions));
-  });
-
-  // Import items
-  layer.items.forEach(item => {
-    promises.push(addItem(sceneData, planData, layer, item.id, catalog, actions.itemsActions));
-  });
-
-  return promises;
 }
 
 export function updateScene(planData, sceneData, oldSceneData, diffArray, actions, catalog, onBoundingBoxUpdated) {
@@ -156,8 +128,14 @@ export function updateScene(planData, sceneData, oldSceneData, diffArray, action
       let layerSelected = sceneData.getIn(['layers', layerSelectedID]);
       // If the newly selected layer was hidden, create its 3D objects now
       if (!layerSelected.visible) {
-        let promises = createLayerObjects(layerSelected, planData, sceneData, actions, catalog);
-        Promise.all(promises).then(() => updateBoundingBox(planData));
+        const layerTasks = createLayerObjects(
+          layerSelected,
+          planData,
+          sceneData,
+          actions,
+          catalog,
+        );
+        Promise.all(layerTasks.staticPromises).then(() => updateBoundingBox(planData));
       }
 
       let layerGraph = planData.sceneGraph.layers[oldSceneData.selectedLayer];
@@ -365,24 +343,8 @@ function replaceObject(modifiedPath, layer, planData, actions, sceneData, oldSce
       break;
     }
     case 'items':
-      let item = layer.getIn(['items', modifiedPath[4]]);
-
-      // Fast path: position/rotation changes update the mesh directly (no flicker)
-      if (modifiedPath.length >= 6 &&
-          (modifiedPath[5] === 'x' || modifiedPath[5] === 'y' || modifiedPath[5] === 'rotation')) {
-        let existingMesh = planData.sceneGraph.layers[layer.id] &&
-                           planData.sceneGraph.layers[layer.id].items &&
-                           planData.sceneGraph.layers[layer.id].items[modifiedPath[4]];
-        if (existingMesh) {
-          existingMesh.position.x = item.x;
-          existingMesh.position.z = -item.y;
-          existingMesh.rotation.y = item.rotation * Math.PI / 180;
-          break;
-        }
-      }
-
-      if (catalog.getElement(item.type).updateRender3D) {
-        promises.push(
+      promises.push(
+        Promise.resolve(
           updateItem(
             sceneData,
             oldSceneData,
@@ -392,15 +354,20 @@ function replaceObject(modifiedPath, layer, planData, actions, sceneData, oldSce
             modifiedPath.slice(5),
             catalog,
             actions.itemsActions,
-            () => removeItem(planData, layer.id, modifiedPath[4]),
-            () => addItem(sceneData, planData, layer, modifiedPath[4], catalog, actions.itemsActions)
-          )
-        );
-      }
-      else {
-        removeItem(planData, layer.id, modifiedPath[4]);
-        promises.push(addItem(sceneData, planData, layer, modifiedPath[4], catalog, actions.itemsActions));
-      }
+            () => {
+              removeItem(planData, layer.id, modifiedPath[4]);
+              return addItem(
+                sceneData,
+                planData,
+                layer,
+                modifiedPath[4],
+                catalog,
+                actions.itemsActions,
+              );
+            },
+          ),
+        ),
+      );
       break;
 
     case 'visible':
@@ -413,7 +380,9 @@ function replaceObject(modifiedPath, layer, planData, actions, sceneData, oldSce
         for (let holeID in layerGraph.holes) removeHole(planData, layer.id, holeID);
 
       } else {
-        promises = promises.concat(createLayerObjects(layer, planData, sceneData, actions, catalog));
+        promises = promises.concat(
+          createLayerObjects(layer, planData, sceneData, actions, catalog).promises,
+        );
       }
 
       break;
@@ -426,7 +395,9 @@ function replaceObject(modifiedPath, layer, planData, actions, sceneData, oldSce
       for (let itemID in layerGraph.items) removeItem(planData, layer.id, itemID);
       for (let holeID in layerGraph.holes) removeHole(planData, layer.id, holeID);
 
-      promises = promises.concat(createLayerObjects(layer, planData, sceneData, actions, catalog));
+      promises = promises.concat(
+        createLayerObjects(layer, planData, sceneData, actions, catalog).promises,
+      );
 
   }
   Promise.all(promises).then(values => updateBoundingBox(planData));
@@ -548,25 +519,14 @@ function removeArea(planData, layerId, areaID) {
 }
 
 function removeItem(planData, layerId, itemID) {
-
   if (planData.sceneGraph.busyResources.layers[layerId].items[itemID]) {
     setTimeout(() => removeItem(planData, layerId, itemID), 100);
     return;
   }
 
   planData.sceneGraph.busyResources.layers[layerId].items[itemID] = true;
-
-  let item3D = planData.sceneGraph.layers[layerId].items[itemID];
-
-  if (item3D) {
-    planData.plan.remove(item3D);
-    disposeObject(item3D);
-    delete planData.sceneGraph.layers[layerId].items[itemID];
-    delete planData.sceneGraph.LODs[itemID];
-    item3D = null;
-    updateBoundingBox(planData);
-  }
-
+  removeStreamedItem(planData, layerId, itemID, updateBoundingBox);
+  delete planData.sceneGraph.LODs[itemID];
   planData.sceneGraph.busyResources.layers[layerId].items[itemID] = false;
 }
 
@@ -604,7 +564,7 @@ function addObject(modifiedPath, layer, planData, actions, sceneData, oldSceneDa
       }
     }
 
-    if( addPromise ) addPromise( sceneData, planData, layer, modifiedPath[4], catalog, addAction ).then(() => updateBoundingBox(planData));
+    if( addPromise ) addPromise( sceneData, planData, layer, modifiedPath[4], catalog, addAction, actions.projectActions ).then(() => updateBoundingBox(planData));
   }
 }
 
@@ -890,107 +850,28 @@ function updateArea(sceneData, oldSceneData, planData, layer, areaID, difference
 }
 
 function addItem(sceneData, planData, layer, itemID, catalog, itemsActions) {
-  const busy = planData.sceneGraph.busyResources.layers[layer.id].items[itemID];
-  if (busy) {
-    setTimeout(() => addItem(sceneData, planData, layer, itemID, catalog, itemsActions), 100);
-    return Promise.resolve();
-  }
-
-  planData.sceneGraph.busyResources.layers[layer.id].items[itemID] = true;
-
-  let item = layer.getIn(['items', itemID]);
-
-  if (!item || !item.type) {
-    planData.sceneGraph.busyResources.layers[layer.id].items[itemID] = false;
-    return Promise.resolve();
-  }
-
-  return catalog.getElement(item.type).render3D(item, layer, sceneData).then(item3D => {
-
-    if (item3D instanceof Three.LOD) {
-      planData.sceneGraph.LODs[itemID] = item3D;
-    }
-
-    // Remove BoxHelpers from catalog (we manage selection boxes at scene level)
-    const catalogBoxes = [];
-    item3D.traverse(child => {
-      if (child instanceof Three.BoxHelper) catalogBoxes.push(child);
-    });
-    catalogBoxes.forEach(b => {
-      if (b.parent) b.parent.remove(b);
-      if (b.geometry) b.geometry.dispose();
-      if (b.material) b.material.dispose();
-    });
-
-    const catalogElement = catalog.getElement(item.type);
-    const displayName = String(catalogElement?.info?.title || item.type || 'item').trim();
-
-    let pivot = new Three.Object3D();
-    pivot.name = 'pivot';
-    pivot.add(item3D);
-    pivot.userData = {
-      elementType: 'items',
-      elementID: itemID,
-      layerID: layer.id,
-      catalogType: item.type,
-      displayName,
-    };
-
-    // Find floor slab height (same approach as holes/walls) so altitude=0 means top-of-slab
-    let itemSlabHeight = 20;
-    try {
-      layer.areas.forEach(area => {
-        if (area && area.get('properties')) {
-          const areaFloorThickness = area.getIn(['properties', 'floorThickness', 'length']);
-          if (areaFloorThickness) {
-            itemSlabHeight = areaFloorThickness;
-            return false; // break
-          }
-        }
-      });
-    } catch (e) { /* use default */ }
-
-    pivot.rotation.y = item.rotation * Math.PI / 180;
-    pivot.position.x = item.x;
-    pivot.position.y = layer.altitude + itemSlabHeight;
-    pivot.position.z = -item.y;
-
-    applyInteract(item3D, () => {
-      itemsActions.selectItem(layer.id, item.id);
-    }
-    );
-
-    let opacity = layer.opacity;
-    if (item.selected) {
-      opacity = 1;
-    }
-
-    applyOpacity(pivot, opacity);
-
-    const existingPivot = planData.sceneGraph.layers[layer.id].items[itemID];
-    if (existingPivot && existingPivot !== pivot) {
-      planData.plan.remove(existingPivot);
-      disposeObject(existingPivot);
-    }
-
-    planData.plan.add(pivot);
-    planData.sceneGraph.layers[layer.id].items[itemID] = pivot;
-    planData.sceneGraph.busyResources.layers[layer.id].items[itemID] = false;
-    updateBoundingBox(planData);
-  }).catch(() => {
-    planData.sceneGraph.busyResources.layers[layer.id].items[itemID] = false;
-  });
-
+  return addStreamedItem(
+    sceneData,
+    planData,
+    layer,
+    itemID,
+    itemsActions,
+    updateBoundingBox,
+  );
 }
 
-function updateItem(sceneData, oldSceneData, planData, layer, itemID, differences, catalog, itemsActions, selfDestroy, selfBuild) {
-  let item = layer.getIn(['items', itemID]);
-  let oldItem = oldSceneData.getIn(['layers', layer.id, 'items', itemID]);
-  let mesh = planData.sceneGraph.layers[layer.id].items[itemID];
-
-  if (!mesh) return null;
-
-  return catalog.getElement(item.type).updateRender3D(item, layer, sceneData, mesh, oldItem, differences, selfDestroy, selfBuild);
+function updateItem(sceneData, oldSceneData, planData, layer, itemID, differences, catalog, itemsActions, rebuild) {
+  return updateStreamedItem(
+    sceneData,
+    oldSceneData,
+    planData,
+    layer,
+    itemID,
+    differences,
+    itemsActions,
+    rebuild,
+    updateBoundingBox,
+  );
 }
 
 // Apply interact function to children of an Object3D
@@ -1020,13 +901,97 @@ function applyOpacity(object, opacity) {
   });
 }
 
+function getItemBoundingBox(itemObj) {
+  const itemBounds = itemObj?.userData?.itemBounds;
+  const hasItemBounds =
+    itemBounds &&
+    Number.isFinite(itemBounds.halfWidth) &&
+    Number.isFinite(itemBounds.halfDepth) &&
+    Number.isFinite(itemBounds.minY) &&
+    Number.isFinite(itemBounds.maxY);
+
+  if (!hasItemBounds) {
+    return new Three.Box3().setFromObject(itemObj);
+  }
+
+  const halfWidth = Math.max(itemBounds.halfWidth, 0);
+  const halfDepth = Math.max(itemBounds.halfDepth, 0);
+  const rotationY = Number(itemObj.rotation?.y || 0);
+  const cos = Math.abs(Math.cos(rotationY));
+  const sin = Math.abs(Math.sin(rotationY));
+  const worldHalfX = halfWidth * cos + halfDepth * sin;
+  const worldHalfZ = halfWidth * sin + halfDepth * cos;
+
+  const px = Number(itemObj.position?.x || 0);
+  const py = Number(itemObj.position?.y || 0);
+  const pz = Number(itemObj.position?.z || 0);
+
+  return new Three.Box3(
+    new Three.Vector3(px - worldHalfX, py + itemBounds.minY, pz - worldHalfZ),
+    new Three.Vector3(px + worldHalfX, py + itemBounds.maxY, pz + worldHalfZ),
+  );
+}
+
+function expandBoundsWithBox(box, bounds) {
+  if (
+    !box ||
+    !Number.isFinite(box.min?.x) ||
+    !Number.isFinite(box.min?.y) ||
+    !Number.isFinite(box.min?.z) ||
+    !Number.isFinite(box.max?.x) ||
+    !Number.isFinite(box.max?.y) ||
+    !Number.isFinite(box.max?.z)
+  ) {
+    return false;
+  }
+
+  bounds.minX = Math.min(bounds.minX, box.min.x);
+  bounds.minY = Math.min(bounds.minY, box.min.y);
+  bounds.minZ = Math.min(bounds.minZ, box.min.z);
+  bounds.maxX = Math.max(bounds.maxX, box.max.x);
+  bounds.maxY = Math.max(bounds.maxY, box.max.y);
+  bounds.maxZ = Math.max(bounds.maxZ, box.max.z);
+  return true;
+}
+
 
 function updateBoundingBox(planData, onFirstUpdate) {
-  // Calculate bounding box from element coordinates
-  let minX = Infinity, minY = Infinity, minZ = Infinity;
-  let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+  const createBoundsAccumulator = () => ({
+    minX: Infinity,
+    minY: Infinity,
+    minZ: Infinity,
+    maxX: -Infinity,
+    maxY: -Infinity,
+    maxZ: -Infinity,
+  });
+  const mergeBounds = (...accumulators) => {
+    const merged = createBoundsAccumulator();
+    accumulators.forEach((accumulator) => {
+      if (!accumulator) return;
+      merged.minX = Math.min(merged.minX, accumulator.minX);
+      merged.minY = Math.min(merged.minY, accumulator.minY);
+      merged.minZ = Math.min(merged.minZ, accumulator.minZ);
+      merged.maxX = Math.max(merged.maxX, accumulator.maxX);
+      merged.maxY = Math.max(merged.maxY, accumulator.maxY);
+      merged.maxZ = Math.max(merged.maxZ, accumulator.maxZ);
+    });
+    return merged;
+  };
+  const cloneBounds = (source) => ({
+    minX: source.minX,
+    minY: source.minY,
+    minZ: source.minZ,
+    maxX: source.maxX,
+    maxY: source.maxY,
+    maxZ: source.maxZ,
+  });
 
-  let hasElements = false;
+  const wallBounds = createBoundsAccumulator();
+  const itemBounds = createBoundsAccumulator();
+  const areaBounds = createBoundsAccumulator();
+  let hasWalls = false;
+  let hasItems = false;
+  let hasAreas = false;
 
   // Iterate through all layers and their elements
   for (let layerId in planData.sceneGraph.layers) {
@@ -1036,60 +1001,68 @@ function updateBoundingBox(planData, onFirstUpdate) {
     for (let lineId in layer.lines) {
       let lineObj = layer.lines[lineId];
       if (lineObj && lineObj.position) {
-        hasElements = true;
         let box = new Three.Box3().setFromObject(lineObj);
-        if (isFinite(box.min.x)) {
-          minX = Math.min(minX, box.min.x);
-          minY = Math.min(minY, box.min.y);
-          minZ = Math.min(minZ, box.min.z);
-          maxX = Math.max(maxX, box.max.x);
-          maxY = Math.max(maxY, box.max.y);
-          maxZ = Math.max(maxZ, box.max.z);
-        }
+        hasWalls = expandBoundsWithBox(box, wallBounds) || hasWalls;
       }
     }
 
-    // Process items
+    // Areas are used as a fallback when there are no walls/items.
+    for (let areaId in layer.areas) {
+      let areaObj = layer.areas[areaId];
+      if (areaObj && areaObj.position) {
+        let box = new Three.Box3().setFromObject(areaObj);
+        hasAreas = expandBoundsWithBox(box, areaBounds) || hasAreas;
+      }
+    }
+
+    // Items always use planner dimensions (2D width/depth/height projected into 3D).
+    // This keeps camera fitting stable while streamed meshes are still loading.
     for (let itemId in layer.items) {
       let itemObj = layer.items[itemId];
       if (itemObj && itemObj.position) {
-        hasElements = true;
-        let box = new Three.Box3().setFromObject(itemObj);
-        if (isFinite(box.min.x)) {
-          minX = Math.min(minX, box.min.x);
-          minY = Math.min(minY, box.min.y);
-          minZ = Math.min(minZ, box.min.z);
-          maxX = Math.max(maxX, box.max.x);
-          maxY = Math.max(maxY, box.max.y);
-          maxZ = Math.max(maxZ, box.max.z);
-        }
+        let box = getItemBoundingBox(itemObj);
+        hasItems = expandBoundsWithBox(box, itemBounds) || hasItems;
       }
     }
+  }
+
+  const hasElements = hasWalls || hasItems || hasAreas;
+  let bounds = null;
+  if (hasWalls && hasItems) {
+    bounds = mergeBounds(wallBounds, itemBounds);
+  } else if (hasWalls) {
+    bounds = cloneBounds(wallBounds);
+  } else if (hasItems) {
+    bounds = cloneBounds(itemBounds);
+  } else if (hasAreas) {
+    bounds = cloneBounds(areaBounds);
+  } else {
+    bounds = createBoundsAccumulator();
   }
 
   // Empty scene fallback: use floor-plan dimensions so camera isn't at NaN
   if (!hasElements) {
     const w = planData.sceneGraph.width  || 12000;
     const h = planData.sceneGraph.height || 12000;
-    minX = 0;   maxX = w;
-    minY = 0;   maxY = 0;
-    minZ = -h;  maxZ = 0;
+    bounds.minX = 0;   bounds.maxX = w;
+    bounds.minY = 0;   bounds.maxY = 0;
+    bounds.minZ = -h;  bounds.maxZ = 0;
   }
 
   const newCenter = new Three.Vector3(
-    (maxX - minX) / 2 + minX,
-    (maxY - minY) / 2 + minY,
-    (maxZ - minZ) / 2 + minZ
+    (bounds.maxX - bounds.minX) / 2 + bounds.minX,
+    (bounds.maxY - bounds.minY) / 2 + bounds.minY,
+    (bounds.maxZ - bounds.minZ) / 2 + bounds.minZ
   );
   planData.boundingBoxCenter = newCenter;
-  planData.boundingBoxCenter.lenX = maxX - minX;
-  planData.boundingBoxCenter.lenZ = maxZ - minZ;
+  planData.boundingBoxCenter.lenX = bounds.maxX - bounds.minX;
+  planData.boundingBoxCenter.lenZ = bounds.maxZ - bounds.minZ;
   planData.boundingBoxHasGeometry = hasElements;
 
   // Always set boundingBox so downstream code can rely on it even for empty scenes.
   planData.boundingBox = {
-    min: new Three.Vector3(minX, minY, minZ),
-    max: new Three.Vector3(maxX, maxY, maxZ)
+    min: new Three.Vector3(bounds.minX, bounds.minY, bounds.minZ),
+    max: new Three.Vector3(bounds.maxX, bounds.maxY, bounds.maxZ)
   };
 
   if (onFirstUpdate && typeof onFirstUpdate === 'function') {

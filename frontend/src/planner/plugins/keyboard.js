@@ -2,6 +2,12 @@ import {
   MODE_IDLE,
   MODE_3D_FIRST_PERSON,
   MODE_3D_VIEW,
+  MODE_APPLYING_TEXTURE,
+  MODE_DRAWING_ITEM_3D,
+  MODE_DRAGGING_ITEM_3D,
+  MODE_DRAWING_HOLE_3D,
+  MODE_DRAGGING_HOLE_3D,
+  MODE_3D_MEASURE,
   MODE_SNAPPING,
   KEYBOARD_BUTTON_CODE
 } from '../constants';
@@ -50,6 +56,17 @@ export default function keyboard() {
         }
         case KEYBOARD_BUTTON_CODE.ESC:
         {
+          if ([
+            MODE_APPLYING_TEXTURE,
+            MODE_DRAWING_ITEM_3D,
+            MODE_DRAGGING_ITEM_3D,
+            MODE_DRAWING_HOLE_3D,
+            MODE_DRAGGING_HOLE_3D,
+            MODE_3D_MEASURE,
+          ].includes(mode)) {
+            break;
+          }
+
           store.dispatch(rollback());
           break;
         }

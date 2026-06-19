@@ -8,7 +8,7 @@ import React, {
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
 import PropTypes from "prop-types";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import TopNavigationBar from "./components/TopNavigationBar";
 import LeftToolbar from "./components/LeftToolbar";
 import FloorPlanSidebar from "./components/FloorPlanSidebar";
@@ -28,14 +28,36 @@ import { Translator, Catalog } from "../../../index";
 import { useTranslator } from "../../../translator/TranslatorContext";
 import { PlannerProvider } from "../../../context/PlannerContext";
 import MyCatalog from "../../../catalog/mycatalog";
-import { createPersonalModelDefinition } from "../../../catalog/utils/personal-models";
+import {
+  ensureCloudModelRegistered,
+  ensureCloudModelsRegistered,
+  warmCloudModelSelection,
+} from "../../../catalog/utils/cloud-model-definitions";
 import {
   MODE_IDLE,
   MODE_3D_VIEW,
   MODE_3D_FIRST_PERSON,
+  MODE_APPLYING_TEXTURE,
 } from "../../../constants";
 import {
-  getLatestProject,
+  fetchCloudModelCategories,
+  fetchCloudModelCategoryTree,
+  createPlannerItemAssetPayload,
+  extractCloudModelTypesFromSceneData,
+  fetchCloudModelsByTypes,
+  fetchCloudModelsByCategoryPage,
+  getCloudModelCategoryCacheKey,
+  normalizeCloudModelCategory,
+  normalizeCloudModelSubcategory,
+} from "../../../../services/cloudModelService";
+import {
+  extractCloudTextureKeysFromSceneData,
+  fetchCloudTextureCategories,
+  fetchCloudTexturesByCategoryPage,
+  fetchCloudTexturesByIds,
+} from "../../../../services/cloudTextureService";
+import {
+  getProjectById,
   getPlannerUserProfile,
   savePlannerProject,
 } from "../../../../services/plannerProjectService";
@@ -45,16 +67,33 @@ import {
 } from "../../../../services/renderCaptureService";
 import "./index.css";
 //import './components/RenderCapturePreview.css';
+import { syncCloudTexturesIntoCatalog } from "../../../catalog/utils/cloud-texture-registry";
+import { preloadPlannerTextureDefinition } from "../../../catalog/utils/texture-map-loader";
 
 const RENDER_CAMERA_HEIGHT_MM_MIN = 0;
 const RENDER_CAMERA_HEIGHT_MM_MAX = 2800;
 const RENDER_VERTICAL_ROTATION_MIN = -80;
 const RENDER_VERTICAL_ROTATION_MAX = 80;
 const RENDER_TOP_BAR_HEIGHT = 52;
+const AUTOSAVE_INTERVAL_MS = 60000;
 const CAPTURE_STATUS_CAPTURED = "captured";
 const CAPTURE_STATUS_PROCESSING = "processing";
 const CAPTURE_STATUS_READY = "ready";
 const CAPTURE_STATUS_FAILED = "failed";
+const CLOUD_MODEL_PAGE_SIZE = 24;
+const CLOUD_TEXTURE_PAGE_SIZE = 48;
+
+const dedupeTexturesBySourceId = (textures = []) => {
+  const seenTextureIds = new Set();
+  return textures.filter((texture) => {
+    const textureId = String(texture?.id || texture?.textureKey || "")
+      .trim()
+      .toLowerCase();
+    if (!textureId || seenTextureIds.has(textureId)) return false;
+    seenTextureIds.add(textureId);
+    return true;
+  });
+};
 
 const convertMmToViewerUnits = (millimetersValue) =>
   Number(millimetersValue) / 10;
@@ -78,6 +117,41 @@ const humanizeElementName = (rawValue) => {
     .map((token) => token.charAt(0).toUpperCase() + token.slice(1))
     .join(" ");
 };
+
+function TextureCursorPreview({ texture }) {
+  const [position, setPosition] = useState(null);
+
+  useEffect(() => {
+    if (!texture?.src) {
+      setPosition(null);
+      return undefined;
+    }
+
+    const handlePointerMove = (event) => {
+      setPosition({ x: event.clientX, y: event.clientY });
+    };
+
+    window.addEventListener("pointermove", handlePointerMove, true);
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove, true);
+    };
+  }, [texture?.src]);
+
+  if (!texture?.src || !position) return null;
+
+  return (
+    <img
+      className="texture-cursor-preview"
+      src={texture.src}
+      alt=""
+      aria-hidden="true"
+      style={{
+        left: `${position.x}px`,
+        top: `${position.y}px`,
+      }}
+    />
+  );
+}
 
 const buildCaptureFrameSummary = ({
   roomType = "",
@@ -127,6 +201,12 @@ const extractBackendDetectedItems = (response) => {
     })
     .filter(Boolean);
 };
+
+const extractProjectJson = (project) =>
+  project?.projectJson || project?.data || project?.sceneData || null;
+
+const getProjectDocumentId = (project) =>
+  project?.projectId || project?._id || project?.id || null;
 
 const buildFrameItemsFromNames = (rawNames = []) => {
   const counts = new Map();
@@ -204,6 +284,34 @@ const createThumbnailDataUrl = (
   });
 };
 
+const extractCloudModelTypesFromPlannerScene = (plannerScene) => {
+  if (!plannerScene?.get) {
+    return [];
+  }
+
+  const cloudModelTypes = new Set();
+  const layers = plannerScene.get("layers");
+  if (!layers?.forEach) {
+    return [];
+  }
+
+  layers.forEach((layer) => {
+    const items = layer?.get?.("items");
+    if (!items?.forEach) {
+      return;
+    }
+
+    items.forEach((item) => {
+      const itemType = String(item?.get?.("type") || item?.type || "").trim();
+      if (itemType.startsWith("cloud-model-")) {
+        cloudModelTypes.add(itemType);
+      }
+    });
+  });
+
+  return Array.from(cloudModelTypes);
+};
+
 // Wrapper component that uses the hook and passes translator to class component
 const MainDesignWorkspaceWithTranslator = (props) => {
   const { translator, currentLocale } = useTranslator();
@@ -268,6 +376,7 @@ const MainDesignWorkspaceInner = ({
 }) => {
   const { t } = useTranslator();
   const navigate = useNavigate();
+  const { projectId: routeProjectId } = useParams();
   const [activeTab, setActiveTab] = useState(null);
   const [workspaceMode, setWorkspaceMode] = useState("2d");
   const [viewOpen, setViewOpen] = useState(false);
@@ -283,12 +392,21 @@ const MainDesignWorkspaceInner = ({
     guides: true,
     boundingBoxes: false,
   });
-  const fileInputRef = useRef(null);
   const viewMenuRef = useRef(null);
-  const personalModelUrlsRef = useRef([]);
+  const cloudModelHydrationRef = useRef({
+    inFlight: new Set(),
+    resolved: new Set(),
+    failed: new Set(),
+  });
+  const hasHydratedCloudCatalogRef = useRef(false);
   const [plannerUser, setPlannerUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [hasResolvedAuth, setHasResolvedAuth] = useState(false);
   const [currentProjectId, setCurrentProjectId] = useState(null);
+  const [isProjectLoading, setIsProjectLoading] = useState(false);
+  const [projectLoadError, setProjectLoadError] = useState("");
+  const [saveStatus, setSaveStatus] = useState("idle");
+  const [saveErrorMessage, setSaveErrorMessage] = useState("");
   const [renderSubMode, setRenderSubMode] = useState("walkthrough");
   const [renderControlType, setRenderControlType] = useState("drag-pan");
   const [cameraHeightMm, setCameraHeightMm] = useState(1700);
@@ -305,7 +423,28 @@ const MainDesignWorkspaceInner = ({
   const [newestCaptureId, setNewestCaptureId] = useState(null);
   const [renderErrorMessage, setRenderErrorMessage] = useState("");
   const [renderSuccessMessage, setRenderSuccessMessage] = useState("");
-  const [personalModels, setPersonalModels] = useState([]);
+  const [cloudModelsByCategory, setCloudModelsByCategory] = useState({});
+  const [cloudModelCategoryTree, setCloudModelCategoryTree] = useState([]);
+  const [cloudModelPaginationByCategory, setCloudModelPaginationByCategory] =
+    useState({});
+  const [cloudModelsLoadingByCategory, setCloudModelsLoadingByCategory] =
+    useState({});
+  const [cloudModelErrorsByCategory, setCloudModelErrorsByCategory] =
+    useState({});
+  const [plannerTextures, setPlannerTextures] = useState({
+    wall: [],
+    floor: [],
+  });
+  const [plannerTextureCategories, setPlannerTextureCategories] = useState([]);
+  const [plannerTexturesByCategory, setPlannerTexturesByCategory] = useState({});
+  const [plannerTexturePaginationByCategory, setPlannerTexturePaginationByCategory] =
+    useState({});
+  const [plannerTexturesLoadingByCategory, setPlannerTexturesLoadingByCategory] =
+    useState({});
+  const [plannerTextureErrorsByCategory, setPlannerTextureErrorsByCategory] =
+    useState({});
+  const [plannerTexturesLoading, setPlannerTexturesLoading] = useState(false);
+  const [plannerTexturesError, setPlannerTexturesError] = useState("");
   const renderViewerSyncRef = useRef({
     viewer: null,
     isRenderTabActive: null,
@@ -315,9 +454,46 @@ const MainDesignWorkspaceInner = ({
     maxCameraHeightMm: null,
     cameraVerticalRotation: null,
   });
+  const latestProjectJsonRef = useRef(null);
+  const latestProjectHashRef = useRef("");
+  const initialProjectHashRef = useRef("");
+  const lastSavedProjectHashRef = useRef("");
+  const saveRequestInFlightRef = useRef(false);
+  const currentProjectIdRef = useRef(null);
+  const isAuthenticatedRef = useRef(false);
+  const cloudModelCategoryRequestSeqRef = useRef(new Map());
+  const cloudModelCategoryInFlightRef = useRef(new Set());
+  const plannerTexturesRequestSeqRef = useRef(0);
+  const activeTabRef = useRef(null);
 
   const plannerState = state ? state.get("react-planner") : null;
   const isRenderTabActive = activeTab === "render";
+
+  useEffect(() => {
+    currentProjectIdRef.current = currentProjectId;
+  }, [currentProjectId]);
+
+  useEffect(() => {
+    isAuthenticatedRef.current = isAuthenticated;
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    activeTabRef.current = activeTab;
+  }, [activeTab]);
+
+  useEffect(() => {
+    const scene = plannerState?.get?.("scene");
+    if (!scene?.toJS) return;
+
+    const projectJson = scene.toJS();
+    const projectHash = JSON.stringify(projectJson);
+    latestProjectJsonRef.current = projectJson;
+    latestProjectHashRef.current = projectHash;
+    if (!initialProjectHashRef.current) {
+      initialProjectHashRef.current = projectHash;
+    }
+  }, [plannerState]);
+
   const previewCapture = useMemo(() =>
       capturedImages.find((capture) => capture.id === previewCaptureId) || null,
     [capturedImages, previewCaptureId],
@@ -410,15 +586,21 @@ const MainDesignWorkspaceInner = ({
     let cancelled = false;
 
     const loadAuthProfile = async () => {
-      const user = await getPlannerUserProfile();
-      if (cancelled) return;
+      try {
+        const user = await getPlannerUserProfile();
+        if (cancelled) return;
 
-      if (user) {
-        setPlannerUser(user);
-        setIsAuthenticated(true);
-      } else {
-        setPlannerUser(null);
-        setIsAuthenticated(false);
+        if (user) {
+          setPlannerUser(user);
+          setIsAuthenticated(true);
+        } else {
+          setPlannerUser(null);
+          setIsAuthenticated(false);
+        }
+      } finally {
+        if (!cancelled) {
+          setHasResolvedAuth(true);
+        }
       }
     };
 
@@ -429,53 +611,555 @@ const MainDesignWorkspaceInner = ({
     };
   }, []);
 
-  useEffect(
-    () => () => {
-      personalModelUrlsRef.current.forEach((url) => {
-        try {
-          URL.revokeObjectURL(url);
-        } catch (_) {
-          // Ignore cleanup errors for already revoked URLs.
+  const handleRequestCloudModels = useCallback(async (category, options = {}) => {
+    const normalizedCategory = normalizeCloudModelCategory(category);
+    const normalizedSubCategory = normalizeCloudModelSubcategory(
+      options.subCategory || options.sub_category,
+    );
+    const categoryCacheKey = getCloudModelCategoryCacheKey(
+      normalizedCategory,
+      normalizedSubCategory,
+    );
+    const append = Boolean(options.append);
+    const page =
+      options.page ||
+      (append
+        ? (cloudModelPaginationByCategory[categoryCacheKey]?.page || 0) + 1
+        : 1);
+    if (!normalizedCategory) {
+      return [];
+    }
+    if (cloudModelsLoadingByCategory[categoryCacheKey]) {
+      return cloudModelsByCategory[categoryCacheKey] || [];
+    }
+    if (cloudModelCategoryInFlightRef.current.has(categoryCacheKey)) {
+      return cloudModelsByCategory[categoryCacheKey] || [];
+    }
+    if (
+      append &&
+      cloudModelPaginationByCategory[categoryCacheKey]?.hasMore === false
+    ) {
+      return cloudModelsByCategory[categoryCacheKey] || [];
+    }
+
+    const requestSeq =
+      (cloudModelCategoryRequestSeqRef.current.get(categoryCacheKey) || 0) + 1;
+    cloudModelCategoryRequestSeqRef.current.set(categoryCacheKey, requestSeq);
+    cloudModelCategoryInFlightRef.current.add(categoryCacheKey);
+
+    
+    setCloudModelErrorsByCategory((currentErrors) => ({
+      ...currentErrors,
+      [categoryCacheKey]: "",
+    }));
+    setCloudModelsLoadingByCategory((currentLoadingState) => ({
+      ...currentLoadingState,
+      [categoryCacheKey]: true,
+    }));
+
+    try {
+      const { models, pagination } = await fetchCloudModelsByCategoryPage(
+        normalizedCategory,
+        {
+          subCategory: normalizedSubCategory,
+          page,
+          limit: CLOUD_MODEL_PAGE_SIZE,
+        },
+      );
+      const { didRegisterAny } = ensureCloudModelsRegistered(MyCatalog, models);
+      
+
+      if (didRegisterAny) {
+        projectActions?.initCatalog?.(MyCatalog);
+      }
+
+      if (
+        cloudModelCategoryRequestSeqRef.current.get(categoryCacheKey) ===
+          requestSeq &&
+        activeTabRef.current === "models"
+      ) {
+        setCloudModelsByCategory((currentModels) => ({
+          ...currentModels,
+          [categoryCacheKey]: append
+            ? [
+                ...(currentModels[categoryCacheKey] || []).filter(
+                  (model) => !models.some((nextModel) => nextModel.id === model.id),
+                ),
+                ...models,
+              ]
+            : models,
+        }));
+        setCloudModelPaginationByCategory((currentPagination) => ({
+          ...currentPagination,
+          [categoryCacheKey]: pagination,
+        }));
+      }
+      return models;
+    } catch (error) {
+      
+      if (
+        cloudModelCategoryRequestSeqRef.current.get(categoryCacheKey) ===
+          requestSeq &&
+        activeTabRef.current === "models"
+      ) {
+        setCloudModelErrorsByCategory((currentErrors) => ({
+          ...currentErrors,
+          [categoryCacheKey]:
+            error?.message || "Failed to load cloud models for this category.",
+        }));
+      }
+      return [];
+    } finally {
+      cloudModelCategoryInFlightRef.current.delete(categoryCacheKey);
+      if (
+        cloudModelCategoryRequestSeqRef.current.get(categoryCacheKey) ===
+          requestSeq &&
+        activeTabRef.current === "models"
+      ) {
+        setCloudModelsLoadingByCategory((currentLoadingState) => ({
+          ...currentLoadingState,
+          [categoryCacheKey]: false,
+        }));
+      }
+    }
+  }, [
+    cloudModelPaginationByCategory,
+    cloudModelsByCategory,
+    cloudModelsLoadingByCategory,
+    projectActions,
+  ]);
+
+  const hydrateCloudCatalogFromDatabase = useCallback(async () => {
+    if (hasHydratedCloudCatalogRef.current) {
+      return;
+    }
+
+    try {
+      const categoryTree = await fetchCloudModelCategoryTree();
+      const categories = categoryTree.map((category) => category.key);
+      setCloudModelCategoryTree(categoryTree);
+      setCloudModelsByCategory((currentModels) => ({
+        ...currentModels,
+        ...categories.reduce((accumulator, category) => {
+          if (!Array.isArray(currentModels[category])) {
+            accumulator[category] = [];
+          }
+          return accumulator;
+        }, {}),
+      }));
+
+      hasHydratedCloudCatalogRef.current = true;
+    } catch (categoryError) {
+      try {
+        const categories = await fetchCloudModelCategories();
+        setCloudModelCategoryTree(
+          categories.map((category) => ({
+            key: category,
+            label: category,
+            subcategories: [],
+          })),
+        );
+        setCloudModelsByCategory((currentModels) => ({
+          ...currentModels,
+          ...categories.reduce((accumulator, category) => {
+            if (!Array.isArray(currentModels[category])) {
+              accumulator[category] = [];
+            }
+            return accumulator;
+          }, {}),
+        }));
+      } catch (_) {
+      }
+    }
+  }, [projectActions]);
+
+  useEffect(() => {
+    if (activeTab !== "models") return;
+    hydrateCloudCatalogFromDatabase();
+  }, [activeTab, hydrateCloudCatalogFromDatabase]);
+
+  const hydratePlannerTextures = useCallback(
+    async (options = {}) => {
+      const { force = false } = options;
+      const sidebarRequest = Boolean(options.sidebarRequest);
+      const requestSeq = plannerTexturesRequestSeqRef.current + 1;
+      plannerTexturesRequestSeqRef.current = requestSeq;
+
+      
+      setPlannerTexturesLoading(true);
+      setPlannerTexturesError("");
+
+      try {
+        const categories = await fetchCloudTextureCategories({ force });
+
+        
+
+        if (
+          plannerTexturesRequestSeqRef.current === requestSeq &&
+          (!sidebarRequest || activeTabRef.current === "models")
+        ) {
+          setPlannerTextureCategories(categories);
         }
-      });
-      personalModelUrlsRef.current = [];
+
+        return categories;
+      } catch (error) {
+        
+        if (
+          plannerTexturesRequestSeqRef.current === requestSeq &&
+          (!sidebarRequest || activeTabRef.current === "models")
+        ) {
+          setPlannerTexturesError(
+            error?.message || "Failed to load planner textures.",
+          );
+        }
+        return [];
+      } finally {
+        if (
+          plannerTexturesRequestSeqRef.current === requestSeq &&
+          (!sidebarRequest || activeTabRef.current === "models")
+        ) {
+          setPlannerTexturesLoading(false);
+        }
+      }
     },
     [],
   );
 
-  const handlePersonalModelUpload = useCallback(
-    async (file) => {
-      const fileName = String(file?.name || "");
-      if (!file || !/\.glb$/i.test(fileName)) {
-        throw new Error("Please upload a valid .glb file.");
-      }
+  const handleRequestPlannerTextures = useCallback(
+    async (category, options = {}) => {
+      const normalizedCategory = String(category || "").trim().toLowerCase();
+      if (!normalizedCategory) return [];
 
-      const modelUrl = URL.createObjectURL(file);
+      const append = Boolean(options.append);
+      const page =
+        options.page ||
+        (append
+          ? (plannerTexturePaginationByCategory[normalizedCategory]?.page || 0) + 1
+          : 1);
+
+      setPlannerTextureErrorsByCategory((currentErrors) => ({
+        ...currentErrors,
+        [normalizedCategory]: "",
+      }));
+      setPlannerTexturesLoadingByCategory((currentLoadingState) => ({
+        ...currentLoadingState,
+        [normalizedCategory]: true,
+      }));
 
       try {
-        const personalModel = await createPersonalModelDefinition(
-          file,
-          modelUrl,
+        const { textures, pagination } = await fetchCloudTexturesByCategoryPage(
+          normalizedCategory,
+          {
+            page,
+            limit: CLOUD_TEXTURE_PAGE_SIZE,
+          },
         );
+        const didUpdateCatalog = syncCloudTexturesIntoCatalog(MyCatalog, textures);
 
-        if (!MyCatalog.hasElement(personalModel.type)) {
-          MyCatalog.registerElement(personalModel.element);
+        if (didUpdateCatalog) {
           projectActions?.initCatalog?.(MyCatalog);
         }
 
-        personalModelUrlsRef.current.push(modelUrl);
-        setPersonalModels((currentModels) => [personalModel, ...currentModels]);
-        return personalModel;
+        const mergeCategoryTextures = (currentTextures = {}) => ({
+          ...currentTextures,
+          [normalizedCategory]: dedupeTexturesBySourceId(
+            append
+              ? [...(currentTextures[normalizedCategory] || []), ...textures]
+              : textures,
+          ),
+        });
+
+        setPlannerTexturesByCategory(mergeCategoryTextures);
+        setPlannerTexturePaginationByCategory((currentPagination) => ({
+          ...currentPagination,
+          [normalizedCategory]: pagination,
+        }));
+
+        setPlannerTextures((currentTextures) => {
+          const nextTexturesByCategory = mergeCategoryTextures(
+            plannerTexturesByCategory,
+          );
+          const allLoadedTextures = dedupeTexturesBySourceId(
+            Object.values(nextTexturesByCategory).flat(),
+          );
+
+          return {
+            ...currentTextures,
+            wall: allLoadedTextures
+              .map((texture) => ({
+                ...texture,
+                id: `wall-${texture.id}`,
+                textureKey: texture.id,
+                targetType: "both",
+              })),
+            floor: allLoadedTextures
+              .map((texture) => ({
+                ...texture,
+                id: `floor-${texture.id}`,
+                textureKey: texture.id,
+                targetType: "both",
+              })),
+          };
+        });
+
+        return textures;
       } catch (error) {
-        URL.revokeObjectURL(modelUrl);
-        throw error;
+        setPlannerTextureErrorsByCategory((currentErrors) => ({
+          ...currentErrors,
+          [normalizedCategory]:
+            error?.message || "Failed to load planner textures.",
+        }));
+        return [];
+      } finally {
+        setPlannerTexturesLoadingByCategory((currentLoadingState) => ({
+          ...currentLoadingState,
+          [normalizedCategory]: false,
+        }));
+      }
+    },
+    [plannerTexturePaginationByCategory, plannerTexturesByCategory, projectActions],
+  );
+
+  const rehydratePlannerTexturesForScene = useCallback(
+    async (sceneData, options = {}) => {
+      const textureKeys = extractCloudTextureKeysFromSceneData(sceneData);
+      if (textureKeys.length === 0) {
+        return;
+      }
+
+      const textures = await fetchCloudTexturesByIds(textureKeys, {
+        force: Boolean(options.force),
+      });
+      const didUpdateCatalog = syncCloudTexturesIntoCatalog(MyCatalog, textures);
+      if (didUpdateCatalog) {
+        projectActions?.initCatalog?.(MyCatalog);
       }
     },
     [projectActions],
   );
 
+  const handleCloudModelSelect = useCallback(
+    (model, { isIn3DView = false } = {}) => {
+      if (!model?.type) return;
+
+      const registeredModel = ensureCloudModelRegistered(MyCatalog, model);
+      const persistedItemData = createPlannerItemAssetPayload(registeredModel);
+      if (registeredModel.didRegister) {
+        projectActions?.initCatalog?.(MyCatalog);
+      }
+
+      warmCloudModelSelection(registeredModel);
+
+      if (isIn3DView) {
+        itemsActions?.selectToolDrawingItem3D(
+          registeredModel.type,
+          persistedItemData,
+        );
+      } else {
+        itemsActions?.selectToolDrawingItem(
+          registeredModel.type,
+          persistedItemData,
+        );
+      }
+    },
+    [itemsActions, projectActions],
+  );
+
+  const rehydrateCloudModelsForScene = useCallback(
+    async (sceneData, options = {}) => {
+      const { force = false } = options;
+      const cloudModelTypes = sceneData?.get
+        ? extractCloudModelTypesFromPlannerScene(sceneData)
+        : extractCloudModelTypesFromSceneData(sceneData);
+      if (cloudModelTypes.length === 0) {
+        return;
+      }
+
+      const hydrationState = cloudModelHydrationRef.current;
+      const typesToFetch = cloudModelTypes.filter((type) => {
+        if (!type?.startsWith?.("cloud-model-")) {
+          return false;
+        }
+
+        if (MyCatalog.hasElement(type)) {
+          hydrationState.resolved.add(type);
+          hydrationState.failed.delete(type);
+          return false;
+        }
+
+        if (force) {
+          hydrationState.failed.delete(type);
+        }
+
+        if (hydrationState.inFlight.has(type)) {
+          return false;
+        }
+
+        if (
+          !force &&
+          (hydrationState.resolved.has(type) || hydrationState.failed.has(type))
+        ) {
+          return false;
+        }
+
+        return true;
+      });
+
+      if (typesToFetch.length === 0) {
+        return;
+      }
+
+      typesToFetch.forEach((type) => hydrationState.inFlight.add(type));
+
+      try {
+        const matchingModels = await fetchCloudModelsByTypes(typesToFetch);
+        const { models, didRegisterAny } = ensureCloudModelsRegistered(
+          MyCatalog,
+          matchingModels,
+        );
+
+        models.forEach((model) => warmCloudModelSelection(model));
+
+        const resolvedTypes = new Set(models.map((model) => model.type));
+        typesToFetch.forEach((type) => {
+          if (resolvedTypes.has(type) || MyCatalog.hasElement(type)) {
+            hydrationState.resolved.add(type);
+            hydrationState.failed.delete(type);
+          } else {
+            hydrationState.failed.add(type);
+          }
+        });
+
+        if (didRegisterAny) {
+          projectActions?.initCatalog?.(MyCatalog);
+        }
+      } finally {
+        typesToFetch.forEach((type) => hydrationState.inFlight.delete(type));
+      }
+    },
+    [projectActions],
+  );
+
+  const plannerScene = plannerState ? plannerState.get("scene") : null;
+
+  useEffect(() => {
+    if (!plannerScene) return;
+
+    rehydrateCloudModelsForScene(plannerScene).catch(() => {});
+  }, [plannerScene, rehydrateCloudModelsForScene]);
+
+  useEffect(() => {
+    if (!hasResolvedAuth || !routeProjectId || !projectActions) return undefined;
+
+    let cancelled = false;
+
+    const loadProjectFromRoute = async () => {
+      if (!isAuthenticated) {
+        setProjectLoadError("Please sign in to open this project.");
+        return;
+      }
+
+      setIsProjectLoading(true);
+      setProjectLoadError("");
+
+      try {
+        const project = await getProjectById(routeProjectId);
+        if (cancelled) return;
+
+        const projectJson = extractProjectJson(project);
+        if (!projectJson) {
+          throw new Error("Project data is missing.");
+        }
+
+        await Promise.all([
+          rehydrateCloudModelsForScene(projectJson, { force: true }).catch(
+            () => {},
+          ),
+          rehydratePlannerTexturesForScene(projectJson).catch(() => {}),
+        ]);
+        if (cancelled) return;
+
+        projectActions.loadProject(projectJson);
+        const resolvedProjectId = getProjectDocumentId(project) || routeProjectId;
+        setCurrentProjectId(resolvedProjectId);
+        currentProjectIdRef.current = resolvedProjectId;
+
+        const loadedHash = JSON.stringify(projectJson);
+        lastSavedProjectHashRef.current = loadedHash;
+        latestProjectJsonRef.current = projectJson;
+        latestProjectHashRef.current = loadedHash;
+      } catch (error) {
+        if (!cancelled) {
+          setProjectLoadError(error?.message || "Failed to load project.");
+        }
+      } finally {
+        if (!cancelled) {
+          setIsProjectLoading(false);
+        }
+      }
+    };
+
+    loadProjectFromRoute();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    hasResolvedAuth,
+    isAuthenticated,
+    projectActions,
+    rehydrateCloudModelsForScene,
+    rehydratePlannerTexturesForScene,
+    routeProjectId,
+  ]);
+
+  useEffect(() => {
+    if (activeTab !== "models") return;
+
+    hydratePlannerTextures({ sidebarRequest: true }).catch(() => {});
+  }, [activeTab, hydratePlannerTextures]);
+
   // ──── Sync local workspaceMode with Redux mode (very important) ────
   const reduxMode = plannerState ? plannerState.get("mode") : null;
+  const selectedTexturePreview = useMemo(() => {
+    if (reduxMode !== MODE_APPLYING_TEXTURE || !plannerState) {
+      return null;
+    }
+
+    const textureApplication = plannerState.get("textureApplication");
+    const textureKey = textureApplication?.get?.("textureKey");
+    const targetType = textureApplication?.get?.("targetType");
+    if (!textureKey) return null;
+
+    const texturePool =
+      targetType === "floor"
+        ? plannerTextures.floor
+        : targetType === "wall"
+          ? plannerTextures.wall
+          : [...plannerTextures.wall, ...plannerTextures.floor];
+    const texture = texturePool.find(
+      (entry) => entry.textureKey === textureKey || entry.id === textureKey,
+    );
+
+    if (!texture) return null;
+
+    return {
+      ...texture,
+      src:
+        texture.thumbnailUrl ||
+        texture.image ||
+        texture.maps?.Color ||
+        texture.uri ||
+        "",
+    };
+  }, [plannerState, plannerTextures, reduxMode]);
+
+  useEffect(() => {
+    if (selectedTexturePreview) {
+      preloadPlannerTextureDefinition(selectedTexturePreview);
+    }
+  }, [selectedTexturePreview]);
+
   useEffect(() => {
     if (!reduxMode) return;
     if (
@@ -484,7 +1168,7 @@ const MainDesignWorkspaceInner = ({
       reduxMode === "MODE_DRAGGING_ITEM_3D" ||
       reduxMode === "MODE_DRAWING_HOLE_3D" ||
       reduxMode === "MODE_DRAGGING_HOLE_3D" ||
-      reduxMode === "MODE_APPLYING_TEXTURE" ||
+      reduxMode === MODE_APPLYING_TEXTURE ||
       reduxMode === "MODE_3D_MEASURE"
     ) {
       setWorkspaceMode("3d");
@@ -527,6 +1211,8 @@ const MainDesignWorkspaceInner = ({
         viewer3DActions.selectTool3DView();
         setWorkspaceMode("3d");
       }
+      if (tabId === "models" && activeTab !== "models") {
+      }
       setActiveTab(activeTab === tabId ? null : tabId);
     }
   };
@@ -540,11 +1226,18 @@ const MainDesignWorkspaceInner = ({
   };
 
   const getSidebarWidth = () => {
+    const readSidebarWidth = (selector, fallbackWidth) => {
+      if (typeof document === "undefined") return fallbackWidth;
+      const sidebarElement = document.querySelector(selector);
+      const measuredWidth = sidebarElement?.getBoundingClientRect?.().width;
+      return Number.isFinite(measuredWidth) ? measuredWidth : fallbackWidth;
+    };
+
     switch (activeTab) {
       case "floorplan":
-        return 288;
+        return readSidebarWidth(".floorplan-sidebar", 288);
       case "models":
-        return 600;
+        return readSidebarWidth(".models-sidebar", 460);
       case "gallery":
         return 384;
       case "advanced":
@@ -560,9 +1253,7 @@ const MainDesignWorkspaceInner = ({
     if (!isRenderTabActive) return;
 
     if (window.__RENDER_DEBUG__) {
-      console.debug(
-        "[RenderWorkspace] entering render mode, selecting first-person tool",
-      );
+    
     }
 
     viewer3DActions.selectTool3DFirstPerson();
@@ -670,15 +1361,7 @@ const MainDesignWorkspaceInner = ({
         syncState.cameraHeightMm = cameraHeightMm;
         syncState.cameraVerticalRotation = cameraVerticalRotation;
 
-        if (window.__RENDER_DEBUG__) {
-          console.debug("[RenderWorkspace] apply viewer state", {
-            renderSubMode,
-            renderControlType,
-            cameraHeightMm,
-            maxCameraHeightMm,
-            cameraVerticalRotation,
-          });
-        }
+        
       } else {
         if (syncState.isRenderTabActive !== false) {
           viewer.setRenderInteractionMode?.("default");
@@ -930,15 +1613,6 @@ const MainDesignWorkspaceInner = ({
           captureScope: visibleItemNames.length ? "visible" : "full",
         };
       } catch (captureError) {
-        console.error(
-          "[RenderWorkspace] Failed to read current frame from renderer",
-          {
-            error: captureError,
-            hasViewer: Boolean(viewer),
-            hasRenderer: Boolean(renderer),
-            attempt,
-          },
-        );
       }
 
       if (!capturePayload.imageDataUrl) {
@@ -1103,14 +1777,7 @@ const MainDesignWorkspaceInner = ({
         extractBackendFrameSummary(response) || inputPrompt;
       const backendDetectedItems = extractBackendDetectedItems(response);
 
-      if (window.__RENDER_DEBUG__) {
-        console.debug("[RenderWorkspace] Capture render resolved", {
-          captureId,
-          hasResponse: Boolean(response),
-          resolvedImageUrl,
-          backendFrameSummary,
-        });
-      }
+      
 
       updateCaptureById(captureId, (capture) => ({
         status: CAPTURE_STATUS_READY,
@@ -1129,14 +1796,7 @@ const MainDesignWorkspaceInner = ({
       const captureErrorMessage =
         error?.message || t("Failed to send render request");
 
-      console.warn(
-        "[RenderWorkspace] Backend render failed, keeping local capture",
-        {
-          captureId,
-          message: captureErrorMessage,
-          error,
-        },
-      );
+      
 
       updateCaptureById(captureId, {
         status: CAPTURE_STATUS_FAILED,
@@ -1200,17 +1860,104 @@ const MainDesignWorkspaceInner = ({
     // Other categories can be extended later
   };
 
+  const persistLatestProject = useCallback(
+    async ({ silent = false, coverImageUrl, thumbnailUrl } = {}) => {
+      const projectJson = latestProjectJsonRef.current;
+      const projectHash = latestProjectHashRef.current;
+      if (!projectJson || !projectHash) return null;
+
+      if (!isAuthenticatedRef.current) {
+        if (!silent) {
+          setSaveStatus("error");
+          setSaveErrorMessage("Please sign in before saving this project.");
+        }
+        return null;
+      }
+
+      if (
+        silent &&
+        !currentProjectIdRef.current &&
+        projectHash === initialProjectHashRef.current
+      ) {
+        return null;
+      }
+
+      if (
+        currentProjectIdRef.current &&
+        projectHash === lastSavedProjectHashRef.current
+      ) {
+        if (!silent) {
+          setSaveStatus("saved");
+          setSaveErrorMessage("");
+        }
+        return null;
+      }
+
+      if (saveRequestInFlightRef.current) {
+        return null;
+      }
+
+      saveRequestInFlightRef.current = true;
+      if (!silent) {
+        setSaveStatus("saving");
+        setSaveErrorMessage("");
+      }
+
+      try {
+        const savedProject = await savePlannerProject({
+          projectId: currentProjectIdRef.current,
+          projectJson,
+          title: "Planner Project",
+          coverImageUrl,
+          thumbnailUrl,
+        });
+
+        const resolvedProjectId = getProjectDocumentId(savedProject);
+        if (resolvedProjectId) {
+          currentProjectIdRef.current = resolvedProjectId;
+          setCurrentProjectId(resolvedProjectId);
+          if (!routeProjectId) {
+            navigate(`/planner/${resolvedProjectId}`, { replace: true });
+          }
+        }
+
+        lastSavedProjectHashRef.current = projectHash;
+        if (!silent) {
+          setSaveStatus("saved");
+        }
+        return savedProject;
+      } catch (error) {
+        if (!silent) {
+          setSaveStatus("error");
+          setSaveErrorMessage(error?.message || "Failed to save project.");
+        }
+        return null;
+      } finally {
+        saveRequestInFlightRef.current = false;
+      }
+    },
+    [navigate, routeProjectId],
+  );
+
+  useEffect(() => {
+    if (!hasResolvedAuth || !isAuthenticated) return undefined;
+
+    const intervalId = window.setInterval(() => {
+      persistLatestProject({ silent: true });
+    }, AUTOSAVE_INTERVAL_MS);
+
+    return () => window.clearInterval(intervalId);
+  }, [hasResolvedAuth, isAuthenticated, persistLatestProject]);
+
   const handleSave = async () => {
     if (!projectActions || !plannerState) return;
 
-    // If user isn't authenticated yet, keep existing local-file save behavior.
-    if (!isAuthenticated) {
-      projectActions.saveProject();
-      return;
-    }
-
     try {
       const sceneData = plannerState.get("scene").toJS();
+      const projectHash = JSON.stringify(sceneData);
+      latestProjectJsonRef.current = sceneData;
+      latestProjectHashRef.current = projectHash;
+
       let coverUrl;
       let thumbnailUrl;
 
@@ -1237,69 +1984,55 @@ const MainDesignWorkspaceInner = ({
         }
       }
 
-      const savedProject = await savePlannerProject({
-        projectId: currentProjectId,
-        sceneData,
-        title: "Planner Project",
-        coverUrl,
+      await persistLatestProject({
+        silent: false,
+        coverImageUrl: coverUrl,
         thumbnailUrl,
       });
-
-      const resolvedProjectId =
-        savedProject?.projectId || savedProject?._id || null;
-      if (resolvedProjectId) {
-        setCurrentProjectId(resolvedProjectId);
-      }
     } catch (error) {
-      console.error("Error saving project to backend:", error);
-      // Fallback to local-file save to avoid blocking user work
-      projectActions.saveProject();
+      setSaveStatus("error");
+      setSaveErrorMessage(error?.message || "Failed to save project.");
     }
   };
 
   const handleLoad = async () => {
     if (!projectActions) return;
 
-    // If user isn't authenticated yet, keep existing local-file load behavior.
-    if (!isAuthenticated) {
-      if (fileInputRef.current) fileInputRef.current.click();
+    if (!currentProjectId) {
+      navigate("/dashboard");
       return;
     }
 
-    try {
-      const latestProject = await getLatestProject();
+    setIsProjectLoading(true);
+    setProjectLoadError("");
 
-      if (!latestProject || !latestProject.data) {
-        // No cloud projects yet: fallback to local file picker
-        if (fileInputRef.current) fileInputRef.current.click();
-        return;
+    try {
+      const project = await getProjectById(currentProjectId);
+      const projectJson = extractProjectJson(project);
+
+      if (!projectJson) {
+        throw new Error("Project data is missing.");
       }
 
-      projectActions.loadProject(latestProject.data);
-      const resolvedProjectId =
-        latestProject.projectId || latestProject._id || null;
+      await Promise.all([
+        rehydrateCloudModelsForScene(projectJson, { force: true }).catch(() => {}),
+        rehydratePlannerTexturesForScene(projectJson).catch(() => {}),
+      ]);
+      projectActions.loadProject(projectJson);
+      const resolvedProjectId = getProjectDocumentId(project);
       if (resolvedProjectId) {
         setCurrentProjectId(resolvedProjectId);
+        currentProjectIdRef.current = resolvedProjectId;
       }
-    } catch (error) {
-      console.error("Error loading project from backend:", error);
-      if (fileInputRef.current) fileInputRef.current.click();
-    }
-  };
 
-  const handleFileLoad = (event) => {
-    const file = event.target.files[0];
-    if (file && projectActions) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const sceneJSON = JSON.parse(e.target.result);
-          projectActions.loadProject(sceneJSON);
-        } catch (error) {
-          console.error("Error loading project:", error);
-        }
-      };
-      reader.readAsText(file);
+      const loadedHash = JSON.stringify(projectJson);
+      lastSavedProjectHashRef.current = loadedHash;
+      latestProjectJsonRef.current = projectJson;
+      latestProjectHashRef.current = loadedHash;
+    } catch (error) {
+      setProjectLoadError(error?.message || "Failed to load project.");
+    } finally {
+      setIsProjectLoading(false);
     }
   };
 
@@ -1360,14 +2093,22 @@ const MainDesignWorkspaceInner = ({
 
   return (
     <div className="main-workspace">
-      {/* Hidden file input for loading projects */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".json"
-        style={{ display: "none" }}
-        onChange={handleFileLoad}
-      />
+      {isProjectLoading && (
+        <div className="project-loading-screen" role="status" aria-live="polite">
+          <div className="project-loading-panel">
+            <div className="project-loading-title">{t("Loading project")}</div>
+            <div className="project-loading-bar">
+              <span />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {projectLoadError && !isProjectLoading && (
+        <div className="project-load-error" role="alert">
+          {projectLoadError}
+        </div>
+      )}
 
       {/* Top Navigation */}
       {!isRenderTabActive && (
@@ -1381,6 +2122,8 @@ const MainDesignWorkspaceInner = ({
           plannerState={plannerState}
           plannerUser={plannerUser}
           isAuthenticated={isAuthenticated}
+          saveStatus={saveStatus}
+          saveErrorMessage={saveErrorMessage}
           onSignIn={() => navigate("/login")}
           onOpenDashboard={() => navigate("/dashboard")}
         />
@@ -1420,6 +2163,7 @@ const MainDesignWorkspaceInner = ({
           onClose={handleCloseSidebar}
           linesActions={linesActions}
           holesActions={holesActions}
+          projectActions={projectActions}
         />
         <ModelsSidebar
           isOpen={activeTab === "models"}
@@ -1429,8 +2173,24 @@ const MainDesignWorkspaceInner = ({
           holesActions={holesActions}
           textureActions={textureActions}
           plannerState={plannerState}
-          personalModels={personalModels}
-          onPersonalModelUpload={handlePersonalModelUpload}
+          plannerTextures={plannerTextures}
+          plannerTextureCategories={plannerTextureCategories}
+          plannerTexturesByCategory={plannerTexturesByCategory}
+          plannerTexturePaginationByCategory={plannerTexturePaginationByCategory}
+          plannerTexturesLoadingByCategory={plannerTexturesLoadingByCategory}
+          plannerTextureErrorsByCategory={plannerTextureErrorsByCategory}
+          plannerTexturesLoading={plannerTexturesLoading}
+          plannerTexturesError={plannerTexturesError}
+          cloudModelsByCategory={cloudModelsByCategory}
+          cloudModelCategoryTree={cloudModelCategoryTree}
+          cloudModelPaginationByCategory={cloudModelPaginationByCategory}
+          cloudModelsLoadingByCategory={cloudModelsLoadingByCategory}
+          cloudModelErrorsByCategory={cloudModelErrorsByCategory}
+          onRequestCloudModels={handleRequestCloudModels}
+          onRequestPlannerTextures={handleRequestPlannerTextures}
+          onCloudModelSelect={handleCloudModelSelect}
+          isAuthenticated={isAuthenticated}
+          plannerUserId={plannerUser?.id || ""}
         />
         <GallerySidebar
           isOpen={activeTab === "gallery"}
@@ -1466,6 +2226,8 @@ const MainDesignWorkspaceInner = ({
         {isCaptureFlashActive && (
           <div className="render-canvas-shutter active" />
         )}
+
+        <TextureCursorPreview texture={selectedTexturePreview} />
 
         {isRenderTabActive && previewCapture && (
           <div

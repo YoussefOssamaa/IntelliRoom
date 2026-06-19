@@ -1,9 +1,6 @@
 import {
-  TextureLoader,
   Mesh,
-  RepeatWrapping,
-  MeshBasicMaterial,
-  SRGBColorSpace,
+  MeshStandardMaterial,
   Group,
   Color,
   LineSegments,
@@ -16,9 +13,12 @@ import {
 import {verticesDistance} from '../../utils/geometry';
 import * as SharedStyle from '../../shared-style';
 import { calculateWallMiterOffsets } from './wall-utils';
-
-// Texture cache to avoid reloading
-const textureCache = new Map();
+import {
+  applyPlannerTextureToMaterial,
+  ensureGeometrySupportsAmbientOcclusion,
+  markMaterialTextureRequest,
+} from '../utils/texture-map-loader';
+import { resolvePlannerTextureDefinition } from '../utils/cloud-texture-registry';
 
 /**
  * Create edge lines for the outer wall boundary only (not internal segment edges)
@@ -372,58 +372,16 @@ function buildWallWithHoles(distance, height, thickness, miter0, miter1, holes) 
 }
 
 /**
- * Load texture with caching
- */
-function loadWallTexture(textureDef, length, height) {
-  return new Promise(resolve => {
-    if (!textureDef || !textureDef.uri) return resolve(null);
-    
-    const cacheKey = textureDef.uri;
-    
-    const applyTextureSettings = (tex) => {
-      const clonedTex = tex.clone();
-      clonedTex.wrapS = RepeatWrapping;
-      clonedTex.wrapT = RepeatWrapping;
-      const lengthScale = textureDef.lengthRepeatScale || 0.01;
-      const heightScale = textureDef.heightRepeatScale || 0.01;
-      clonedTex.repeat.set(length * lengthScale, height * heightScale);
-      if (clonedTex.colorSpace !== undefined) clonedTex.colorSpace = SRGBColorSpace;
-      clonedTex.needsUpdate = true;
-      return clonedTex;
-    };
-    
-    if (textureCache.has(cacheKey)) {
-      resolve(applyTextureSettings(textureCache.get(cacheKey)));
-      return;
-    }
-    
-    const loader = new TextureLoader();
-    loader.load(
-      textureDef.uri,
-      tex => {
-        textureCache.set(cacheKey, tex);
-        resolve(applyTextureSettings(tex));
-      },
-      undefined,
-      err => {
-        console.warn('[WallFactory] Texture load failed:', textureDef.uri, err);
-        resolve(null);
-      }
-    );
-  });
-}
-
-/**
  * Create materials array for wall
  */
 function createWallMaterials(soulColor) {
   return [
-    new MeshBasicMaterial({ color: soulColor, side: FrontSide }), // 0: exterior - textureA
-    new MeshBasicMaterial({ color: soulColor, side: FrontSide }), // 1: interior - textureB
-    new MeshBasicMaterial({ color: soulColor, side: FrontSide }), // 2: top - gray
-    new MeshBasicMaterial({ color: soulColor, side: FrontSide }), // 3: bottom - gray
-    new MeshBasicMaterial({ color: soulColor, side: FrontSide }), // 4: right end - gray
-    new MeshBasicMaterial({ color: soulColor, side: FrontSide })  // 5: left end - gray
+    new MeshStandardMaterial({ color: soulColor, side: FrontSide, roughness: 1, metalness: 0 }), // 0: exterior - textureA
+    new MeshStandardMaterial({ color: soulColor, side: FrontSide, roughness: 1, metalness: 0 }), // 1: interior - textureB
+    new MeshStandardMaterial({ color: soulColor, side: FrontSide, roughness: 1, metalness: 0 }), // 2: top - gray
+    new MeshStandardMaterial({ color: soulColor, side: FrontSide, roughness: 1, metalness: 0 }), // 3: bottom - gray
+    new MeshStandardMaterial({ color: soulColor, side: FrontSide, roughness: 1, metalness: 0 }), // 4: right end - gray
+    new MeshStandardMaterial({ color: soulColor, side: FrontSide, roughness: 1, metalness: 0 })  // 5: left end - gray
   ];
 }
 
@@ -483,8 +441,28 @@ export function buildWall(element, layer, scene, textures) {
   const materialTextureA = sideAInside ? 1 : 0; // Which material index gets textureA
   const materialTextureB = sideAInside ? 0 : 1; // Which material index gets textureB
   
-  const textureDef_B = textures?.[exteriorTextureKey] && exteriorTextureKey !== 'none' ? textures[exteriorTextureKey] : null;
-  const textureDef_A = textures?.[interiorTextureKey] && interiorTextureKey !== 'none' ? textures[interiorTextureKey] : null;
+  const textureDef_B = resolvePlannerTextureDefinition(exteriorTextureKey, {
+    targetType: 'wall',
+    fallbackTextures: textures,
+  });
+  const textureDef_A = resolvePlannerTextureDefinition(interiorTextureKey, {
+    targetType: 'wall',
+    fallbackTextures: textures,
+  });
+
+  if (interiorTextureKey && interiorTextureKey !== 'none' && !textureDef_A) {
+    console.error('[PlannerTextures][Trace] Failed to resolve interior wall texture', {
+      interiorTextureKey,
+      wallId: element.id,
+    });
+  }
+
+  if (exteriorTextureKey && exteriorTextureKey !== 'none' && !textureDef_B) {
+    console.error('[PlannerTextures][Trace] Failed to resolve exterior wall texture', {
+      exteriorTextureKey,
+      wallId: element.id,
+    });
+  }
 
   // Create materials
   const wallMaterials = createWallMaterials(soulColor);
@@ -525,6 +503,8 @@ export function buildWall(element, layer, scene, textures) {
   // Build geometries
   const wallGeometry = buildWallWithHoles(distance, wallHeight, thickness, miter0, miter1, wallHoles);
   const slabGeometry = buildWallWithHoles(distance, slabHeight, thickness, miter0, miter1, []);
+  ensureGeometrySupportsAmbientOcclusion(wallGeometry);
+  ensureGeometrySupportsAmbientOcclusion(slabGeometry);
 
   // Create meshes
   const soul = new Mesh(wallGeometry, wallMaterials);
@@ -564,50 +544,61 @@ export function buildWall(element, layer, scene, textures) {
   group.add(soul);
   group.add(slab);
 
-  // Load and apply textures
-  const texturePromises = [];
-  
   if (textureDef_A) {
-    texturePromises.push(
-      loadWallTexture(textureDef_A, distance, wallHeight).then(tex => {
-        if (tex) {
-          wallMaterials[materialTextureA].map = tex;
-          wallMaterials[materialTextureA].color.set(0xffffff);
-          wallMaterials[materialTextureA].needsUpdate = true;
-        }
-      }),
-      loadWallTexture(textureDef_A, distance, slabHeight).then(tex => {
-        if (tex) {
-          slabMaterials[materialTextureA].map = tex;
-          slabMaterials[materialTextureA].color.set(0xffffff);
-          slabMaterials[materialTextureA].needsUpdate = true;
-        }
-      })
+    const wallRequestToken = markMaterialTextureRequest(
+      wallMaterials[materialTextureA],
     );
+    const slabRequestToken = markMaterialTextureRequest(
+      slabMaterials[materialTextureA],
+    );
+
+    applyPlannerTextureToMaterial(
+      wallMaterials[materialTextureA],
+      textureDef_A,
+      { width: distance, height: wallHeight },
+      wallRequestToken,
+    ).catch((error) => {
+      console.warn('[WallFactory] Interior wall texture application failed:', textureDef_A?.id || interiorTextureKey, error);
+    });
+
+    applyPlannerTextureToMaterial(
+      slabMaterials[materialTextureA],
+      textureDef_A,
+      { width: distance, height: slabHeight },
+      slabRequestToken,
+    ).catch((error) => {
+      console.warn('[WallFactory] Interior slab texture application failed:', textureDef_A?.id || interiorTextureKey, error);
+    });
   }
   
   if (textureDef_B) {
-    texturePromises.push(
-      loadWallTexture(textureDef_B, distance, wallHeight).then(tex => {
-        if (tex) {
-          wallMaterials[materialTextureB].map = tex;
-          wallMaterials[materialTextureB].color.set(0xffffff);
-          wallMaterials[materialTextureB].needsUpdate = true;
-        }
-      }),
-      loadWallTexture(textureDef_B, distance, slabHeight).then(tex => {
-        if (tex) {
-          slabMaterials[materialTextureB].map = tex;
-          slabMaterials[materialTextureB].color.set(0xffffff);
-          slabMaterials[materialTextureB].needsUpdate = true;
-        }
-      })
+    const wallRequestToken = markMaterialTextureRequest(
+      wallMaterials[materialTextureB],
     );
+    const slabRequestToken = markMaterialTextureRequest(
+      slabMaterials[materialTextureB],
+    );
+
+    applyPlannerTextureToMaterial(
+      wallMaterials[materialTextureB],
+      textureDef_B,
+      { width: distance, height: wallHeight },
+      wallRequestToken,
+    ).catch((error) => {
+      console.warn('[WallFactory] Exterior wall texture application failed:', textureDef_B?.id || exteriorTextureKey, error);
+    });
+
+    applyPlannerTextureToMaterial(
+      slabMaterials[materialTextureB],
+      textureDef_B,
+      { width: distance, height: slabHeight },
+      slabRequestToken,
+    ).catch((error) => {
+      console.warn('[WallFactory] Exterior slab texture application failed:', textureDef_B?.id || exteriorTextureKey, error);
+    });
   }
 
-  return texturePromises.length > 0 
-    ? Promise.all(texturePromises).then(() => group)
-    : Promise.resolve(group);
+  return Promise.resolve(group);
 }
 
 export function updatedWall(element, layer, scene, textures, mesh, oldElement, differences, selfDestroy, selfBuild) {

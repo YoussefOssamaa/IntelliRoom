@@ -25,6 +25,18 @@ import {
   GeometryUtils
 } from '../utils/export';
 
+const lineAllowsHoles = (state, line) => {
+  if (!line) return false;
+  const allowsHoles = state.getIn([
+    'catalog',
+    'elements',
+    line.type,
+    'info',
+    'allowsHoles'
+  ]);
+  return allowsHoles !== false;
+};
+
 class Hole {
 
   static create(state, layerID, type, lineID, offset, properties) {
@@ -104,6 +116,7 @@ class Hole {
       let {lines, vertices} = state.getIn(['scene', 'layers', state.scene.selectedLayer]);
 
       lines.forEach(line => {
+        if (!lineAllowsHoles(state, line)) return;
         let {x: x1, y: y1} = vertices.get(line.vertices.get(0));
         let {x: x2, y: y2} = vertices.get(line.vertices.get(1));
 
@@ -135,6 +148,10 @@ class Hole {
 
     if (snap) {
       let lineID = snap.snap.related.get(0);
+      const targetLine = state.getIn(['scene', 'layers', layerID, 'lines', lineID]);
+      if (!lineAllowsHoles(state, targetLine)) {
+        return {updatedState: state};
+      }
 
       let vertices = state.getIn(['scene', 'layers', layerID, 'lines', lineID, 'vertices']);
       let {x: x1, y: y1} = state.getIn(['scene', 'layers', layerID, 'vertices', vertices.get(0)]);
@@ -432,6 +449,7 @@ class Hole {
       let {lines, vertices} = state.getIn(['scene', 'layers', state.scene.selectedLayer]);
 
       lines.forEach(line => {
+        if (!lineAllowsHoles(state, line)) return;
         let {x: x1, y: y1} = vertices.get(line.vertices.get(0));
         let {x: x2, y: y2} = vertices.get(line.vertices.get(1));
 
@@ -482,6 +500,11 @@ class Hole {
     }
 
     if (!targetLineID) {
+      return {updatedState: state};
+    }
+
+    const targetLine = state.getIn(['scene', 'layers', layerID, 'lines', targetLineID]);
+    if (!lineAllowsHoles(state, targetLine)) {
       return {updatedState: state};
     }
 

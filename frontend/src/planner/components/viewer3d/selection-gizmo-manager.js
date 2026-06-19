@@ -480,6 +480,20 @@ export default class SelectionGizmoManager {
     this.rotationGroup.position.copy(center);
   }
 
+  syncSelectionTransform() {
+    if (!this.selectedTarget) return;
+
+    this._positionGizmos(this.selectedTarget);
+
+    if (this.selectionBox) {
+      this.selectionBox.update();
+    }
+
+    if (this.hoverBox && this.hoverTarget === this.selectedTarget) {
+      this.hoverBox.update();
+    }
+  }
+
   /** Show / hide arrows + ring based on element type. */
   _updateGizmoVisibility() {
     const info = this.selectedInfo;
@@ -624,6 +638,7 @@ export default class SelectionGizmoManager {
     return {
       type: 'translate',
       axis: this.dragAxis,
+      elementInfo: this.selectedInfo,
       position: newPos.clone(),
       delta: projected.clone(),
     };
@@ -643,6 +658,7 @@ export default class SelectionGizmoManager {
 
     return {
       type: 'rotate',
+      elementInfo: this.selectedInfo,
       rotation: newRot,
       angleDelta: dAngle,
     };

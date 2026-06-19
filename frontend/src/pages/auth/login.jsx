@@ -1,13 +1,16 @@
 import React, { useRef, useState } from 'react';
 import '../../styles/auth/login.css';
 import axios from '../../config/axios.config';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../utils/authContext.jsx';
 
 const LoginModal = () => {
 
     const [loginMessage, setLoginMessage] = useState('');
     const [isMessageVisible, setIsMessageVisible] = useState(false);
     const [isSuccessFullLogin, setIsSuccessFullLogin] = useState(false);
+    const { login } = useAuth();
+
 
     const formData = useRef({
         email: '',
@@ -15,7 +18,9 @@ const LoginModal = () => {
     });
 
     const navigate = useNavigate();
-    
+    const location = useLocation();
+    const navigateTo = location?.state?.from || "/dashboard";
+
     const handleChange = (e) => {
         formData.current[e?.target?.name] = e?.target?.value;
         setIsMessageVisible((prev) => false);
@@ -27,18 +32,21 @@ const LoginModal = () => {
         e.preventDefault();
         try {
             const res = await axios.post('/auth/login', formData.current);
-            
+
             if (res?.data?.success) {
+
+                login(res.data.user);
+
                 setIsSuccessFullLogin((p) => true);
                 setIsMessageVisible((p) => true);
                 setLoginMessage((p) => 'Logged in successfully');
                 setTimeout(() => {
-                    navigate('/dashboard'); 
+                    navigate(navigateTo);
                 }, 1500);
             }
 
         } catch (e) {
-            console.log("badr",e)
+            console.log("badr", e)
             setIsSuccessFullLogin((p) => false);
             setIsMessageVisible((p) => true);
             setLoginMessage((p) => e?.response?.data?.message || "internal server error");

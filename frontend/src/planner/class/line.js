@@ -17,6 +17,34 @@ import {
   MODE_DRAGGING_LINE
 } from '../constants';
 
+const getLineInfoFlag = (state, lineType, flagName, defaultValue) => {
+  const rawFlagValue = state.getIn(['catalog', 'elements', lineType, 'info', flagName]);
+  return rawFlagValue === undefined ? defaultValue : rawFlagValue;
+};
+
+const lineParticipatesInAreaDetection = (state, lineType) =>
+  getLineInfoFlag(state, lineType, 'participatesInAreaDetection', true);
+
+const lineAllowsIntersections = (state, lineType) =>
+  lineParticipatesInAreaDetection(state, lineType) &&
+  getLineInfoFlag(state, lineType, 'allowIntersections', true);
+
+const getLayerReferenceWallHeight = (state, layerID, fallbackHeight = 280) => {
+  const lines = state.getIn(['scene', 'layers', layerID, 'lines']);
+  if (!lines) return fallbackHeight;
+
+  let maxWallHeight = 0;
+  lines.forEach((line) => {
+    if (!lineParticipatesInAreaDetection(state, line.type)) return;
+    const height = Number(line.getIn(['properties', 'height', 'length']));
+    if (Number.isFinite(height) && height > maxWallHeight) {
+      maxWallHeight = height;
+    }
+  });
+
+  return maxWallHeight > 0 ? maxWallHeight : fallbackHeight;
+};
+
 class Line{
 
   static create( state, layerID, type, x0, y0, x1, y1, properties ) {
@@ -33,6 +61,20 @@ class Line{
       vertices: new List([v0.id, v1.id]),
       type
     }, properties);
+
+    const shouldInheritRoomHeight = getLineInfoFlag(
+      state,
+      type,
+      'heightFromRoom',
+      false
+    );
+
+    if (shouldInheritRoomHeight && !properties?.has?.('height')) {
+      line = line.setIn(
+        ['properties', 'height', 'length'],
+        getLayerReferenceWallHeight(state, layerID, line.getIn(['properties', 'height', 'length']) || 280)
+      );
+    }
 
     state = state.setIn(['scene', 'layers', layerID, 'lines', lineID], line);
 
@@ -307,6 +349,38 @@ class Line{
     let lineID = state.getIn(['scene', 'layers', layerID, 'selected', 'lines']).first();
     let line = state.getIn(['scene', 'layers', layerID, 'lines', lineID]);
 
+    if (!lineAllowsIntersections(state, line.type)) {
+      state = Line.replaceVertex(state, layerID, lineID, 1, x, y).updatedState;
+
+      const updatedLine = state.getIn(['scene', 'layers', layerID, 'lines', lineID]);
+      const updatedVertex0 = state.getIn([
+        'scene',
+        'layers',
+        layerID,
+        'vertices',
+        updatedLine.vertices.get(0),
+      ]);
+      const updatedVertex1 = state.getIn([
+        'scene',
+        'layers',
+        layerID,
+        'vertices',
+        updatedLine.vertices.get(1),
+      ]);
+
+      if (GeometryUtils.samePoints(updatedVertex0, updatedVertex1)) {
+        state = Line.remove(state, layerID, lineID).updatedState;
+      }
+
+      state = state.merge({
+        mode: MODE_WAITING_DRAWING_LINE,
+        snapElements: new List(),
+        activeSnapElement: null
+      });
+
+      return { updatedState: state };
+    }
+
     let v0 = layer.vertices.get(line.vertices.get(0));
 
     state = Line.remove( state, layerID, lineID ).updatedState;
@@ -480,6 +554,47 @@ class Line{
       newVertex1Y += deltaY;
     }
 
+    if (!lineAllowsIntersections(state, line.type)) {
+      state = this.setVerticesCoords(
+        state,
+        layerID,
+        lineID,
+        newVertex0X,
+        newVertex0Y,
+        newVertex1X,
+        newVertex1Y
+      ).updatedState;
+
+      const updatedLine = state.getIn(['scene', 'layers', layerID, 'lines', lineID]);
+      const updatedVertex0 = state.getIn([
+        'scene',
+        'layers',
+        layerID,
+        'vertices',
+        updatedLine.vertices.get(0),
+      ]);
+      const updatedVertex1 = state.getIn([
+        'scene',
+        'layers',
+        layerID,
+        'vertices',
+        updatedLine.vertices.get(1),
+      ]);
+
+      if (GeometryUtils.samePoints(updatedVertex0, updatedVertex1)) {
+        state = Line.remove(state, layerID, lineID).updatedState;
+      }
+
+      state = state.merge({
+        mode: MODE_IDLE,
+        draggingSupport: null,
+        activeSnapElement: null,
+        snapElements: new List()
+      });
+
+      return { updatedState: state };
+    }
+
     let lineGroups = state   //get groups membership if present
       .getIn(['scene', 'groups'])
       .filter( group => {
@@ -566,6 +681,11 @@ class Line{
       .mergeIn(['scene', 'layers', layerID, 'vertices', vertexOne.id], {x: vertexOne.x, y: vertexOne.y})
       .mergeIn(['scene', 'layers', layerID, 'vertices', vertexTwo.id], {x: vertexTwo.x, y: vertexTwo.y})
       .mergeIn(['scene', 'layers', layerID, 'lines', lineID, 'misc'], new Map({'_unitLength': lineLength._unit}));
+
+    const lineType = state.getIn(['scene', 'layers', layerID, 'lines', lineID, 'type']);
+    if (!lineParticipatesInAreaDetection(state, lineType)) {
+      return { updatedState: state };
+    }
 
     state = Layer.mergeEqualsVertices( state, layerID, vertexOne.id ).updatedState;
 

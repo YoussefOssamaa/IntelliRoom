@@ -31,6 +31,8 @@ const TopNavigationBar = ({
   plannerState,
   plannerUser,
   isAuthenticated,
+  saveStatus = 'idle',
+  saveErrorMessage = '',
   onSignIn,
   onOpenDashboard,
 }) => {
@@ -104,6 +106,14 @@ const TopNavigationBar = ({
   ];
 
   const userInitial = plannerUser?.name ? plannerUser.name.charAt(0).toUpperCase() : 'U';
+  const saveStatusLabel =
+    saveStatus === 'saving'
+      ? t('Saving')
+      : saveStatus === 'saved'
+        ? t('Saved')
+        : saveStatus === 'error'
+          ? saveErrorMessage || t('Save failed')
+          : '';
 
   return (
     <div className="top-nav-bar">
@@ -130,6 +140,12 @@ const TopNavigationBar = ({
           <Icon name="Save" size={16} />
           {t('Save')}
         </button>
+
+        {saveStatusLabel && (
+          <span className={`save-status save-status-${saveStatus}`}>
+            {saveStatusLabel}
+          </span>
+        )}
 
         <button className="nav-button icon-btn" onClick={onUndo} title={t('Undo')}>
           <Icon name="Undo" size={20} />

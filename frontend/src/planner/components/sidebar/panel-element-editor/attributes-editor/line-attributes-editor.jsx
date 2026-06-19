@@ -12,39 +12,57 @@ const inputStyle = { textAlign: 'left' };
 export default function LineAttributesEditor({element, onUpdate, attributeFormData, state, ...rest}) {
   const { translator } = usePlanner();
   const defaultUnit = state.getIn(['scene', 'unit']);
+  const isStructuralLine = element.type === 'column' || element.type === 'beam';
 
   let name = attributeFormData.has('name') ? attributeFormData.get('name') : element.name;
+  let lineLength = attributeFormData.has('lineLength')
+    ? attributeFormData.get('lineLength')
+    : new Map({ length: 0, _length: 0, _unit: defaultUnit });
   let innerLength = attributeFormData.has('innerLength') ? attributeFormData.get('innerLength') : new Map({ length: 0, _length: 0, _unit: defaultUnit });
   let outerLength = attributeFormData.has('outerLength') ? attributeFormData.get('outerLength') : new Map({ length: 0, _length: 0, _unit: defaultUnit });
 
   return (
     <div>
-      <table style={tableStyle}>
-        <tbody>
-          <tr>
-            <td style={firstTdStyle}>{translator.t('Name')}</td>
-            <td>
-              <FormTextInput
-                value={name}
-                onChange={event => onUpdate('name', event.target.value)}
-                style={inputStyle}
-              />
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      {!isStructuralLine && (
+        <table style={tableStyle}>
+          <tbody>
+            <tr>
+              <td style={firstTdStyle}>{translator.t('Name')}</td>
+              <td>
+                <FormTextInput
+                  value={name}
+                  onChange={event => onUpdate('name', event.target.value)}
+                  style={inputStyle}
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      )}
+
+      {isStructuralLine ? (
         <PropertyLengthMeasure
-          value={innerLength}
-          onUpdate={mapped => onUpdate('innerLength', mapped)}
-          configs={{label: translator.t('Inner Length'), min: 0, max: Infinity, precision: 2}}
+          value={lineLength}
+          onUpdate={mapped => onUpdate('lineLength', mapped)}
+          configs={{label: translator.t('Length'), min: 0, max: Infinity, precision: 2}}
           state={state}
         />
-        <PropertyLengthMeasure
-          value={outerLength}
-          onUpdate={mapped => onUpdate('outerLength', mapped)}
-          configs={{label: translator.t('Outer Length'), min: 0, max: Infinity, precision: 2}}
-          state={state}
-        />
+      ) : (
+        <>
+          <PropertyLengthMeasure
+            value={innerLength}
+            onUpdate={mapped => onUpdate('innerLength', mapped)}
+            configs={{label: translator.t('Inner Length'), min: 0, max: Infinity, precision: 2}}
+            state={state}
+          />
+          <PropertyLengthMeasure
+            value={outerLength}
+            onUpdate={mapped => onUpdate('outerLength', mapped)}
+            configs={{label: translator.t('Outer Length'), min: 0, max: Infinity, precision: 2}}
+            state={state}
+          />
+        </>
+      )}
     </div>
   );
 }
@@ -56,5 +74,4 @@ LineAttributesEditor.propTypes = {
   attributeFormData: PropTypes.object.isRequired,
   state: PropTypes.object.isRequired
 };
-
 

@@ -132,6 +132,9 @@ export default class CatalogItem extends Component {
   render() {
     let element = this.props.element;
     let hover = this.state.hover;
+    const previewImage =
+      String(element?.info?.thumbnailUrl || "").trim() ||
+      String(element?.info?.image || "").trim();
 
     return (
       <div
@@ -142,7 +145,7 @@ export default class CatalogItem extends Component {
       >
         <b style={ !hover ? STYLE_TITLE : STYLE_TITLE_HOVER }>{element.info.title}</b>
         <div style={ STYLE_IMAGE_CONTAINER }>
-          <div style={{...( !hover ? STYLE_IMAGE: STYLE_IMAGE_HOVER ), backgroundImage: 'url(' + element.info.image + ')'}}>
+          <div style={{...( !hover ? STYLE_IMAGE: STYLE_IMAGE_HOVER ), backgroundImage: previewImage ? 'url(' + previewImage + ')' : 'none'}}>
             { hover ? <IconAdd style={STYLE_PLUS_HOVER} /> : null }
           </div>
         </div>

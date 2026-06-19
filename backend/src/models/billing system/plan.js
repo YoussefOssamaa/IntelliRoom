@@ -1,4 +1,5 @@
-import mongoose from "mongoose";
+// /workspace/backend/src/models/billing system/plan.js
+import mongoose from 'mongoose';
 
 const planSchema = new mongoose.Schema(
   {
@@ -12,7 +13,7 @@ const planSchema = new mongoose.Schema(
     price: {
       type: Number,
       required: true,
-      min: 0, // السعر هيكون بالقرش (Cents) لو هتتعامل مع بيموب، يعني الـ 100 جنيه تتكتب 10000
+      min: 0, // Price in EGP (whole numbers, not cents)
     },
     currency: {
       type: String,
@@ -20,8 +21,8 @@ const planSchema = new mongoose.Schema(
       uppercase: true,
       trim: true,
     },
-    // لو الخطة دي ليها تعريف معين على بيموب
-    paymobIntegrationId: {
+    // Replace Paymob field with Fawaterak if needed
+    fawaterkProductId: {
       type: String,
       trim: true,
     },
@@ -38,6 +39,12 @@ const planSchema = new mongoose.Schema(
     availableFeatures: {
       type: [String],
       default: [],
+    },
+    // Optional: billing cycle configuration
+    billingCycles: {
+      type: [String],
+      enum: ["monthly", "yearly"],
+      default: ["monthly", "yearly"],
     }
   },
   { timestamps: true }

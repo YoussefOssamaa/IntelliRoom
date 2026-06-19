@@ -224,3 +224,37 @@
   font-size: 14px;
   font-style: italic;
 }
+
+.floorplan-sidebar {
+  width: clamp(248px, 28vw, 380px);
+  min-width: 220px;
+  max-width: min(520px, 48vw, calc(100vw - 96px));
+  resize: horizontal;
+  overflow: auto;
+  background: rgba(255, 255, 255, 0.97);
+  border-right-color: #e6edf5;
+  box-shadow: 8px 0 22px -18px rgba(15, 23, 42, 0.42);
+  font-family: Inter, "SF Pro Display", "Segoe UI", system-ui, sans-serif;
+}
+
+.tool-item {
+  min-height: 44px;
+  padding: 8px 10px;
+  border-radius: 8px;
+}
+
+.tool-item:hover {
+  background: #edf4fb;
+  transform: none;
+}
+
+.tool-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: #f1f5f9;
+}
+
+.tool-label {
+  font-size: 13px;
+}

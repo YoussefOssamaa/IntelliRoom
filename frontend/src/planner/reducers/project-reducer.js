@@ -41,7 +41,6 @@ import {
 } from '../constants';
 
 import { Project } from '../class/export';
-import { browserDownload } from '../utils/browser';
 
 export default function (state, action) {
 
@@ -53,8 +52,6 @@ export default function (state, action) {
       return Project.loadProject(state, action.sceneJSON).updatedState;
 
     case SAVE_PROJECT:
-      // Side-effect: trigger a browser file download of the current scene
-      browserDownload(state.get('scene').toJS());
       return state;
 
     case OPEN_CATALOG:

@@ -12,11 +12,21 @@ const PREVIEW_H = 200;
 const TOP_DOWN_FRUSTUM = 800;
 const CAMERA_ICON = '/assets/Camera.png';
 const TARGET_ICON = '/assets/position.png';
+const sceneRefIds = new WeakMap();
+let nextSceneRefId = 1;
 
 const getPreviewSize = (container) => ({
   width: Math.max(container?.clientWidth || PREVIEW_W, 160),
   height: Math.max(container?.clientHeight || PREVIEW_H, 120),
 });
+
+const getSceneRefId = (scene) => {
+  if (!scene || typeof scene !== 'object') return 'none';
+  if (!sceneRefIds.has(scene)) {
+    sceneRefIds.set(scene, nextSceneRefId++);
+  }
+  return sceneRefIds.get(scene);
+};
 
 const getLiveViewerReferences = () => {
   const viewer = window.__viewer3D;
@@ -33,6 +43,25 @@ const getLiveViewerReferences = () => {
 const getViewerFloorLevel = (viewer) => {
   const floorLevel = viewer?.getRenderFloorLevel?.();
   return Number.isFinite(floorLevel) ? floorLevel : 0;
+};
+
+const getViewerProjectKey = (viewer, planData) => {
+  const state = viewer?.props?.state;
+  const history = state?.sceneHistory;
+  const firstScene = history?.first;
+  const historySize = history?.list?.size || 0;
+  const sceneRefId = getSceneRefId(state?.scene);
+  if (firstScene && typeof firstScene.hashCode === 'function') {
+    let key = `history:${firstScene.hashCode()}`;
+    if (historySize === 0) {
+      key += `:sceneRef:${sceneRefId}`;
+    }
+    return key;
+  }
+
+  const graph = planData?.sceneGraph;
+  if (!graph) return 'project:unknown';
+  return `graph:${graph.unit || 'cm'}:${graph.width || 0}:${graph.height || 0}:${Object.keys(graph.layers || {}).length}:sceneRef:${sceneRefId}`;
 };
 
 const getViewerPose = (viewer) => {
@@ -56,7 +85,40 @@ const setViewerPose = (viewer, nextPose) => {
   if (!viewer || !nextPose) return;
 
   if (typeof viewer.setRenderPreviewState === 'function') {
-    viewer.setRenderPreviewState(nextPose);
+    const currentPose = getViewerPose(viewer) || {};
+    const nextPosition = nextPose.position || null;
+    const nextTarget = nextPose.target || null;
+
+    const mergedPose = { ...nextPose };
+    if (nextPosition) {
+      mergedPose.position = {
+        x: Number.isFinite(Number(nextPosition.x))
+          ? Number(nextPosition.x)
+          : Number(currentPose?.position?.x) || 0,
+        y: Number.isFinite(Number(nextPosition.y))
+          ? Number(nextPosition.y)
+          : Number(currentPose?.position?.y) || 0,
+        z: Number.isFinite(Number(nextPosition.z))
+          ? Number(nextPosition.z)
+          : Number(currentPose?.position?.z) || 0,
+      };
+    }
+
+    if (nextTarget) {
+      mergedPose.target = {
+        x: Number.isFinite(Number(nextTarget.x))
+          ? Number(nextTarget.x)
+          : Number(currentPose?.target?.x) || 0,
+        y: Number.isFinite(Number(nextTarget.y))
+          ? Number(nextTarget.y)
+          : Number(currentPose?.target?.y) || 0,
+        z: Number.isFinite(Number(nextTarget.z))
+          ? Number(nextTarget.z)
+          : Number(currentPose?.target?.z) || 0,
+      };
+    }
+
+    viewer.setRenderPreviewState(mergedPose);
     return;
   }
 
@@ -139,20 +201,18 @@ function PlanView2D({ label }) {
     targetSprite.renderOrder = 1000;
     overlayScene.add(targetSprite);
 
-    const lineMaterial = new Three.LineDashedMaterial({
-      color: 0x141414,
+    const axisMaterial = new Three.LineBasicMaterial({
+      color: 0x0f172a,
       transparent: true,
-      opacity: 0.85,
+      opacity: 0.38,
       depthTest: false,
       depthWrite: false,
-      dashSize: 160,
-      gapSize: 80,
     });
-    const lineGeometry = new Three.BufferGeometry().setFromPoints([new Three.Vector3(), new Three.Vector3()]);
-    const dashedLine = new Three.Line(lineGeometry, lineMaterial);
-    dashedLine.frustumCulled = false;
-    dashedLine.renderOrder = 999;
-    overlayScene.add(dashedLine);
+    const axisGeometry = new Three.BufferGeometry().setFromPoints([new Three.Vector3(), new Three.Vector3()]);
+    const cameraTargetLine = new Three.Line(axisGeometry, axisMaterial);
+    cameraTargetLine.frustumCulled = false;
+    cameraTargetLine.renderOrder = 998;
+    overlayScene.add(cameraTargetLine);
 
     const raycaster = new Three.Raycaster();
     const mouse = new Three.Vector2();
@@ -240,6 +300,7 @@ function PlanView2D({ label }) {
     let animationFrameId;
     let mainScene = null;
     let centered = false;
+    let lastProjectKey = null;
 
     const tick = () => {
       animationFrameId = requestAnimationFrame(tick);
@@ -247,6 +308,12 @@ function PlanView2D({ label }) {
       const { viewer, mainScene: liveScene, planData } = getLiveViewerReferences();
       if (!mainScene && liveScene) {
         mainScene = liveScene;
+      }
+
+      const projectKey = getViewerProjectKey(viewer, planData);
+      if (projectKey !== lastProjectKey) {
+        centered = false;
+        lastProjectKey = projectKey;
       }
 
       if (!centered && planData?.boundingBoxCenter?.lenX > 0) {
@@ -275,15 +342,11 @@ function PlanView2D({ label }) {
           cameraSprite.material.rotation = -Math.atan2(-directionVector.x, directionVector.z) - Math.PI / 2;
         }
 
-        lineMaterial.dashSize = scaleForPixels(5);
-        lineMaterial.gapSize = scaleForPixels(3);
-        lineMaterial.needsUpdate = true;
-
-        const positions = dashedLine.geometry.attributes.position;
-        positions.setXYZ(0, pose.position.x, lineY, pose.position.z);
-        positions.setXYZ(1, pose.target.x, lineY, pose.target.z);
-        positions.needsUpdate = true;
-        dashedLine.computeLineDistances();
+        const axisPositions = cameraTargetLine.geometry.attributes.position;
+        axisPositions.setXYZ(0, pose.position.x, lineY + 0.5, pose.position.z);
+        axisPositions.setXYZ(1, pose.target.x, lineY + 0.5, pose.target.z);
+        axisPositions.needsUpdate = true;
+        cameraTargetLine.geometry.computeBoundingSphere();
       }
 
       controls.update();
@@ -313,8 +376,8 @@ function PlanView2D({ label }) {
       renderer.dispose();
       cameraSprite.material.dispose();
       targetSprite.material.dispose();
-      lineMaterial.dispose();
-      lineGeometry.dispose();
+      axisMaterial.dispose();
+      axisGeometry.dispose();
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }
@@ -396,13 +459,20 @@ function MiniPreview3DView({ label }) {
     let animationFrameId;
     let mainScene = null;
     let centered = false;
+    let lastProjectKey = null;
 
     const tick = () => {
       animationFrameId = requestAnimationFrame(tick);
 
-      const { mainScene: liveScene, planData } = getLiveViewerReferences();
+      const { viewer, mainScene: liveScene, planData } = getLiveViewerReferences();
       if (!mainScene && liveScene) {
         mainScene = liveScene;
+      }
+
+      const projectKey = getViewerProjectKey(viewer, planData);
+      if (projectKey !== lastProjectKey) {
+        centered = false;
+        lastProjectKey = projectKey;
       }
 
       if (!centered && planData?.boundingBoxCenter?.lenX > 0) {

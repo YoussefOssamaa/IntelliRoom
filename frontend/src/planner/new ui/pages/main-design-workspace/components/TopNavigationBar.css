@@ -123,6 +123,28 @@
   background-color: #1d4ed8;
 }
 
+.save-status {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.save-status-saving {
+  color: #2563eb;
+}
+
+.save-status-saved {
+  color: #15803d;
+}
+
+.save-status-error {
+  color: #b91c1c;
+}
+
 .nav-button.outline-btn {
   border: 1px solid #d1d5db;
   background-color: #ffffff;

@@ -3,11 +3,11 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import './landingPage.css';
 import Navigation from '../../components/common/Navigation';
-import Section1Hero from './sections/Section1Hero';
+import Section2 from './sections/Section2';
 import Section2Objects from './sections/Section2Objects';
 import Section3StyleRange from './sections/Section3StyleRange';
 import Section4Livable from './sections/Section4Livable';
-import Section5Manifesto from './sections/Section5Manifesto';
+import Section1 from './sections/Section1';
 import Section6Dark from './sections/Section6Dark';
 import Section7Community from './sections/Section7Community';
 import Section8Circle from './sections/Section8Circle';
@@ -80,12 +80,12 @@ function App() {
       <div className="noise-overlay" />
 
       {/* Navigation */}
-      <Navigation progress={scrollProgress} />
+      <Navigation progress={scrollProgress} isSticky={true} />
 
       {/* Sections */}
       <main className="relative">
-        <Section5Manifesto />
-        <Section1Hero />
+        <Section1 />
+        <Section2 />
         <Section10Transform />
         <Section2Objects />
         <Section3StyleRange />

@@ -19,7 +19,7 @@ const projectSchema = new mongoose.Schema(
       type: Number,
       default: 1.0
     },  ////////// This is the version of the file format, not the design itself: ex: now we have walls, doors only in thumbnail, later we may add windows to the 
-        //// database , so the old version designs will be broken, unless we specify the version, so we can migrate to newer format when loading 
+    //// database , so the old version designs will be broken, unless we specify the version, so we can migrate to newer format when loading 
 
 
     /// stores the entire 2D/3D data in JSON format
@@ -28,25 +28,39 @@ const projectSchema = new mongoose.Schema(
       default: {}
     },
 
+    lastSavedAt: {
+      type: Date,
+      default: Date.now
+    },
+
     isArchived: {
       type: Boolean,
       default: false
     },
 
-    coverImageUrl:{
-      type: String, 
+    isFavorite: {
+      type: Boolean,
+      default: false
+    },
+
+    coverImageUrl: {
+      type: String,
       required: false,
       default: null
-    } ,
+    },
 
-    thumbnailUrl:{
-      type: String, 
+    thumbnailUrl: {
+      type: String,
       required: false,
-      default: null 
-    } 
+      default: "/architectProjectTemplate.png",
+      ////// keeping it static for now
+      set: function (v) {
+        return "/architectProjectTemplate.png";
+      }
+    }
 
   },
-  { timestamps: true}
+  { timestamps: true, collection: "projects" }
 );
 
 projectSchema.index({ owner: 1, isArchived: 1, updatedAt: -1 });

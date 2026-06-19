@@ -23,7 +23,7 @@ export default function (state, action) {
 
     case APPLY_TEXTURE_TO_ELEMENT: {
       const { layerID, elementID, elementPrototype, propertyName, textureKey } = action;
-      
+
       // Push history for undo support
       state = state.merge({ sceneHistory: history.historyPush(state.sceneHistory, state.scene) });
       

@@ -1,7 +1,21 @@
 import React from 'react';
 import { Camera, PencilLine, ArrowRight } from 'lucide-react';
+import { checkLoggedIn } from '../../../utils/checkLoggedIn';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../utils/authContext';
 
-const SelectionPage = () => {
+
+const Section2 = () => {
+
+  const navigate = useNavigate();
+  const { isLoggedIn } = useAuth();
+
+  const handleUploadClick = () => {
+    checkLoggedIn(isLoggedIn, navigate, "/upload");
+  }
+  const handlePlannerClick = () => {
+    checkLoggedIn(isLoggedIn, navigate, "/planner");
+  }
   return (
     <div className="relative min-h-screen w-full bg-espresso flex flex-col md:flex-row overflow-hidden">
 
@@ -22,7 +36,7 @@ const SelectionPage = () => {
             Already have a room? Upload a photo and let our AI reimagine the possibilities instantly.
           </p>
 
-          <button className="flex items-center gap-3 bg-cream text-espresso px-8 py-4 rounded-full font-mono text-sm uppercase tracking-widest hover:bg-white transition-all transform hover:-translate-y-1">
+          <button onClick={handleUploadClick} className="flex items-center gap-3 bg-cream text-espresso px-8 py-4 rounded-full font-mono text-sm uppercase tracking-widest hover:bg-white transition-all transform hover:-translate-y-1">
             <Camera size={18} />
             Start with Photo
           </button>
@@ -46,7 +60,7 @@ const SelectionPage = () => {
             Start with a blank canvas. Draft a 2D floor plan and watch it evolve into a high-fidelity 3D render.
           </p>
 
-          <button className="flex items-center gap-3 border border-cream text-cream px-8 py-4 rounded-full font-mono text-sm uppercase tracking-widest hover:bg-cream hover:text-espresso transition-all transform hover:-translate-y-1">
+          <button onClick={handlePlannerClick} className="flex items-center gap-3 border border-cream text-cream px-8 py-4 rounded-full font-mono text-sm uppercase tracking-widest hover:bg-cream hover:text-espresso transition-all transform hover:-translate-y-1">
             <PencilLine size={18} />
             Begin Drafting
           </button>
@@ -63,4 +77,4 @@ const SelectionPage = () => {
   );
 };
 
-export default SelectionPage;
+export default Section2;

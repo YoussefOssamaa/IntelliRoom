@@ -44,14 +44,25 @@ export const registerHandler = async (req, res) => {
             return res.status(400).json({ success: false, message: genericError })
         }
         const hashedPassword = await bcrypt.hash(password, 10)
-        await User.create({
+        const newUser = await User.create({
             email,
             firstName,
             lastName,
             user_name,
             password: hashedPassword
         })
-        return res.status(201).json({ success: true, message: "User registered successfully." })
+        return res.status(201).json({
+            success: true,
+            message: "User registered successfully.",
+            user: {
+                email: newUser.email,
+                firstName: newUser.firstName,
+                lastName: newUser.lastName,
+                user_name: newUser.user_name,
+                plan: newUser.plan,
+                credits: newUser.credits
+            }
+        })
 
     } catch (e) {
         console.log(e.message);
@@ -83,6 +94,19 @@ export const loginHandler = async (req, res) => {
 
         if (!check) {
             return res.status(401).json({ success: false, message: genericMessage });
+        }
+
+        // --- Monthly Credit Reset Logic ---
+        if (logging_user.plan === 'free') {
+            const thirtyDaysInMs = 30 * 24 * 60 * 60 * 1000;
+            const now = Date.now();
+            const lastReset = logging_user.last_credit_reset ? logging_user.last_credit_reset.getTime() : 0;
+
+            if (now - lastReset >= thirtyDaysInMs) {
+                logging_user.credits = 1000;
+                logging_user.last_credit_reset = new Date(now);
+                await logging_user.save();
+            }
         }
 
         const payload = {
@@ -125,7 +149,18 @@ export const loginHandler = async (req, res) => {
         return res.status(200)
             .cookie("Authentication", authToken, authCookieOptions)
             .cookie("Refresh", refreshToken, refreshCookieOptions)
-            .json({ success: true, message: "logged in successfully" })
+            .json({
+                success: true,
+                message: "logged in successfully",
+                user: {
+                    email: logging_user.email,
+                    firstName: logging_user.firstName,
+                    lastName: logging_user.lastName,
+                    user_name: logging_user.user_name,
+                    plan: logging_user.plan,
+                    credits: logging_user.credits
+                }
+            });
 
 
     }
@@ -177,7 +212,18 @@ export const refreshTokenHandler = async (req, res) => {
 
         return res.status(200)
             .cookie("Authentication", authToken, authCookieOptions)
-            .json({ success: true, message: "token refreshed successfully" });
+            .json({
+                success: true,
+                message: "token refreshed successfully",
+                user: {
+                    email: user.email,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    user_name: user.user_name,
+                    plan: user.plan,
+                    credits: user.credits
+                }
+            });
 
 
     } catch (e) {
@@ -264,27 +310,25 @@ export const resetPasswordHandler = async (req, res) => {
 }
 
 export const logoutController = async (req, res) => {
-    /*   try {
-           const cookieOptions = {
-               httpOnly: true,
-               secure: true,
-               sameSite: "none",
-           };
-           const validation = authCookieSchema.safeParse(req.cookies);
-           if (!validation.success) {
-               return res.status(401).json({ success: false, message: "not authenticated" });
-           }
-           const token = validation.data.Refresh;
-   
-           await Refresh.deleteOne({ refreshToken: token });
-   
-           return res.status(200)
-               .clearCookie("Authentication", cookieOptions)
-               .clearCookie("Refresh", cookieOptions)
-               .json({ success: true, message: "logged out successfully" });
-   
-       } catch (error) {
-           console.error("Logout Error:", error);
-           res.status(500).json({ success: false, message: "Internal Server Error" });
-       }*/
+    try {
+        const cookieOptions = {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+        };
+        const validation = authCookieSchema.safeParse(req.cookies);
+        if (validation.success) {
+            const token = validation.data.Refresh;
+            await Refresh.deleteOne({ refreshToken: token });
+        }
+
+        return res.status(200)
+            .clearCookie("Authentication", cookieOptions)
+            .clearCookie("Refresh", cookieOptions)
+            .json({ success: true, message: "logged out successfully" });
+
+    } catch (error) {
+        console.error("Logout Error:", error);
+        res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
 };

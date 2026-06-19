@@ -18,6 +18,7 @@
   overflow-x: visible;
   z-index: 35;
   transition: width 0.2s ease, padding 0.2s ease;
+  font-family: Inter, "SF Pro Display", "Segoe UI", system-ui, sans-serif;
 }
 
 .render-right-sidebar.collapsed-all {
@@ -30,10 +31,10 @@
   width: 100%;
   border: 1px solid #252f3d;
   border-radius: 12px;
-  background: #141b25;
+  background: linear-gradient(180deg, rgba(20, 27, 37, 0.98), rgba(13, 19, 28, 0.98));
   overflow: visible;
   box-shadow: 0 10px 20px rgba(3, 8, 16, 0.34);
-  transition: width 0.2s ease, min-height 0.2s ease;
+  transition: width 180ms ease-out, min-height 180ms ease-out, box-shadow 180ms ease-out;
 }
 
 .render-dock-panel.collapsed {
@@ -93,6 +94,7 @@
   cursor: pointer;
   z-index: 3;
   box-shadow: -4px 6px 14px rgba(3, 8, 16, 0.35);
+  transition: background-color 160ms ease-out, color 160ms ease-out;
 }
 
 .render-dock-panel-handle:hover {
@@ -213,6 +215,7 @@
   padding: 0 10px;
   font-size: 13px;
   outline: none;
+  transition: border-color 160ms ease-out, box-shadow 160ms ease-out, background-color 160ms ease-out;
 }
 
 .camera-input:focus {
@@ -244,9 +247,11 @@
   gap: 6px;
   margin-top: 12px;
   padding: 10px 8px;
-  background: #1c2028;
-  border-radius: 10px;
-  border: 1px solid #2e3541;
+  background:
+    radial-gradient(140% 90% at 16% 6%, rgba(59, 130, 246, 0.16), transparent 58%),
+    #121a25;
+  border-radius: 12px;
+  border: 1px solid #2d3a4d;
 }
 
 /* ── Scale labels (left column) ── */
@@ -275,14 +280,19 @@
 
 /* Track line */
 .cdw-track-line {
-  stroke: #374151;
+  stroke: #3d4b5f;
   stroke-width: 2;
   stroke-linecap: round;
 }
 
 /* Frustum (cone) fill */
 .cdw-frustum-fill {
-  fill: rgba(59, 130, 246, 0.25);
+  fill: url("#cdw-frustum-gradient");
+  filter: url("#cdw-soft-glow");
+}
+
+.cdw-frustum-plane {
+  fill: rgba(147, 197, 253, 0.13);
 }
 
 /* Frustum right edge */
@@ -294,9 +304,20 @@
 
 /* Frustum outline strokes */
 .cdw-frustum-stroke {
-  stroke: #3b82f6;
-  stroke-width: 1;
-  stroke-opacity: 0.6;
+  stroke: #7dd3fc;
+  stroke-width: 1.15;
+  stroke-opacity: 0.86;
+}
+
+.cdw-frustum-axis {
+  stroke: #c7d2fe;
+  stroke-width: 0.85;
+  stroke-opacity: 0.5;
+  stroke-dasharray: 3 3;
+}
+
+.cdw-frustum-edge.subtle {
+  stroke-opacity: 0.38;
 }
 
 /* ── Camera handle ── */
@@ -305,8 +326,8 @@
 }
 
 .cdw-cam-body {
-  fill: #d1d5db;
-  stroke: #9ca3af;
+  fill: #e8eef6;
+  stroke: #a9b8ca;
   stroke-width: 0.5;
 }
 
@@ -338,14 +359,18 @@
   fill: #f3f4f6;
 }
 
+.cdw-camera-handle:hover {
+  filter: drop-shadow(0 0 6px rgba(125, 211, 252, 0.55));
+}
+
 /* ── Target handle ── */
 .cdw-target-handle {
   filter: drop-shadow(0 1px 3px rgba(0,0,0,0.5));
 }
 
 .cdw-target-ring {
-  fill: #1c2028;
-  stroke: #d1d5db;
+  fill: #111827;
+  stroke: #dbeafe;
   stroke-width: 1.5;
 }
 

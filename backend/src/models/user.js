@@ -12,7 +12,8 @@ const userSchema = new mongoose.Schema({
   bio: { type: String, default: "" , maxLength: 500 },
   profile_picture_url: { type: String, default: "" },
 
-  credits: { type: Number, default: 10 },
+  credits: { type: Number, default: 1000 },
+  last_credit_reset: { type: Date, default: Date.now },
   plan: { type: String, enum: ['free', 'pro', 'business'], default: 'free' },
   is_first_time: { type: Boolean, default: true },
 

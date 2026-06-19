@@ -13,10 +13,10 @@ const __dirname = path.dirname(__filename);
 const comfy_output_dir = path.join(__dirname, '../../uploads/comfyOutputs');
 console.log('ComfyUI output directory:', comfy_output_dir);
 try {
-    const stats = await fs.promises.stat(comfy_output_dir);
-    console.log('File verified, size:', stats.size, 'bytes');
+    await fs.promises.stat(comfy_output_dir);
 } catch {
-    console.error('File was not written to disk!');
+    console.log('Directory does not exist, creating it...');
+    await fs.promises.mkdir(comfy_output_dir, { recursive: true });
 }
 
 
@@ -107,18 +107,21 @@ export class ComfyUIService {
             const outputPath = path.join(comfy_output_dir, filename);
             console.log('💾 Saving to:', outputPath);
 
-
             await fs.promises.writeFile(outputPath, response.data);
             console.log('Image saved successfully to:', outputPath);
 
-            // Verify file was written
-            if (await fs.promises.exists(outputPath)) {
-                const stats = await fs.promises.stat(outputPath);
-                console.log('File verified, size:', stats.size, 'bytes');
-            } else {
-                console.error('File was not written to disk!');
+            try {
+                // Verify file was written
+                const outputFileStatus = await fs.promises.stat(outputPath)
+                console.log('Output File verified, size:', outputFileStatus.size, 'bytes');
+            } catch (err) {
+                if (err.code === 'ENOENT') {
+                    console.error('File does not exist:', outputPath);
+                    // Handle the "file not found" case here
+                } else {
+                    console.error('Error checking file:', err);
+                }
             }
-
 
             return filename; // Return just the filename for URL construction
 
@@ -131,7 +134,7 @@ export class ComfyUIService {
             throw error;
         }
     }
- // async uploadImageBuffer(imageBuffer, filename = `upload-${Date.now()}.png`, subfolder = '') {
+    // async uploadImageBuffer(imageBuffer, filename = `upload-${Date.now()}.png`, subfolder = '') {
     //     try {
     //         const formData = new FormData();
     //         formData.append('image', imageBuffer, {
@@ -195,7 +198,7 @@ export class ComfyUIService {
         }
 
     }
- // async getImageBuffer(filename, subfolder = '', type = 'output') {
+    // async getImageBuffer(filename, subfolder = '', type = 'output') {
     //     try {
     //         const params = new URLSearchParams({
     //             filename,
@@ -229,7 +232,7 @@ export class ComfyUIService {
 
     async pollForCompletion(promptId) {
 
-        await wait(2000);   // waits 2 seconds in the beginning
+        await wait(3000);   // waits 3 seconds in the beginning
         const MAX_RETRIES = 300; // Wait up to 300 seconds (5 mins)
 
         for (let i = 0; i < MAX_RETRIES; i++) {
@@ -243,11 +246,11 @@ export class ComfyUIService {
                     return history;
                 }
 
-                await wait(1000);
+                await wait(2000); // wait 2 seconds before checking the history again
 
             } catch (error) {
                 console.error('Polling error (retrying):', error.message);
-                await wait(1000);
+                await wait(2000);
             }
         }
 
@@ -272,8 +275,8 @@ export class ComfyUIService {
             );
 
             const historyData = response.data[promptId];
+            //console.log('History data:', JSON.stringify(historyData, null, 2));
             return historyData;
-            console.log('History data:', JSON.stringify(historyData, null, 2));
 
         } catch (error) {
             console.error('Error getting history from ComfyUI:', error);

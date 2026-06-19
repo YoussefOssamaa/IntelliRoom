@@ -8,7 +8,9 @@ function disposeTexture(texture) {
   if (!texture) {
     return;
   }
-  texture.dispose();
+  if (texture.userData?.plannerDisposable) {
+    texture.dispose();
+  }
 }
 
 function disposeMultimaterial(material) {
@@ -27,8 +29,15 @@ function disposeMaterial(material) {
     return;
   }
 
-  disposeTexture(material.map);
-  material.map = null;
+  [
+    material.map,
+    material.normalMap,
+    material.roughnessMap,
+    material.displacementMap,
+    material.aoMap,
+    material.metalnessMap,
+    material.bumpMap,
+  ].forEach(disposeTexture);
   material.dispose();
 }
 

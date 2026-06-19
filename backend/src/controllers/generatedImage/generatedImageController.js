@@ -1,24 +1,24 @@
 import express from 'express';
 import GeneratedImage from '../../models/generatedImageModels/generatedImage.js';
+import { deductCredits } from '../../services/creditService.js';
 
 
 
-export const postGeneratedImageController = async (req, res) => {
+export const postGeneratedImageController = async (postingImage) => {
     try {
 
-        const user_id = req.userId;
+        const { inputPrompt, originalImageUrl, referenceImageUrl, generatedImageUrl, isFavorite } = postingImage;
+
+
+        const user_id = postingImage.user;
         //Security check 1
         if (!user_id) {
-            return res.status(401).json({ message: "Not authenticated" });
             console.log("Not authenticated");
+            return res.status(401).json({ message: "Not authenticated" });
         }
 
 
-
-        const { inputPrompt, originalImageUrl, referenceImageUrl, generatedImageUrl, isFavorite } = req.body;
-
-
-        const newPost = await GeneratedImage.create({
+        const newImage = await GeneratedImage.create({
             user: user_id,
             inputPrompt,
             originalImageUrl,
@@ -27,8 +27,11 @@ export const postGeneratedImageController = async (req, res) => {
             isFavorite
         })
 
+        // Deduct 50 credits for the workflow
+        await deductCredits(user_id, 50, "Generated Image");
 
-        return res.status(201).json(newPost);
+
+        return res.status(201).json({ message: "Image created successfully", image: newImage });
 
     } catch (error) {
         return res.status(500).json({ error: error.message });

@@ -1,4 +1,6 @@
+// /workspace/backend/src/models/billing system/Subscription.js
 import mongoose from 'mongoose';
+
 
 const subscriptionSchema = new mongoose.Schema(
   {
@@ -16,7 +18,7 @@ const subscriptionSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["active", "canceled", "expired", "trial", "past_due"], // ضفنا past_due لو الدفع فشل
+      enum: ["active", "canceled", "expired", "trial", "past_due"],
       index: true,
     },
     billingCycle: {
@@ -25,10 +27,15 @@ const subscriptionSchema = new mongoose.Schema(
       required: true,
       default: "monthly",
     },
-    // الـ Token الخاص بكارت العميل المربوط من بيموب عشان التجديد التلقائي
-    paymobCardToken: {
+    // Replace paymobCardToken with Fawaterak equivalent
+    fawaterkCardToken: {
       type: String,
-      select: false, // مخفي لزيادة الأمان
+      select: false, // Hidden for security
+    },
+    // Store Fawaterak customer ID for recurring billing
+    fawaterkCustomerId: {
+      type: String,
+      trim: true,
     },
     startDate: {
       type: Date,
@@ -42,7 +49,7 @@ const subscriptionSchema = new mongoose.Schema(
     renewalDate: {
       type: Date,
     },
-    cancelAtPeriodEnd: {  
+    cancelAtPeriodEnd: {
       type: Boolean,
       default: false,
     },

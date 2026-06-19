@@ -69,6 +69,7 @@ function prepareTemplateObject(object, materialAdjustments) {
 
     child.castShadow = !!enableShadows;
     child.receiveShadow = !!enableShadows;
+    child.frustumCulled = true;
   });
 
   computeTemplateBounds(object);
@@ -125,7 +126,8 @@ export default function GLBItemFactory(config) {
   const defaultWidth = size?.width || { length: 50, unit: "cm" };
   const defaultDepth = size?.depth || { length: 50, unit: "cm" };
   const defaultHeight = size?.height || { length: 50, unit: "cm" };
-  const cacheKey = name;
+  const cacheKey = `${String(modelFile || name)}::${emissiveIntensity}::${enableShadows}`;
+  const topViewUrl = info?.topViewUrl || null;
 
   return {
     name,
@@ -136,6 +138,7 @@ export default function GLBItemFactory(config) {
       tag: info.tag || ["furniture"],
       description: info.description || "",
       image: info.image,
+      topViewUrl,
     },
 
     properties: {
@@ -172,14 +175,39 @@ export default function GLBItemFactory(config) {
       const angle = element.rotation + 90;
       const textRotation = Math.sin((angle * Math.PI) / 180) < 0 ? 180 : 0;
 
+      if (topViewUrl) {
+        const boundingBoxStyle = {
+          fill: "none",
+          stroke: element.selected ? "#0096fd" : "rgba(15, 23, 42, 0.55)",
+          strokeWidth: element.selected ? "2px" : "1px",
+          vectorEffect: "non-scaling-stroke",
+        };
+
+        return (
+          <g transform={`translate(${-width / 2},${-depth / 2})`}>
+            <image
+              href={topViewUrl}
+              xlinkHref={topViewUrl}
+              x="0"
+              y="0"
+              width={width}
+              height={depth}
+              preserveAspectRatio="none"
+              transform={`translate(0, ${depth}) scale(1, -1)`}
+            />
+            <rect
+              x="0"
+              y="0"
+              width={width}
+              height={depth}
+              style={boundingBoxStyle}
+            />
+          </g>
+        );
+      }
+
       const defaultStyle = {
         stroke: element.selected ? "#0096fd" : "#000",
-        strokeWidth: "2px",
-        fill: style2D.fill || "#84e1ce",
-      };
-
-      const arrowStyle = {
-        stroke: element.selected ? "#0096fd" : null,
         strokeWidth: "2px",
         fill: style2D.fill || "#84e1ce",
       };
@@ -192,28 +220,9 @@ export default function GLBItemFactory(config) {
             y="0"
             width={width}
             height={depth}
+            rx="10"
+            ry="10"
             style={defaultStyle}
-          />
-          <line
-            x1={width / 2}
-            x2={width / 2}
-            y1={depth}
-            y2={1.5 * depth}
-            style={arrowStyle}
-          />
-          <line
-            x1={0.35 * width}
-            x2={width / 2}
-            y1={1.2 * depth}
-            y2={1.5 * depth}
-            style={arrowStyle}
-          />
-          <line
-            x1={width / 2}
-            x2={0.65 * width}
-            y1={1.5 * depth}
-            y2={1.2 * depth}
-            style={arrowStyle}
           />
           <text
             key="2"

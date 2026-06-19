@@ -25,10 +25,11 @@ export function selectItem(layerID, itemID) {
   }
 }
 
-export function selectToolDrawingItem(sceneComponentType) {
+export function selectToolDrawingItem(sceneComponentType, itemData = null) {
   return {
     type: SELECT_TOOL_DRAWING_ITEM,
-    sceneComponentType
+    sceneComponentType,
+    itemData,
   }
 }
 
@@ -88,10 +89,11 @@ export function endRotatingItem(x, y) {
   }
 }
 
-export function selectToolDrawingItem3D(sceneComponentType) {
+export function selectToolDrawingItem3D(sceneComponentType, itemData = null) {
   return {
     type: SELECT_TOOL_DRAWING_ITEM_3D,
-    sceneComponentType
+    sceneComponentType,
+    itemData,
   }
 }
 

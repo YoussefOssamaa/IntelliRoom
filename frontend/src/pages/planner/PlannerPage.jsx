@@ -45,7 +45,6 @@ const PlannerPage = () => {
     // Initialize plugins
     const plugins = [
       PlannerPlugins.Keyboard(),
-      PlannerPlugins.Autosave('react-planner_v1'),
       PlannerPlugins.ConsoleDebugger(),
     ];
 

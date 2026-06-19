@@ -4,6 +4,9 @@ import { BACKEND_URL } from "../../services/uploadImageService";
 import styles from "./uploadImagePage.module.css";
 import Header from "../../pages/dashboard/Header";
 import Footer from "../../components/common/Footer";
+import ProductCard from "./productCard.jsx";
+import Navigation from "../../components/common/Navigation";
+
 
 
 
@@ -382,13 +385,23 @@ function UploadImagePage() {
     if (referenceImageFile) formData.append("referenceImage", referenceImageFile);
 
     try {
-      const res = await axios.post(`${BACKEND_URL}/uploadImage`, formData, {
+      const res = await axios.post('/uploadImage', formData, {
         headers: { "Content-Type": "multipart/form-data" },
         withCredentials: true,
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          console.log(percentCompleted);
+        }
       });
+<<<<<<< HEAD
       // BACKEND_URL is e.g. "http://${process.env.VITE_API_URL_BACKEND_BASE}/api", enhancedImageUrl is "/api/comfyOutputs/<file>"
       const baseUrl = BACKEND_URL.replace(/\/api$/, '');
+=======
+      // baseUrl is e.g. "http://localhost:5000/api", enhancedImageUrl is "/uploads/comfyOutputs/<file>"
+      const baseUrl = import.meta.env.VITE_API_URL.replace(/\/api$/, '');
+>>>>>>> main
       setResultPreview(`${baseUrl}${res.data.enhancedImageUrl}`);
+      setMatchedProducts(res.data.matchedProducts);
       setIsSuccess(true);
     } catch (err) {
       setError(err.response?.data?.message || "Processing failed. Please try again.");
@@ -401,11 +414,10 @@ function UploadImagePage() {
   const handleDownload = async () => {
     if (!resultPreview) return;
     try {
-      const res = await fetch(resultPreview);
-      const blob = await res.blob();
+      const res = await axios.get(resultPreview, { responseType: 'blob' });
       const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = `IntelliRoomAI-${Date.now()}.jpg`;
+      a.href = URL.createObjectURL(res.data);
+      a.download = `IntelliRoom.net-${Date.now()}.png`;
       a.click();
       URL.revokeObjectURL(a.href);
     } catch { window.open(resultPreview, "_blank"); }
@@ -414,7 +426,7 @@ function UploadImagePage() {
 
   const handleFeaturedProducts = async () => {
     try {
-      const res = await axios.get(`${BACKEND_URL}/products/featuredProducts`);
+      const res = await axios.get(`/products/featuredProducts`);
       setFeaturedProducts(res.data);
     } catch (err) {
       console.log(err);
@@ -422,327 +434,274 @@ function UploadImagePage() {
   }
 
 
-  const handleMatchedProducts = async () => {
-    try {
-      const res = await axios.get(`${BACKEND_URL}/products/matchedProducts`);
-      setMatchedProducts(res.data);
-    } catch (err) {
-      console.log(err);
-    }
-
-  }
-
   /* ── step indicator ────────────────────────────────────── */
   const step = !imageFile ? 1 : !inputPrompt.trim() ? 2 : 3;
 
   return (
-    <div
-      className={styles.uploadImage_root}
-      data-theme={darkMode ? "dark" : "light"}
-    >
-      {/* Dark mode toggle */}
-      <button
-        className={styles.uploadImage_themeToggle}
-        onClick={() => setDarkMode(d => !d)}
-        title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
-        aria-label="Toggle colour theme"
+    <>
+      <Navigation />
+      <div
+        className={styles.uploadImage_root}
+        data-theme={darkMode ? "dark" : "light"}
       >
-        {darkMode ? <Icons.Sun size={17} /> : <Icons.Moon size={17} />}
-      </button>
 
-      <Header />
+        {/*     DARK MODE
+        <button
+          className={styles.uploadImage_themeToggle}
+          onClick={() => setDarkMode(d => !d)}
+          title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+          aria-label="Toggle colour theme"
+        >
+          {darkMode ? <Icons.Sun size={17} /> : <Icons.Moon size={17} />}
+        </button>
+        */}
 
-      <main className={styles.pageMainContainer}>
-        <section className={styles.editorialGrid}>
-          {/* Left Side: Room Enhancer Controls */}
-          <div className={styles.gridCol5}>
-            <div>
-              <span className={styles.eyebrow}>POWERED BY INTELLIGENCE</span>
-              <h1 className={styles.heroHeading}>Room Enhancer</h1>
-              <p className={styles.heroSubtext}>
-                Transform your living space with editorial-grade AI visualization. Upload your vision, define your style.
-              </p>
-            </div>
 
-            <div className={`${styles.cardContainer} ${styles.editorialShadow}`}>
-              {/* Feedback */}
-              {error && (
-                <div className={styles.uploadImage_errorMessage}>
-                  <Icons.Alert /> {error}
-                </div>
-              )}
-              {isSuccess && !error && (
-                <div className={styles.uploadImage_successMessage}>
-                  <Icons.Check /> Image generated successfully.
-                </div>
-              )}
-
-              {/* Upload Slots */}
-              <div className={styles.uploadSquaresGrid}>
-                <UploadZone
-                  label="Room Image"
-                  optional={false}
-                  preview={imagePreview}
-                  fileName={imageName}
-                  inputRef={mainRef}
-                  disabled={loading}
-                  icon={Icons.Image}
-                  onFile={(e) => processFile(e.target.files[0], setImageFile, setImagePreview, setImageName, true)}
-                  onClear={() => { setImageFile(null); setImagePreview(null); setImageName(""); setIsSuccess(false); setResultPreview(null); }}
-                />
-
-                <UploadZone
-                  label="Reference Style"
-                  optional={true}
-                  preview={referencePreview}
-                  fileName={referenceName}
-                  inputRef={referenceRef}
-                  disabled={loading}
-                  icon={Icons.Community}
-                  onFile={(e) => processFile(e.target.files[0], setReferenceImageFile, setReferencePreview, setReferenceName)}
-                  onClear={() => { setReferenceImageFile(null); setReferencePreview(null); setReferenceName(""); }}
-                />
+        <main className={styles.pageMainContainer}>
+          <section className={styles.editorialGrid}>
+            {/* Left Side: Room Enhancer Controls */}
+            <div className={styles.gridCol5}>
+              <div>
+                <span className={styles.eyebrow}>POWERED BY INTELLIGENCE</span>
+                <h1 className={styles.heroHeading}>Room Enhancer</h1>
+                <p className={styles.heroSubtext}>
+                  Transform your living space with editorial-grade AI visualization. Upload your vision, define your style.
+                </p>
               </div>
 
-              {/* Text Prompt Area */}
-              <div className={styles.textAreaContainer}>
-                <label className={styles.eyebrow}>Enhancement Prompt</label>
-                <textarea
-                  className={styles.enhancePrompt}
-                  placeholder="e.g., 'A Scandinavian minimalist living room with warm oak textures, floor-to-ceiling linen curtains, and soft afternoon sunlight...'"
-                  value={inputPrompt}
-                  onChange={(e) => setInputPrompt(e.target.value)}
-                  disabled={loading}
-                />
-              </div>
-
-              {/* Generate Button */}
-              <button
-                className={styles.generateBtn}
-                onClick={handleSubmit}
-                disabled={loading || !imageFile || !inputPrompt.trim()}
-              >
-                <Icons.Sparkles size={20} />
-                {loading ? "Generating Image..." : "Generate Image"}
-              </button>
-            </div>
-          </div>
-
-          {/* Right Side: Awaiting Your Creation / Result */}
-          <div className={styles.gridCol7}>
-            <div className={styles.canvasContainer}>
-              {resultPreview ? (
-                <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-                  <img src={resultPreview} alt="Generated result" className={styles.canvasResultImage} style={{ position: 'absolute' }} />
-                  <div style={{ position: "absolute", bottom: "1.5rem", right: "1.5rem", display: "flex", gap: "0.5rem", zIndex: 10 }}>
-                    <button className={styles.uploadImage_actionBtn} onClick={() => setShareOpen(o => !o)}>
-                      <Icons.Share size={13} /> Share
-                    </button>
-                    <button className={`${styles.uploadImage_actionBtn} ${styles.uploadImage_actionBtnAccent}`} onClick={handleDownload} style={{ background: 'var(--accent)', color: 'white', borderColor: 'transparent' }}>
-                      <Icons.Download size={13} /> Download
-                    </button>
-                    {shareOpen && (
-                      <ShareDropdown url={resultPreview} onClose={() => setShareOpen(false)} />
-                    )}
+              <div className={`${styles.cardContainer} ${styles.editorialShadow}`}>
+                {/* Feedback */}
+                {error && (
+                  <div className={styles.uploadImage_errorMessage}>
+                    <Icons.Alert /> {error}
                   </div>
+                )}
+                {isSuccess && !error && (
+                  <div className={styles.uploadImage_successMessage}>
+                    <Icons.Check /> Image generated successfully.
+                  </div>
+                )}
+
+                {/* Upload Slots */}
+                <div className={styles.uploadSquaresGrid}>
+                  <UploadZone
+                    label="Room Image"
+                    optional={false}
+                    preview={imagePreview}
+                    fileName={imageName}
+                    inputRef={mainRef}
+                    disabled={loading}
+                    icon={Icons.Image}
+                    onFile={(e) => processFile(e.target.files[0], setImageFile, setImagePreview, setImageName, true)}
+                    onClear={() => { setImageFile(null); setImagePreview(null); setImageName(""); setIsSuccess(false); setResultPreview(null); }}
+                  />
+
+                  <UploadZone
+                    label="Reference Style"
+                    optional={true}
+                    preview={referencePreview}
+                    fileName={referenceName}
+                    inputRef={referenceRef}
+                    disabled={loading}
+                    icon={Icons.Community}
+                    onFile={(e) => processFile(e.target.files[0], setReferenceImageFile, setReferencePreview, setReferenceName)}
+                    onClear={() => { setReferenceImageFile(null); setReferencePreview(null); setReferenceName(""); }}
+                  />
                 </div>
-              ) : (
-                <>
-                  <div className={styles.canvasEmpty}>
-                    <div className={styles.canvasIconShell}>
-                      <Icons.Bedroom />
+
+                {/* Text Prompt Area */}
+                <div className={styles.textAreaContainer}>
+                  <label className={styles.eyebrow}>Enhancement Prompt</label>
+                  <textarea
+                    className={styles.enhancePrompt}
+                    placeholder="e.g., 'A Scandinavian minimalist living room with warm oak textures, floor-to-ceiling linen curtains, and soft afternoon sunlight...'"
+                    value={inputPrompt}
+                    onChange={(e) => setInputPrompt(e.target.value)}
+                    disabled={loading}
+                  />
+                </div>
+
+                {/* Generate Button */}
+                <button
+                  className={styles.generateBtn}
+                  onClick={handleSubmit}
+                  disabled={loading || !imageFile || !inputPrompt.trim()}
+                >
+                  <Icons.Sparkles size={20} />
+                  {loading ? "Generating Image..." : "Generate Image"}
+                </button>
+              </div>
+            </div>
+
+            {/* Right Side: Awaiting Your Creation / Result */}
+            <div className={styles.gridCol7}>
+              <div className={styles.canvasContainer}>
+                {resultPreview ? (
+                  <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+                    <img src={resultPreview} alt="Generated result" className={styles.canvasResultImage} style={{ position: 'absolute' }} />
+                    <div style={{ position: "absolute", bottom: "1.5rem", right: "1.5rem", display: "flex", gap: "0.5rem", zIndex: 10 }}>
+                      <button className={styles.uploadImage_actionBtn} onClick={() => setShareOpen(o => !o)}>
+                        <Icons.Share size={13} /> Share
+                      </button>
+                      <button className={`${styles.uploadImage_actionBtn} ${styles.uploadImage_actionBtnAccent}`} onClick={handleDownload} style={{ background: 'var(--accent)', color: 'white', borderColor: 'transparent' }}>
+                        <Icons.Download size={13} /> Download
+                      </button>
+                      {shareOpen && (
+                        <ShareDropdown url={resultPreview} onClose={() => setShareOpen(false)} />
+                      )}
                     </div>
-                    <h3 className={styles.canvasEmptyTitle}>Awaiting your creation</h3>
-                    <p className={styles.canvasEmptyText}>
-                      Once you hit generate, your AI-enhanced room will materialize here with pixel-perfect lighting and texture.
-                    </p>
                   </div>
+                ) : (
+                  <>
+                    <div className={styles.canvasEmpty}>
+                      <div className={styles.canvasIconShell}>
+                        <Icons.Bedroom />
+                      </div>
+                      <h3 className={styles.canvasEmptyTitle}>Awaiting your creation</h3>
+                      <p className={styles.canvasEmptyText}>
+                        Once you hit generate, your AI-enhanced room will materialize here with pixel-perfect lighting and texture.
+                      </p>
+                    </div>
 
-                  {/* Decorative elements */}
-                  <div className={styles.canvasDecoTop}>
-                    <div className={styles.canvasDecoLine} />
-                    <span className={styles.canvasDecoText}>Canvas-01</span>
-                  </div>
-                  <div className={styles.canvasDecoBottom}>
-                    INTELLIROOM V4.2
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </section>
+                    {/* Decorative elements */}
+                    <div className={styles.canvasDecoTop}>
 
-
-
-        {/* Recommended for Your Space - Only show on success */}
-        {isSuccess == false && (
-          <section className={styles.recommendedSection}>
-            <div className={styles.recommendedHeader}>
-              <div>
-                <span className={styles.recommendedEyebrow}>CURATED COLLECTION</span>
-                <h2 className={styles.recommendedTitle}>Featured Products</h2>
-                <p className={styles.heroSubtext} style={{ fontSize: '1rem', margin: 0 }}>
-                  Discover the latest trends in home decor and furniture.
-                </p>
-              </div>
-              <div className={styles.navArrows}>
-                <button className={styles.navArrow}><Icons.Plus size={16} style={{ transform: "rotate(45deg)" }} /></button>
-                <button className={styles.navArrow}><Icons.Plus size={16} /></button>
-              </div>
-            </div>
-
-            <div className={styles.productGrid}>
-              <div className={styles.productCard}>
-                <div className={styles.productImageWrap}>
-                  <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuArw3Y8nseY4_hNfFn_K41TUmDGlLSE7wtL4ni56cojJUKEKYFz6tyhMfqzI5I3ZB6WbY9VzK0E1fDvQSM4Z4yshGuEYc__NwGmOz0RC_wIyx7NkzQBjBB1yDtBhIj3cUKRQAIY_Ny-b94jr__PadEkgEj8sd2Vcr5zTfdUbjXxa24EO_NU3XOxn18qLOD_ytkj4Jexv7_TzmzQ8BpuIQ8A0JJOOtkq6YxS9eFLfB9k0kjdy252YFR1vF2OhX7JFRu91I-3Hr8g1mY" alt="Modern Velvet Sofa" className={styles.productImage} />
-                  <div className={styles.productBadge}>New Arrival</div>
-                </div>
-                <div className={styles.productInfo}>
-                  <div>
-                    <h4 className={styles.productName}>Modern Velvet Sofa</h4>
-                    <span className={styles.productDesc}>Deep Emerald, Solid Oak</span>
-                  </div>
-                  <span className={styles.productPrice}>$2,450</span>
-                </div>
-                <div className={styles.productActions}>
-                  <button className={styles.viewDetailsBtn}>View Details</button>
-                  <button className={styles.addToCartBtn}><Icons.Plus size={16} /></button>
-                </div>
-              </div>
-
-              <div className={styles.productCard}>
-                <div className={styles.productImageWrap}>
-                  <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuApXzEKn3A_DQ5tG4VC7pg8lSkeMVWPx5ODKnfTbNJYS25_vRY-4D34WjYuJJ6QrwgwWs5q045agmXfyAK2folhYp-4u7IwjOiZwcvwsy_9KrrnmuxzhEnmfBI0O0RzRDFZVj8SGOJ2zK9DFM2Q48cbNglt1RGvL8A9eY03W6J5bveaMU1GKfgHfx1abje7tqsBZiA8uLJR4gYH354wXLKljke25HdW3fWP4ed7LZ2TDeZisvsgQgDy0eLGzIgR1TbGFRGHSqqCbYU" alt="Minimalist Floor Lamp" className={styles.productImage} />
-                  <div className={styles.productBadge}>Editor's Pick</div>
-                </div>
-                <div className={styles.productInfo}>
-                  <div>
-                    <h4 className={styles.productName}>Minimalist Lamp</h4>
-                    <span className={styles.productDesc}>Matte Black, Warm</span>
-                  </div>
-                  <span className={styles.productPrice}>$420</span>
-                </div>
-                <div className={styles.productActions}>
-                  <button className={styles.viewDetailsBtn}>View Details</button>
-                  <button className={styles.addToCartBtn}><Icons.Plus size={16} /></button>
-                </div>
-              </div>
-
-              <div className={styles.productCard}>
-                <div className={styles.productImageWrap}>
-                  <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEDvMHnFhpvYSxefHGYrjC2xNYvUmX8DSYkZi8GrflZW_NyoWuGOZ3shT8zlRsoiorpqb-Vx7wkPeR7bb-MT_iYn4hWJyByNqiDcGBw4tIzDE2lD_wQgaqhLFoNbGSVSyxtZWYM5bpFwVmpQN2dKbmd2Tkl8OPsTVj13YFNonrmXoJSKwIvu5PdCma1ZaJyX6UJlxgNmM2kxn8N_S0t6-zMAu92sVEO2MXODmkyOYlIlKVd1jR4Y0SbQLyyzj9AALzmSQuf0D0BMg" alt="Abstract Wool Rug" className={styles.productImage} />
-                  <div className={styles.productBadge}>Limited</div>
-                </div>
-                <div className={styles.productInfo}>
-                  <div>
-                    <h4 className={styles.productName}>Abstract Wool Rug</h4>
-                    <span className={styles.productDesc}>Organic Shape, Hand-Tufted</span>
-                  </div>
-                  <span className={styles.productPrice}>$1,200</span>
-                </div>
-                <div className={styles.productActions}>
-                  <button className={styles.viewDetailsBtn}>View Details</button>
-                  <button className={styles.addToCartBtn}><Icons.Plus size={16} /></button>
-                </div>
+                    </div>
+                    <div className={styles.canvasDecoBottom}>
+                      INTELLIROOM V1.0
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </section>
-        )}
 
 
 
-        {/* Recommended for Your Space - Only show on success */}
-        {isSuccess && (
-          <section className={styles.recommendedSection}>
-            <div className={styles.recommendedHeader}>
-              <div>
-                <span className={styles.recommendedEyebrow}>CURATED COLLECTION</span>
-                <h2 className={styles.recommendedTitle}>Recommended for Your Space</h2>
-                <p className={styles.heroSubtext} style={{ fontSize: '1rem', margin: 0 }}>
-                  AI-matched furniture and decor items that complement your generated room aesthetic.
-                </p>
+          {/* Recommended for Your Space - Only show on success */}
+          {isSuccess == false && (
+            <section className={styles.recommendedSection}>
+              <div className={styles.recommendedHeader}>
+                <div>
+                  <span className={styles.recommendedEyebrow}>CURATED COLLECTION</span>
+                  <h2 className={styles.recommendedTitle}>Featured Products</h2>
+                  <p className={styles.heroSubtext} style={{ fontSize: '1rem', margin: 0 }}>
+                    Discover the latest trends in home decor and furniture.
+                  </p>
+                </div>
+                <div className={styles.navArrows}>
+                  <button className={styles.navArrow}><Icons.Plus size={16} style={{ transform: "rotate(45deg)" }} /></button>
+                  <button className={styles.navArrow}><Icons.Plus size={16} /></button>
+                </div>
               </div>
-              <div className={styles.navArrows}>
-                <button className={styles.navArrow}><Icons.Plus size={16} style={{ transform: "rotate(45deg)" }} /></button>
-                <button className={styles.navArrow}><Icons.Plus size={16} /></button>
+
+              <div className={styles.productGrid}>
+                <div className={styles.productCard}>
+                  <div className={styles.productImageWrap}>
+                    <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuArw3Y8nseY4_hNfFn_K41TUmDGlLSE7wtL4ni56cojJUKEKYFz6tyhMfqzI5I3ZB6WbY9VzK0E1fDvQSM4Z4yshGuEYc__NwGmOz0RC_wIyx7NkzQBjBB1yDtBhIj3cUKRQAIY_Ny-b94jr__PadEkgEj8sd2Vcr5zTfdUbjXxa24EO_NU3XOxn18qLOD_ytkj4Jexv7_TzmzQ8BpuIQ8A0JJOOtkq6YxS9eFLfB9k0kjdy252YFR1vF2OhX7JFRu91I-3Hr8g1mY" alt="Modern Velvet Sofa" className={styles.productImage} />
+                    <div className={styles.productBadge}>New Arrival</div>
+                  </div>
+                  <div className={styles.productInfo}>
+                    <div>
+                      <h4 className={styles.productName}>Modern Velvet Sofa</h4>
+                      <span className={styles.productDesc}>Deep Emerald, Solid Oak</span>
+                    </div>
+                    <span className={styles.productPrice}>$2,450</span>
+                  </div>
+                  <div className={styles.productActions}>
+                    <button className={styles.viewDetailsBtn}>View Details</button>
+                    <button className={styles.addToCartBtn}><Icons.Plus size={16} /></button>
+                  </div>
+                </div>
+
+                <div className={styles.productCard}>
+                  <div className={styles.productImageWrap}>
+                    <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuApXzEKn3A_DQ5tG4VC7pg8lSkeMVWPx5ODKnfTbNJYS25_vRY-4D34WjYuJJ6QrwgwWs5q045agmXfyAK2folhYp-4u7IwjOiZwcvwsy_9KrrnmuxzhEnmfBI0O0RzRDFZVj8SGOJ2zK9DFM2Q48cbNglt1RGvL8A9eY03W6J5bveaMU1GKfgHfx1abje7tqsBZiA8uLJR4gYH354wXLKljke25HdW3fWP4ed7LZ2TDeZisvsgQgDy0eLGzIgR1TbGFRGHSqqCbYU" alt="Minimalist Floor Lamp" className={styles.productImage} />
+                    <div className={styles.productBadge}>Editor's Pick</div>
+                  </div>
+                  <div className={styles.productInfo}>
+                    <div>
+                      <h4 className={styles.productName}>Minimalist Lamp</h4>
+                      <span className={styles.productDesc}>Matte Black, Warm</span>
+                    </div>
+                    <span className={styles.productPrice}>$420</span>
+                  </div>
+                  <div className={styles.productActions}>
+                    <button className={styles.viewDetailsBtn}>View Details</button>
+                    <button className={styles.addToCartBtn}><Icons.Plus size={16} /></button>
+                  </div>
+                </div>
+
+                <div className={styles.productCard}>
+                  <div className={styles.productImageWrap}>
+                    <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEDvMHnFhpvYSxefHGYrjC2xNYvUmX8DSYkZi8GrflZW_NyoWuGOZ3shT8zlRsoiorpqb-Vx7wkPeR7bb-MT_iYn4hWJyByNqiDcGBw4tIzDE2lD_wQgaqhLFoNbGSVSyxtZWYM5bpFwVmpQN2dKbmd2Tkl8OPsTVj13YFNonrmXoJSKwIvu5PdCma1ZaJyX6UJlxgNmM2kxn8N_S0t6-zMAu92sVEO2MXODmkyOYlIlKVd1jR4Y0SbQLyyzj9AALzmSQuf0D0BMg" alt="Abstract Wool Rug" className={styles.productImage} />
+                    <div className={styles.productBadge}>Limited</div>
+                  </div>
+                  <div className={styles.productInfo}>
+                    <div>
+                      <h4 className={styles.productName}>Abstract Wool Rug</h4>
+                      <span className={styles.productDesc}>Organic Shape, Hand-Tufted</span>
+                    </div>
+                    <span className={styles.productPrice}>$1,200</span>
+                  </div>
+                  <div className={styles.productActions}>
+                    <button className={styles.viewDetailsBtn}>View Details</button>
+                    <button className={styles.addToCartBtn}><Icons.Plus size={16} /></button>
+                  </div>
+                </div>
               </div>
+            </section>
+          )}
+
+
+
+          {/* Recommended for Your Space - Only show on success */}
+          {isSuccess && (
+            <section className={styles.recommendedSection}>
+              <div className={styles.recommendedHeader}>
+                <div>
+                  <span className={styles.recommendedEyebrow}>AI MATCHED</span>
+                  <h2 className={styles.recommendedTitle}>Recommended for Your Space</h2>
+                  <p className={styles.heroSubtext} style={{ fontSize: '1rem', margin: 0 }}>
+                    Furniture and decor pieces that best match your enhanced room aesthetic.
+                  </p>
+                </div>
+                <div className={styles.navArrows}>
+                  <button className={styles.navArrow}><Icons.Plus size={16} style={{ transform: "rotate(45deg)" }} /></button>
+                  <button className={styles.navArrow}><Icons.Plus size={16} /></button>
+                </div>
+              </div>
+
+              <div className={styles.productGrid}>
+                {matchedProducts.length > 0 ? (
+                  matchedProducts.map((product) => (
+                    <ProductCard key={product._id} product={product} />
+                  ))
+                ) : (
+                  <p>No matching products found.</p>
+                )}
+              </div>
+            </section>
+          )}
+        </main>
+
+
+
+        <Footer />
+
+
+
+
+        {/* Toast */}
+        {
+          toast && (
+            <div className={styles.uploadImage_toast}>
+              <Icons.Check size={13} /> Link copied to clipboard
             </div>
-
-            <div className={styles.productGrid}>
-              <div className={styles.productCard}>
-                <div className={styles.productImageWrap}>
-                  <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuArw3Y8nseY4_hNfFn_K41TUmDGlLSE7wtL4ni56cojJUKEKYFz6tyhMfqzI5I3ZB6WbY9VzK0E1fDvQSM4Z4yshGuEYc__NwGmOz0RC_wIyx7NkzQBjBB1yDtBhIj3cUKRQAIY_Ny-b94jr__PadEkgEj8sd2Vcr5zTfdUbjXxa24EO_NU3XOxn18qLOD_ytkj4Jexv7_TzmzQ8BpuIQ8A0JJOOtkq6YxS9eFLfB9k0kjdy252YFR1vF2OhX7JFRu91I-3Hr8g1mY" alt="Modern Velvet Sofa" className={styles.productImage} />
-                  <div className={styles.productBadge}>New Arrival</div>
-                </div>
-                <div className={styles.productInfo}>
-                  <div>
-                    <h4 className={styles.productName}>Modern Velvet Sofa</h4>
-                    <span className={styles.productDesc}>Deep Emerald, Solid Oak</span>
-                  </div>
-                  <span className={styles.productPrice}>$2,450</span>
-                </div>
-                <div className={styles.productActions}>
-                  <button className={styles.viewDetailsBtn}>View Details</button>
-                  <button className={styles.addToCartBtn}><Icons.Plus size={16} /></button>
-                </div>
-              </div>
-
-              <div className={styles.productCard}>
-                <div className={styles.productImageWrap}>
-                  <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuApXzEKn3A_DQ5tG4VC7pg8lSkeMVWPx5ODKnfTbNJYS25_vRY-4D34WjYuJJ6QrwgwWs5q045agmXfyAK2folhYp-4u7IwjOiZwcvwsy_9KrrnmuxzhEnmfBI0O0RzRDFZVj8SGOJ2zK9DFM2Q48cbNglt1RGvL8A9eY03W6J5bveaMU1GKfgHfx1abje7tqsBZiA8uLJR4gYH354wXLKljke25HdW3fWP4ed7LZ2TDeZisvsgQgDy0eLGzIgR1TbGFRGHSqqCbYU" alt="Minimalist Floor Lamp" className={styles.productImage} />
-                  <div className={styles.productBadge}>Editor's Pick</div>
-                </div>
-                <div className={styles.productInfo}>
-                  <div>
-                    <h4 className={styles.productName}>Minimalist Lamp</h4>
-                    <span className={styles.productDesc}>Matte Black, Warm</span>
-                  </div>
-                  <span className={styles.productPrice}>$420</span>
-                </div>
-                <div className={styles.productActions}>
-                  <button className={styles.viewDetailsBtn}>View Details</button>
-                  <button className={styles.addToCartBtn}><Icons.Plus size={16} /></button>
-                </div>
-              </div>
-
-              <div className={styles.productCard}>
-                <div className={styles.productImageWrap}>
-                  <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEDvMHnFhpvYSxefHGYrjC2xNYvUmX8DSYkZi8GrflZW_NyoWuGOZ3shT8zlRsoiorpqb-Vx7wkPeR7bb-MT_iYn4hWJyByNqiDcGBw4tIzDE2lD_wQgaqhLFoNbGSVSyxtZWYM5bpFwVmpQN2dKbmd2Tkl8OPsTVj13YFNonrmXoJSKwIvu5PdCma1ZaJyX6UJlxgNmM2kxn8N_S0t6-zMAu92sVEO2MXODmkyOYlIlKVd1jR4Y0SbQLyyzj9AALzmSQuf0D0BMg" alt="Abstract Wool Rug" className={styles.productImage} />
-                  <div className={styles.productBadge}>Limited</div>
-                </div>
-                <div className={styles.productInfo}>
-                  <div>
-                    <h4 className={styles.productName}>Abstract Wool Rug</h4>
-                    <span className={styles.productDesc}>Organic Shape, Hand-Tufted</span>
-                  </div>
-                  <span className={styles.productPrice}>$1,200</span>
-                </div>
-                <div className={styles.productActions}>
-                  <button className={styles.viewDetailsBtn}>View Details</button>
-                  <button className={styles.addToCartBtn}><Icons.Plus size={16} /></button>
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-      </main>
-
-
-
-      <Footer />
-
-
-
-
-      {/* Toast */}
-      {
-        toast && (
-          <div className={styles.uploadImage_toast}>
-            <Icons.Check size={13} /> Link copied to clipboard
-          </div>
-        )
-      }
-    </div >
+          )
+        }
+      </div >
+    </>
   );
 }
 

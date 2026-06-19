@@ -86,6 +86,9 @@ const CameraDistanceWidget = ({
 
   // Cone vertices
   const tipX  = CAM_X + 8;   // right edge of camera icon
+  const nearX = tipX + 3;
+  const nearTopY = camY - 5;
+  const nearBotY = camY + 5;
   const topX  = TARGET_X;
   const topY  = targetY - spread;
   const botY  = targetY + spread;
@@ -176,6 +179,20 @@ const CameraDistanceWidget = ({
         height={WIDGET_H}
         viewBox={`0 0 ${WIDGET_W} ${WIDGET_H}`}
       >
+        <defs>
+          <linearGradient id="cdw-frustum-gradient" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.34" />
+            <stop offset="100%" stopColor="#22d3ee" stopOpacity="0.12" />
+          </linearGradient>
+          <filter id="cdw-soft-glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="2.2" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
         {/* Vertical track line */}
         <line
           x1={CAM_X} y1={PAD_TOP}
@@ -185,8 +202,13 @@ const CameraDistanceWidget = ({
 
         {/* Frustum fill */}
         <polygon
-          points={`${tipX},${camY} ${topX},${topY} ${topX},${botY}`}
+          points={`${nearX},${nearTopY} ${topX},${topY} ${topX},${botY} ${nearX},${nearBotY}`}
           className="cdw-frustum-fill"
+        />
+
+        <polygon
+          points={`${nearX},${nearTopY} ${topX},${topY} ${topX},${targetY} ${nearX},${camY}`}
+          className="cdw-frustum-plane"
         />
 
         {/* Frustum right edge (vertical line) */}
@@ -197,8 +219,10 @@ const CameraDistanceWidget = ({
         />
 
         {/* Frustum outline strokes */}
-        <line x1={tipX} y1={camY} x2={topX} y2={topY} className="cdw-frustum-stroke" />
-        <line x1={tipX} y1={camY} x2={topX} y2={botY} className="cdw-frustum-stroke" />
+        <line x1={nearX} y1={nearTopY} x2={topX} y2={topY} className="cdw-frustum-stroke" />
+        <line x1={nearX} y1={nearBotY} x2={topX} y2={botY} className="cdw-frustum-stroke" />
+        <line x1={nearX} y1={camY} x2={topX} y2={targetY} className="cdw-frustum-axis" />
+        <line x1={nearX} y1={nearTopY} x2={nearX} y2={nearBotY} className="cdw-frustum-edge subtle" />
 
         {/* ── Camera handle ── */}
         <g

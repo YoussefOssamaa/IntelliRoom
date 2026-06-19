@@ -99,18 +99,18 @@ export function PricingPlansPage() {
         </div>
 
         <div className="toggle-area">
-          <span className={`label-text ${!isAnnual ? 'active-text' : ''}`}>Monthly</span>
+          <span className={`label-text EGP {!isAnnual ? 'active-text' : ''}`}>Monthly</span>
 
           <div
-            className={`toggle-switch ${isAnnual ? 'active' : ''}`}
+            className={`toggle-switch EGP {isAnnual ? 'active' : ''}`}
             onClick={() => setIsAnnual(!isAnnual)}
           >
             <div className="switch-knob"></div>
           </div>
 
-          <span className={`label-text ${isAnnual ? 'active-text' : ''}`}>Annual</span>
+          <span className={`label-text EGP {isAnnual ? 'active-text' : ''}`}>Annual</span>
 
-          <span className={`save-badge ${isAnnual ? 'active-save-badge' : ''}`}>Save 17%</span>
+          <span className={`save-badge EGP {isAnnual ? 'active-save-badge' : ''}`}>Save 17%</span>
         </div>
 
         <div className='cards-container'>
@@ -120,7 +120,7 @@ export function PricingPlansPage() {
             return (
               <div
                 key={plan._id}
-                className={`card ${isCurrentPlan ? 'border-2 border-indigo-500' : ''}`}
+                className={`card EGP {isCurrentPlan ? 'border-2 border-indigo-500' : ''}`}
               >
                 <h3 className='plan-name'>
                   {plan.name}
@@ -133,7 +133,7 @@ export function PricingPlansPage() {
                 <p className='description'>{plan.description || ''}</p>
 
                 <div className="price-tag">
-                  ${plan.price}
+                  EGP {plan.price}
                   <span className="period">/{isAnnual ? 'year' : 'month'}</span>
                 </div>
 
@@ -159,7 +159,7 @@ export function PricingPlansPage() {
                   disabled={loadingPlan === plan._id || isCurrentPlan}
                   style={isCurrentPlan ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
                 >
-                  {isCurrentPlan ? 'Current Plan' : loadingPlan === plan._id ? 'Processing...' : `Choose ${plan.name}`}
+                  {isCurrentPlan ? 'Current Plan' : loadingPlan === plan._id ? 'Processing...' : `Choose EGP {plan.name}`}
                 </button>
               </div>
             );

@@ -11,15 +11,12 @@ import { PricingPlansPage } from "./pages/pricingPlans/PricingPlansPage";
 import { PluginReviewPage } from "./pages/plugins-review/PluginReviewPage";
 import UploadImagePage from "./pages/uploadImage/uploadImagePage";
 
-<<<<<<< HEAD
-import DashboardLayout from "./layouts/DashboardLayout";
+//import DashboardLayout from "./layouts/DashboardLayout";
 import DashboardPage from "./pages/dashboard/DashboardPage";
-import MyProjectsPage from "./pages/dashboard/MyProjectsPage";
-=======
+//import MyProjectsPage from "./pages/dashboard/MyProjectsPage";
 import PlannerPage from './pages/planner/PlannerPage';
 import { UpdateProfile } from './pages/updateProfile/updateProfile';
 import { Community } from './pages/community/community';
->>>>>>> subscription_Backend_Integration
 
 import LoginModal from "./pages/auth/login";
 import SignUpModal from "./pages/auth/signUp";
@@ -31,9 +28,6 @@ import ProductDetailsPage from "./pages/marketplace/ProductDetailsPage";
 import SpecialOffersPage from "./pages/marketplace/SpecialOffersPage";
 import AboutPage from "./pages/about/AboutPage";
 
-import PlannerPage from "./pages/planner/PlannerPage";
-import { UpdateProfile } from "./pages/updateProfile/updateProfile";
-import { Community } from "./pages/community/community";
 import Checkout from "./pages/checkout/Checkout";
 
 import { ShopProvider } from "./context/ShopContext";
@@ -76,13 +70,9 @@ const MarketplaceLayout = () => {
 const AppRoutes = () => {
   const hostname = window.location.hostname;
 
-<<<<<<< HEAD
   // فحص النطاق الفرعي للأدمن
   const isAdminSubdomain =
     hostname.split(".")[0] === "admin" || hostname === "admin.localhost";
-=======
-  const isAdminSubdomain = hostname.split(".")[0] === "admin" || hostname === "admin.localhost";
->>>>>>> subscription_Backend_Integration
 
   if (isAdminSubdomain) {
     return (
@@ -190,7 +180,7 @@ const AppRoutes = () => {
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <DashboardLayout />
+              <DashboardPage />
             </ProtectedRoute>
           }
         >
@@ -205,7 +195,7 @@ const AppRoutes = () => {
             the Outlet will swap to the MyProjectsPage. 
             Notice there is no "/" in front of "projects"!
           */}
-          <Route path="projects" element={<MyProjectsPage />} />
+          {/* <Route path="projects" element={<MyProjectsPage />} />
 
           {/* <Route path="settings" element={<SettingsPage />} /> */}
           {/* <Route path="community" element={<CommunityPage />} /> */}

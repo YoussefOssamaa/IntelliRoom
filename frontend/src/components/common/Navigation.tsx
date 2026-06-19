@@ -10,15 +10,15 @@ interface NavigationProps {
   isSticky?: boolean;
 }
 
-export default function Navigation({ progress, isSticky = false }: NavigationProps) {
+export default function Navigation({ progress = 0, isSticky = false }: NavigationProps) {
   const [scrolled, setScrolled] = useState(false);
   const { isLoggedIn, user, logout } = useAuth();
   const [isDroppedDownMenu, setDroppedDownMenu] = useState(false);
 
 
   const navigate = useNavigate();
-  const dropDownRef = useRef(null);
-
+  //const dropDownRef = useRef(null);
+  const dropDownRef = useRef<HTMLDivElement>(null);
 
   const handleToggleMenu = () => {
     setDroppedDownMenu(!isDroppedDownMenu);
@@ -53,8 +53,8 @@ export default function Navigation({ progress, isSticky = false }: NavigationPro
 
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropDownRef.current && !dropDownRef?.current?.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropDownRef.current && !dropDownRef.current.contains(event.target as Node)) {
         setDroppedDownMenu(false);
       }
     }

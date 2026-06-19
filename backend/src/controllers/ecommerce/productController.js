@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import Product from '../../models/ecommerceModels/product.js';
-import Category from '../../models/ecommerceModels/category.js'; 
+import Category from '../../models/ecommerceModels/category.js';
 import Room from '../../models/ecommerceModels/room.js';
 
 // @desc    Fetch all products (with filtering, sorting, and pagination)
@@ -8,14 +8,14 @@ import Room from '../../models/ecommerceModels/room.js';
 // @access  Public
 export const getProducts = async (req, res) => {
     try {
-        const { category, categories, room, inStockOnly, materials, colors, sort, search, minPrice, maxPrice, onSale } = req.query;
+        const { category, categories, room, inStockOnly, materials, colors, sort, search, minPrice, maxPrice } = req.query;
         let query = {};
 
-        // 1. Filter by Room (Translating slug to ObjectId)
+        // 1. Filter by Room (Translating slug to ObjectId!)
         if (room) {
             const roomDoc = await Room.findOne({ slug: room });
             if (roomDoc) {
-                query['categorization.rooms'] = roomDoc._id; 
+                query['categorization.rooms'] = roomDoc._id;
             } else {
                 // If the room doesn't exist, return an empty array immediately
                 return res.status(200).json({ success: true, count: 0, data: [] });
@@ -31,24 +31,26 @@ export const getProducts = async (req, res) => {
                 if (foundCategory) {
                     query['categorization.primary'] = foundCategory._id;
                 } else {
-                    query['categorization.primary'] = null; 
+                    query['categorization.primary'] = null;
                 }
             }
         }
 
+        // 3. Filter by SubCategories (Plural - for the Room Page sidebar checkboxes)
         if (categories) {
             const catNames = categories.split(',');
             // Find all matching category IDs in one go
             const foundCats = await Category.find({ name: { $in: catNames } });
             const catIds = foundCats.map(c => c._id);
-            
+
             if (catIds.length > 0) {
                 query['categorization.subCategory'] = { $in: catIds };
             } else {
-                query['categorization.subCategory'] = null; 
+                query['categorization.subCategory'] = null;
             }
         }
 
+        // 4. Filter by Price Ranges
         if (minPrice || maxPrice) {
             query['pricing.currentPrice'] = {};
             if (minPrice) query['pricing.currentPrice'].$gte = Number(minPrice);
@@ -66,29 +68,29 @@ export const getProducts = async (req, res) => {
 
         // 6. Filter by Materials
         if (materials) {
-            const materialsArray = materials.split(','); 
+            const materialsArray = materials.split(',');
             query['categorization.materials'] = { $in: materialsArray };
         }
 
         // 7. Filter by Colors
         if (colors) {
-            const colorsArray = colors.split(','); 
+            const colorsArray = colors.split(',');
             query['categorization.colors'] = { $in: colorsArray };
         }
 
         // 8. Search by Name
         if (search) {
-            query.name = { $regex: search, $options: 'i' }; 
+            query.name = { $regex: search, $options: 'i' };
         }
 
         // Handle Sorting
         let sortOption = {};
         switch (sort) {
             case 'Price: Low to High':
-                sortOption = { 'pricing.currentPrice': 1 }; 
+                sortOption = { 'pricing.currentPrice': 1 };
                 break;
             case 'Price: High to Low':
-                sortOption = { 'pricing.currentPrice': -1 }; 
+                sortOption = { 'pricing.currentPrice': -1 };
                 break;
             case 'Customer Rating':
                 sortOption = { 'social.averageRating': -1 };
@@ -97,7 +99,7 @@ export const getProducts = async (req, res) => {
                 sortOption = { name: 1 };
                 break;
             default:
-                sortOption = { createdAt: -1 }; 
+                sortOption = { createdAt: -1 };
         }
 
         // Execute the massive, perfectly structured query
@@ -154,17 +156,17 @@ export const getProductFormOptions = async (req, res) => {
         const colors = await Product.distinct('categorization.colors');
         const materials = await Product.distinct('categorization.materials');
         const categories = await Category.find({});
-        
+
         const roomsFromDB = await Room.find({ isActive: true });
-        const rooms = roomsFromDB.map(room => ({ 
-            _id: room._id, 
-            name: room.name 
-        })); 
+        const rooms = roomsFromDB.map(room => ({
+            _id: room._id,
+            name: room.name
+        }));
 
         res.status(200).json({
             success: true,
             data: {
-                colors: colors.filter(Boolean), 
+                colors: colors.filter(Boolean),
                 materials: materials.filter(Boolean),
                 rooms: rooms,
                 categories: categories
@@ -192,7 +194,7 @@ export const createProduct = async (req, res) => {
 
         const newProduct = new Product(productData);
         await newProduct.save();
-        
+
         res.status(201).json({ success: true, data: newProduct });
     } catch (err) {
         return res.status(500).json({ success: false, message: err.message });
@@ -209,7 +211,7 @@ export const updateProduct = async (req, res) => {
                 const primaryMatch = await Category.findOne({ name: updateData.categorization.primary });
                 if (primaryMatch) updateData.categorization.primary = primaryMatch._id;
             }
-            
+
             if (typeof updateData.categorization.subCategory === 'string' && updateData.categorization.subCategory.trim() !== '') {
                 const subMatch = await Category.findOne({ name: updateData.categorization.subCategory });
                 if (subMatch) updateData.categorization.subCategory = subMatch._id;
@@ -217,8 +219,8 @@ export const updateProduct = async (req, res) => {
         }
 
         const updatedProduct = await Product.findByIdAndUpdate(id, updateData, {
-            new: true, 
-            runValidators: true 
+            new: true,
+            runValidators: true
         });
 
         if (!updatedProduct) {
@@ -234,9 +236,9 @@ export const updateProduct = async (req, res) => {
 export const deleteProduct = async (req, res) => {
     try {
         const { id } = req.params;
-        
+
         const deletedProduct = await Product.findByIdAndDelete(id);
-        
+
         if (!deletedProduct) {
             return res.status(404).json({ success: false, message: "Product not found" });
         }

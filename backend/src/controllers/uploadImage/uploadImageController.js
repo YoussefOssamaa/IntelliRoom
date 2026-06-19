@@ -108,7 +108,7 @@ export const postImageController = async (req, res) => {
             console.log("THIS IS THE RECOMMENDED IMAGE URLS", recommendedImagesArray)
 
             /*
-                the arrey looks like this: 
+                the array looks like this: 
                 [   'img1080.png',
                 'img0870.png',
                 'img0600.png',

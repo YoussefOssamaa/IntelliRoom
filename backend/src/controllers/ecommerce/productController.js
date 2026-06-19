@@ -8,11 +8,10 @@ import Room from '../../models/ecommerceModels/room.js';
 // @access  Public
 export const getProducts = async (req, res) => {
     try {
-        // 🚀 THE FIX: Added categories (plural), minPrice, and maxPrice
-        const { category, categories, room, inStockOnly, materials, colors, sort, search, minPrice, maxPrice } = req.query;
+        const { category, categories, room, inStockOnly, materials, colors, sort, search, minPrice, maxPrice, onSale } = req.query;
         let query = {};
 
-        // 1. 🚀 Filter by Room (Translating slug to ObjectId!)
+        // 1. Filter by Room (Translating slug to ObjectId)
         if (room) {
             const roomDoc = await Room.findOne({ slug: room });
             if (roomDoc) {
@@ -37,7 +36,6 @@ export const getProducts = async (req, res) => {
             }
         }
 
-        // 3. 🚀 Filter by SubCategories (Plural - for the Room Page sidebar checkboxes)
         if (categories) {
             const catNames = categories.split(',');
             // Find all matching category IDs in one go
@@ -51,11 +49,14 @@ export const getProducts = async (req, res) => {
             }
         }
 
-        // 4. 🚀 Filter by Price Ranges
         if (minPrice || maxPrice) {
             query['pricing.currentPrice'] = {};
             if (minPrice) query['pricing.currentPrice'].$gte = Number(minPrice);
             if (maxPrice) query['pricing.currentPrice'].$lte = Number(maxPrice);
+        }
+
+        if (onSale === 'true') {
+            query['pricing.isOnSale'] = true;
         }
 
         // 5. Filter by Availability

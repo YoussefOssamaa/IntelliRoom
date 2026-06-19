@@ -24,6 +24,7 @@ import healthcontroller from './controllers/healthcontroller.js'
 import adminRoutes from './routes/adminRoutes/adminIndex.js';
 import adminDashboardRoutes from './routes/adminRoutes/dashboardIndex.js';
 import subscribtionRoutes from './routes/subscribtionRoutes/subscribtionIndex.js';
+import pricingPlansRoutes from './routes/pricingPlansRoutes/pricingPlansRoutes.js';
 
 import render3DIndex from './routes/render3DRoutes/render3DIndex.js'
 import categoryRoutes from './routes/ecommerceRoutes/categoryRoutes.js';
@@ -84,6 +85,7 @@ app.use('/api/generatedImage', generatedImageIndex)
 app.use('/api/categories', categoryRoutes);
 app.use('/api/rooms', roomRoutes);
 app.use('/api/order', orderRoutes);
+app.use('/api/pricingPlans', pricingPlansRoutes);
 
 
 

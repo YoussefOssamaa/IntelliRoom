@@ -393,13 +393,8 @@ function UploadImagePage() {
           console.log(percentCompleted);
         }
       });
-<<<<<<< HEAD
-      // BACKEND_URL is e.g. "http://${process.env.VITE_API_URL_BACKEND_BASE}/api", enhancedImageUrl is "/api/comfyOutputs/<file>"
-      const baseUrl = BACKEND_URL.replace(/\/api$/, '');
-=======
       // baseUrl is e.g. "http://localhost:5000/api", enhancedImageUrl is "/uploads/comfyOutputs/<file>"
       const baseUrl = import.meta.env.VITE_API_URL.replace(/\/api$/, '');
->>>>>>> main
       setResultPreview(`${baseUrl}${res.data.enhancedImageUrl}`);
       setMatchedProducts(res.data.matchedProducts);
       setIsSuccess(true);

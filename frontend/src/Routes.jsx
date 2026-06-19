@@ -11,9 +11,15 @@ import { PricingPlansPage } from "./pages/pricingPlans/PricingPlansPage";
 import { PluginReviewPage } from "./pages/plugins-review/PluginReviewPage";
 import UploadImagePage from "./pages/uploadImage/uploadImagePage";
 
+<<<<<<< HEAD
 import DashboardLayout from "./layouts/DashboardLayout";
 import DashboardPage from "./pages/dashboard/DashboardPage";
 import MyProjectsPage from "./pages/dashboard/MyProjectsPage";
+=======
+import PlannerPage from './pages/planner/PlannerPage';
+import { UpdateProfile } from './pages/updateProfile/updateProfile';
+import { Community } from './pages/community/community';
+>>>>>>> subscription_Backend_Integration
 
 import LoginModal from "./pages/auth/login";
 import SignUpModal from "./pages/auth/signUp";
@@ -49,12 +55,15 @@ import AdminOrdersPage from "./pages/marketplace/admin/AdminOrdersPage";
 import SearchInput from "./components/common/SearchInput";
 import AdminRoomFormPage from "./pages/marketplace/admin/AdminRoomFormPage";
 
-// استدعاءات لوحة تحكم الأدمن (كودك)
 import AdminLogin from "./pages/admin/AdminLogin";
 import UsersDashboard from "./pages/admin/UsersDashboard";
 import ManageAdmins from "./pages/admin/ManageAdmins";
 import AdminLogs from "./pages/admin/AdminLogs";
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
+import AdminPlansPage from "./pages/admin/AdminPlansPage";
+import PaymentSuccess from './pages/payment/PaymentSuccess';
+import PaymentFailed from './pages/payment/PaymentFailed';
+
 const MarketplaceLayout = () => {
   return (
     <ShopProvider>
@@ -67,9 +76,13 @@ const MarketplaceLayout = () => {
 const AppRoutes = () => {
   const hostname = window.location.hostname;
 
+<<<<<<< HEAD
   // فحص النطاق الفرعي للأدمن
   const isAdminSubdomain =
     hostname.split(".")[0] === "admin" || hostname === "admin.localhost";
+=======
+  const isAdminSubdomain = hostname.split(".")[0] === "admin" || hostname === "admin.localhost";
+>>>>>>> subscription_Backend_Integration
 
   if (isAdminSubdomain) {
     return (
@@ -82,6 +95,7 @@ const AppRoutes = () => {
               <Route path="/dashboard/users" element={<UsersDashboard />} />
               <Route path="/manage-admins" element={<ManageAdmins />} />
               <Route path="/logs" element={<AdminLogs />} />
+              <Route path="/plans" element={<AdminPlansPage />} />
             </Route>
           </Route>
 
@@ -112,6 +126,8 @@ const AppRoutes = () => {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/marketplace" element={<MarketplacePage />} />
         <Route path="/pricingPlans" element={<PricingPlansPage />} />
+        <Route path="/payment-success" element={<PaymentSuccess />} />
+        <Route path="/payment-failed" element={<PaymentFailed />} />
         <Route path="/pluginReview/:id" element={<PluginReviewPage />} />
 
         <Route element={<MarketplaceLayout />}>
@@ -131,10 +147,7 @@ const AppRoutes = () => {
           <Route path="/ecomm/checkout" element={<CheckoutPage />} />
         </Route>
 
-        {/* The Private Admin Dashboard */}
         <Route path="/ecomm/admin" element={<AdminLayout />}>
-          {/* <Route index element={<AdminOverview />} /> */}
-
           <Route
             index
             element={
@@ -203,12 +216,10 @@ const AppRoutes = () => {
           element={<PluginReviewPage />}
         />
         <Route path="/upload" element={<UploadImagePage />} />
-        {/* <Route path="/dashboard" element={<DashboardPage />} /> */}
         <Route path="/updateProfile" element={<UpdateProfile />} />
         <Route path="/planner" element={<PlannerPage />} />
         <Route path="/planner/:projectId" element={<PlannerPage />} />
         <Route path="/community" element={<Community />} />
-        <Route path="/checkout" element={<Checkout />} />
       </Routes>
     </Router>
   );

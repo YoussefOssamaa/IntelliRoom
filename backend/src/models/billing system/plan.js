@@ -29,12 +29,12 @@ const planSchema = new mongoose.Schema(
     renderLimit: {
       type: Number,
       required: true,
-      min: 0,
+      min: -1,
     },
     model3DLimit: {
       type: Number,
       required: true,
-      min: 0,
+      min: -1,
     },
     availableFeatures: {
       type: [String],

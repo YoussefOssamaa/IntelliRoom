@@ -1,9 +1,9 @@
 import express from 'express';
 import  protect  from '../../middleware/protect.middleware.js';
-import { getMySubscription, subscribePlan, unsubscribePlan, changePlan, createPaymobCheckout, paymobWebhook } from '../../controllers/subscribtion/subscribtionController.js';
+import { getMySubscription, subscribePlan, unsubscribePlan, changePlan, createFawaterkCheckout, fawaterkWebhook } from '../../controllers/subscribtion/subscribtionController.js';
 const router = express.Router();
 
-router.post('/webhook', paymobWebhook);
+router.post('/webhook', fawaterkWebhook);
 
 router.use(protect)
 
@@ -15,6 +15,6 @@ router.post('/unsubscribe', unsubscribePlan)
 
 router.post('/changePlan', changePlan)
 
-router.post('/checkout', createPaymobCheckout);
+router.post('/checkout', createFawaterkCheckout);
 
 export default router;

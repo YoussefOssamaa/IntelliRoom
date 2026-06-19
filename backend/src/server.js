@@ -25,6 +25,7 @@ import adminRoutes from './routes/adminRoutes/adminIndex.js';
 import adminDashboardRoutes from './routes/adminRoutes/dashboardIndex.js';
 import subscribtionRoutes from './routes/subscribtionRoutes/subscribtionIndex.js';
 import pricingPlansRoutes from './routes/pricingPlansRoutes/pricingPlansRoutes.js';
+import planRoutes from './routes/planRoutes.js';
 
 import render3DIndex from './routes/render3DRoutes/render3DIndex.js'
 import categoryRoutes from './routes/ecommerceRoutes/categoryRoutes.js';
@@ -57,6 +58,7 @@ export const comfyUIServiceInstance = new ComfyUIService(COMFYUI_HOST);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin/dashboard', adminDashboardRoutes);
 app.use('/api/subscription', subscribtionRoutes);
+app.use('/api/plans', planRoutes);
 
 app.use('/api/ecommerce', ecommerceIndex);
 app.use('/api/design2D3D', design2D3Dndex);

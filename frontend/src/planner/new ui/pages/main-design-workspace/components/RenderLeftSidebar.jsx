@@ -10,7 +10,7 @@ const RESOLUTION_OPTIONS = [
   { id: '8k', label: '8K', value: '8000 × 4000' },
 ];
 
-const ROOM_TYPE_OPTIONS = [
+export const ROOM_TYPE_OPTIONS = [
   { id: 'bedroom', label: 'Bedroom', accent: 'bedroom' },
   { id: 'living room', label: 'Living Room', accent: 'living-room' },
   { id: 'kitchen', label: 'Kitchen', accent: 'kitchen' },

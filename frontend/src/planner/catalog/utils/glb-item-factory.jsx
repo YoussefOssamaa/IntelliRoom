@@ -193,7 +193,7 @@ export default function GLBItemFactory(config) {
               width={width}
               height={depth}
               preserveAspectRatio="none"
-              transform={`translate(0, ${depth}) scale(1, -1)`}
+              transform={`translate(0, ${depth}) scale(1, -1) rotate(180 ${width / 2} ${depth / 2})`}
             />
             <rect
               x="0"

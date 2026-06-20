@@ -24,6 +24,134 @@ const getItemBoundingBoxSize = (item) => ({
   depth: Number(item?.properties?.getIn?.(['depth', 'length']) || 100),
 });
 
+const getItemAxisAlignedBox = (item, x = item?.x || 0, y = item?.y || 0) => {
+  const { width, depth } = getItemBoundingBoxSize(item);
+  const rotation = Number(item?.rotation || 0);
+  const corners = getBoundingBoxAnchors(x, y, width, depth, rotation)
+    .filter((anchor) => anchor.role.includes('-'));
+  const xs = corners.map((corner) => corner.x);
+  const ys = corners.map((corner) => corner.y);
+
+  return {
+    minX: Math.min(...xs),
+    maxX: Math.max(...xs),
+    minY: Math.min(...ys),
+    maxY: Math.max(...ys),
+  };
+};
+
+const findLineInScene = (state, preferredLayerID, lineID) => {
+  if (!lineID) return null;
+
+  const readLine = (layerID) => {
+    const line = state.getIn?.(['scene', 'layers', layerID, 'lines', lineID]);
+    if (!line) return null;
+    const vertices = line.get('vertices');
+    const v0 = state.getIn(['scene', 'layers', layerID, 'vertices', vertices.get(0)]);
+    const v1 = state.getIn(['scene', 'layers', layerID, 'vertices', vertices.get(1)]);
+    if (!v0 || !v1) return null;
+
+    return {
+      line,
+      x1: v0.x,
+      y1: v0.y,
+      x2: v1.x,
+      y2: v1.y,
+      thickness: Number(line.getIn(['properties', 'thickness', 'length']) || 20),
+    };
+  };
+
+  const preferredLine = readLine(preferredLayerID);
+  if (preferredLine) return preferredLine;
+
+  const layers = state.getIn?.(['scene', 'layers']);
+  if (!layers?.forEach) return null;
+
+  let foundLine = null;
+  layers.forEach((_, layerID) => {
+    if (foundLine) return;
+    foundLine = readLine(layerID);
+  });
+
+  return foundLine;
+};
+
+const getSnapTargetPoint = (state, layerID, snapResult, anchor, itemCenter) => {
+  const snap = snapResult?.snap;
+  const point = snapResult?.point;
+  if (!snap || !point || snap.type !== 'line-segment') {
+    return point;
+  }
+
+  const relatedLineID = snap.related?.get?.(0);
+  const wall = findLineInScene(state, layerID, relatedLineID);
+  if (!wall) return point;
+
+  const dx = wall.x2 - wall.x1;
+  const dy = wall.y2 - wall.y1;
+  const length = Math.sqrt(dx * dx + dy * dy);
+  if (length < 0.0001) return point;
+
+  const normalA = { x: -dy / length, y: dx / length };
+  const side =
+    (itemCenter.x - point.x) * normalA.x + (itemCenter.y - point.y) * normalA.y >= 0
+      ? 1
+      : -1;
+  const edgeOffset = Math.max(0, wall.thickness / 2);
+
+  return {
+    x: point.x + normalA.x * side * edgeOffset,
+    y: point.y + normalA.y * side * edgeOffset,
+    distance: Math.sqrt(
+      Math.pow(anchor.x - (point.x + normalA.x * side * edgeOffset), 2) +
+      Math.pow(anchor.y - (point.y + normalA.y * side * edgeOffset), 2),
+    ),
+  };
+};
+
+const resolveItemOverlaps = (state, layerID, itemID, item, x, y) => {
+  const layerItems = state.getIn?.(['scene', 'layers', layerID, 'items']);
+  if (!layerItems?.forEach) return { x, y };
+
+  let resolvedX = x;
+  let resolvedY = y;
+
+  for (let pass = 0; pass < 8; pass += 1) {
+    let moved = false;
+    const movingBox = getItemAxisAlignedBox(item, resolvedX, resolvedY);
+
+    layerItems.forEach((otherItem, otherItemID) => {
+      if (otherItemID === itemID || !otherItem) return;
+
+      const otherBox = getItemAxisAlignedBox(otherItem);
+      const overlapX =
+        Math.min(movingBox.maxX, otherBox.maxX) -
+        Math.max(movingBox.minX, otherBox.minX);
+      const overlapY =
+        Math.min(movingBox.maxY, otherBox.maxY) -
+        Math.max(movingBox.minY, otherBox.minY);
+
+      if (overlapX <= 0 || overlapY <= 0) return;
+
+      moved = true;
+      const movingCenterX = (movingBox.minX + movingBox.maxX) / 2;
+      const movingCenterY = (movingBox.minY + movingBox.maxY) / 2;
+      const otherCenterX = (otherBox.minX + otherBox.maxX) / 2;
+      const otherCenterY = (otherBox.minY + otherBox.maxY) / 2;
+
+      if (overlapX <= overlapY) {
+        resolvedX += (movingCenterX < otherCenterX ? -1 : 1) * (overlapX + 0.01);
+      } else {
+        resolvedY += (movingCenterY < otherCenterY ? -1 : 1) * (overlapY + 0.01);
+      }
+    });
+
+    if (!moved) break;
+  }
+
+  return { x: resolvedX, y: resolvedY };
+};
+
 const getBoundingBoxAnchors = (x, y, width, depth, rotation = 0) => {
   const halfWidth = width / 2;
   const halfDepth = depth / 2;
@@ -49,17 +177,21 @@ const getBoundingBoxAnchors = (x, y, width, depth, rotation = 0) => {
   ];
 };
 
-const applyBoundingBoxSnap = (state, item, x, y) => {
+const applyBoundingBoxSnap = (state, item, x, y, layerID = null, itemID = null) => {
   const snapElements = state.get('snapElements');
-  if (!state.snapMask || state.snapMask.isEmpty() || !snapElements?.size) {
-    return { x, y, activeSnapElement: null };
-  }
-
+  let activeSnapElement = null;
+  let snappedX = x;
+  let snappedY = y;
   const { width, depth } = getItemBoundingBoxSize(item);
   const rotation = Number(item?.rotation || 0);
   const anchors = getBoundingBoxAnchors(x, y, width, depth, rotation);
 
-  let bestSnap = null;
+  if (!state.snapMask || state.snapMask.isEmpty() || !snapElements?.size) {
+    const resolved = resolveItemOverlaps(state, layerID, itemID, item, x, y);
+    return { ...resolved, activeSnapElement: null };
+  }
+
+  let bestSnapCandidate = null;
   let deltaX = 0;
   let deltaY = 0;
 
@@ -72,18 +204,51 @@ const applyBoundingBoxSnap = (state, item, x, y) => {
     );
 
     if (!snap) return;
+    if (
+      anchor.role === 'center' &&
+      (snap.snap.type === 'line' || snap.snap.type === 'line-segment')
+    ) {
+      return;
+    }
 
-    if (!bestSnap || snap.point.distance < bestSnap.point.distance) {
-      bestSnap = snap;
-      deltaX = snap.point.x - anchor.x;
-      deltaY = snap.point.y - anchor.y;
+    const targetPoint = getSnapTargetPoint(
+      state,
+      layerID,
+      snap,
+      anchor,
+      { x, y },
+    );
+    const distance = Math.sqrt(
+      Math.pow(targetPoint.x - anchor.x, 2) +
+      Math.pow(targetPoint.y - anchor.y, 2),
+    );
+
+    if (!bestSnapCandidate || distance < bestSnapCandidate.distance) {
+      bestSnapCandidate = { snap: snap.snap, point: targetPoint, distance };
+      deltaX = targetPoint.x - anchor.x;
+      deltaY = targetPoint.y - anchor.y;
     }
   });
 
+  if (bestSnapCandidate) {
+    snappedX = x + deltaX;
+    snappedY = y + deltaY;
+    activeSnapElement = bestSnapCandidate.snap;
+  }
+
+  const resolved = resolveItemOverlaps(
+    state,
+    layerID,
+    itemID,
+    item,
+    snappedX,
+    snappedY,
+  );
+
   return {
-    x: x + deltaX,
-    y: y + deltaY,
-    activeSnapElement: bestSnap ? bestSnap.snap : null,
+    x: resolved.x,
+    y: resolved.y,
+    activeSnapElement,
   };
 };
 
@@ -173,7 +338,14 @@ class Item{
     if (state.hasIn(['drawingSupport','currentID'])) {
       const currentID = state.getIn(['drawingSupport','currentID']);
       const currentItem = state.getIn(['scene', 'layers', layerID, 'items', currentID]);
-      ({ x, y, activeSnapElement } = applyBoundingBoxSnap(state, currentItem, x, y));
+      ({ x, y, activeSnapElement } = applyBoundingBoxSnap(
+        state,
+        currentItem,
+        x,
+        y,
+        layerID,
+        currentID,
+      ));
       state = state.updateIn(
         ['scene', 'layers', layerID, 'items', currentID],
         item => item.merge({x, y})
@@ -191,7 +363,14 @@ class Item{
         0,
         extractPersistedItemData(state.get('drawingSupport')),
       );
-      ({ x, y, activeSnapElement } = applyBoundingBoxSnap(stateI, item, x, y));
+      ({ x, y, activeSnapElement } = applyBoundingBoxSnap(
+        stateI,
+        item,
+        x,
+        y,
+        layerID,
+        item.id,
+      ));
       stateI = stateI.updateIn(
         ['scene', 'layers', layerID, 'items', item.id],
         currentItem => currentItem.merge({x, y})
@@ -267,7 +446,7 @@ class Item{
       x: snappedX,
       y: snappedY,
       activeSnapElement,
-    } = applyBoundingBoxSnap(state, item, item.x, item.y));
+    } = applyBoundingBoxSnap(state, item, item.x, item.y, layerID, itemID));
 
     item = item.merge({
       x: snappedX,

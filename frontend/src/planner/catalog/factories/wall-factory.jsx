@@ -96,14 +96,14 @@ export default function WallFactory(name, info, textures) {
     wallElement.properties.textureA = {
       label: translator.t('Finishes') + ' A',
       type: 'enum',
-      defaultValue: textureValues.bricks ? 'bricks' : 'none',
+      defaultValue: 'none',
       values: textureValues
     };
 
     wallElement.properties.textureB = {
       label: translator.t('Finishes') + ' B',
       type: 'enum',
-      defaultValue: textureValues.bricks ? 'bricks' : 'none',
+      defaultValue: 'none',
       values: textureValues
     };
 

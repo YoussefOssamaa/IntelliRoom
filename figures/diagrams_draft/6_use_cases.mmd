@@ -1,0 +1,34 @@
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor': '#f4f4f4', 'edgeLabelBackground':'#ffffff', 'tertiaryColor': '#e2e8f0'}}}%%
+flowchart LR
+    Guest(["fa:fa-user Guest"])
+    RegUser(["fa:fa-user-circle Registered User"])
+    
+    subgraph ECOMMERCE [E-Commerce & Community]
+        direction TB
+        UC1(Browse Catalog)
+        UC2(View Gallery Posts)
+        UC3(Interact: Like/Comment)
+        UC4(Manage Cart/Checkout)
+    end
+    
+    subgraph AI [AI Design & Recommendation]
+        direction TB
+        UC5(Upload Room Photo)
+        UC6(Generate Redesign)
+        UC7(Get Furniture Recommendations)
+        UC8(Manage Design Projects)
+    end
+    
+    Guest --> UC1
+    Guest --> UC2
+    
+    RegUser --> UC1
+    RegUser --> UC2
+    RegUser --> UC3
+    RegUser --> UC4
+    RegUser --> UC5
+    RegUser --> UC6
+    RegUser --> UC7
+    RegUser --> UC8
+    
+    Guest -.->|Upgrade needed| RegUser

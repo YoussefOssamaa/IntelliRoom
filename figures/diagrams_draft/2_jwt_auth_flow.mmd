@@ -1,0 +1,31 @@
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor': '#f4f4f4', 'edgeLabelBackground':'#ffffff', 'tertiaryColor': '#e2e8f0'}}}%%
+sequenceDiagram
+    actor Client
+    participant API as Node.js Backend
+    participant DB as MongoDB
+    
+    Client->>API: POST /api/auth/login (email, password)
+    API->>DB: Verify credentials & password hash
+    DB-->>API: Valid User
+    
+    API->>API: Generate RS256 Auth Token (15m)<br/>signed with AuthPrivate.pem
+    API->>API: Generate RS256 Refresh Token (7d)<br/>signed with RefreshPrivate.pem
+    
+    API->>DB: Store Refresh Token hash in DB
+    
+    API->>Client: Set httpOnly cookies (Authentication, Refresh)
+    
+    note over Client,API: Subsequent Request
+    Client->>API: GET /api/protected (sends cookies)
+    API->>API: Verify Auth Token via AuthPublic.pem
+    API-->>Client: 200 OK Response
+    
+    note over Client,API: Token Expiration Flow
+    Client->>API: GET /api/protected (Auth Token Expired)
+    API-->>Client: 401 Unauthorized
+    
+    Client->>API: POST /api/auth/refresh (sends Refresh cookie)
+    API->>DB: Validate Refresh Token
+    API->>API: Generate new Auth & Refresh Tokens
+    API->>DB: Invalidate old Refresh Token, store new
+    API->>Client: Set new httpOnly cookies

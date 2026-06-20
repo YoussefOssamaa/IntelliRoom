@@ -1,0 +1,23 @@
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor': '#f4f4f4', 'edgeLabelBackground':'#ffffff', 'tertiaryColor': '#e2e8f0'}}}%%
+flowchart LR
+    subgraph LOCAL [Local Control Plane - Host Machine]
+        ORCH[FastAPI Orchestrator]
+        SNAP[Semantic Snapper<br/>Tier-2 Alias Map & N-Gram]
+        CHROMA[(ChromaDB<br/>Cosine Space)]
+        
+        ORCH --> SNAP
+        ORCH --> CHROMA
+    end
+    
+    subgraph REMOTE [Remote Inference Plane - GPU Server]
+        KAPI[Remote FastAPI]
+        DET[RT-DETR r50vd<br/>Object Detection]
+        EMB[SigLIP2 so400m<br/>Visual Embedding]
+        TAG[Qwen3-VL 4B<br/>Taxonomy Tagging]
+        
+        KAPI --> DET
+        KAPI --> EMB
+        KAPI --> TAG
+    end
+    
+    ORCH <-->|zrok Public Tunnel| KAPI

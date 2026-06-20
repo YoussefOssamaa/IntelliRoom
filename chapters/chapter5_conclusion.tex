@@ -5,7 +5,7 @@
 \chapter{Conclusion and Future Work}
 \label{chap:conclusion}
 
-This chapter summarizes the achievements of the IntelliRoom project to date and documents the current implementation status as of January 2026. It also outlines expected outcomes upon project completion and presents the roadmap for remaining development phases.
+This chapter summarizes the achievements of the IntelliRoom project and documents the current implementation status as of May 2026. It also outlines expected outcomes upon project completion and presents the roadmap for remaining development phases.
 
 % ============================================================================
 \section{Project Summary}
@@ -27,14 +27,15 @@ Key market findings:
 
 \subsection{Technical Architecture Implementation}
 
-A robust three-tier architecture has been designed and partially implemented:
+A robust three-tier architecture has been designed and implemented:
 \begin{itemize}
-    \item \textbf{Frontend:} React.js-based web application with component architecture (structure complete)
+    \item \textbf{Frontend:} React.js-based web application with component architecture (multiple screens complete)
     \item \textbf{Backend:} Node.js/Express REST API with modular organization (complete)
     \item \textbf{Database:} MongoDB 7 with Mongoose ODM (complete)
+    \item \textbf{Authentication:} Asymmetric JWT (RS256) with cookie sessions and refresh token rotation (complete)
     \item \textbf{AI Engine:} ComfyUI integration with REST API polling (complete)
-    \item \textbf{AI Service:} Python FastAPI with PyTorch/Transformers (scaffolded)
-    \item \textbf{Containerization:} Docker Compose development environment (complete)
+    \item \textbf{AI Recommendation Service:} Python FastAPI orchestrator with ChromaDB, RT-DETR, SigLIP2, and Qwen3-VL 4B via remote GPU backend (complete)
+    \item \textbf{Containerization:} Docker Compose development and production environments (complete)
 \end{itemize}
 
 \subsection{Implementation Achievements}
@@ -47,7 +48,7 @@ The following components have been fully implemented:
         \item E-commerce routes: Products, categories, cart, orders, wishlist
         \item Design 2D routes: Projects, floor plans, 3D assets
         \item Upload routes: Image processing with ComfyUI integration
-        \item Authentication routes: Signup implemented; login endpoints disabled
+        \item Authentication routes: Full JWT (RS256) login, register, refresh, and logout with httpOnly cookie sessions
         \item Plugin Marketplace routes: Community plugins with CRUD, ratings, reviews
         \item Contact routes: Contact form submission handling
     \end{itemize}
@@ -82,11 +83,22 @@ The following components have been fully implemented:
         \item Loading and error state handling
     \end{itemize}
     
+    \item \textbf{AI Vector Recommendation Engine:}
+    \begin{itemize}
+        \item Two-plane architecture: local FastAPI orchestrator + remote GPU inference server
+        \item RT-DETR r50vd for furniture detection and crop extraction
+        \item SigLIP2 so400m for 1152-dimensional visual embeddings
+        \item Qwen3-VL 4B Instruct for taxonomy tagging (selected via ablation study over 2B/4B/8B variants)
+        \item ChromaDB vector database with cosine similarity search and metadata filtering
+        \item Semantic taxonomy snapper with character n-gram cosine similarity and color alias mapping
+        \item Offline catalog ingestion and online room-photo search pipelines
+    \end{itemize}
+    
     \item \textbf{Docker Development Environment:}
     \begin{itemize}
         \item Dev container for frontend/backend (ports 3000, 5000)
         \item MongoDB 7 container (port 27017/27018)
-        \item AI service container configuration
+        \item AI recommendation service container (port 7860)
         \item Persistent volume for database
     \end{itemize}
 \end{enumerate}
@@ -115,17 +127,23 @@ Table~\ref{tab:impl_summary} summarizes the current implementation status by com
         \hline
         ComfyUI Integration & 100\% & REST API, upload, workflow, download \\
         \hline
-        Docker Configuration & 100\% & Dev containers ready \\
+        Docker Configuration & 100\% & Dev and production containers ready \\
         \hline
-        User Authentication & 33\% & Signup implemented; login endpoints disabled; JWT pending \\
+        User Authentication & 100\% & JWT RS256 with refresh rotation, cookie sessions \\
         \hline
         Plugin Marketplace & 100\% & Full CRUD with ratings, reviews, pricing \\
         \hline
         Contact Form & 100\% & Contact submission handling \\
         \hline
-        Frontend Structure & 60\% & React app, routing, Marketplace screen \\
+        Frontend Structure & 70\% & React app, routing, multiple screens \\
         \hline
-        AI Model Integration & 100\% & ComfyUI workflows complete, models integrated \\
+        AI Recommendation Engine & 100\% & Two-plane architecture with ChromaDB \\
+        \hline
+        RT-DETR Detection & 100\% & Furniture crop extraction (remote GPU backend) \\
+        \hline
+        SigLIP2 Embeddings & 100\% & 1152-d visual similarity vectors \\
+        \hline
+        Qwen3-VL Tagging & 100\% & Taxonomy metadata generation \\
         \hline
         SAM2 Segmentation & 100\% & Complete (ComfyUI workflow) \\
         \hline
@@ -133,11 +151,13 @@ Table~\ref{tab:impl_summary} summarizes the current implementation status by com
         \hline
         ControlNet Generation & 100\% & Complete (multiple workflows) \\
         \hline
+        Flux2Klein 4B & 100\% & Apache 2.0 licensed generation workflows \\
+        \hline
         Cultural LoRA Models & 0\% & Planned \\
         \hline
-        Payment Integration & 0\% & Planned \\
+        Payment Integration & 100\% & Complete (Fawaterk gateway integration) \\
         \hline
-        \textbf{Overall Progress} & \textbf{58\%} & Based on requirements completion \\
+        \textbf{Overall Progress} & \textbf{86\%} & Based on requirements completion \\
         \hline
     \end{tabularx}
 \end{table}
@@ -146,12 +166,13 @@ Table~\ref{tab:impl_summary} summarizes the current implementation status by com
 
 The current codebase includes:
 \begin{itemize}
-    \item \textbf{Backend:} 20+ JavaScript files across controllers, models, routes, and services
-    \item \textbf{API Endpoints:} 30+ REST endpoints implemented
-    \item \textbf{Database Collections:} 12+ MongoDB schemas
+    \item \textbf{Backend:} 30+ JavaScript files across controllers, models, routes, and services
+    \item \textbf{API Endpoints:} 35+ REST endpoints implemented
+    \item \textbf{Database Collections:} 14+ MongoDB schemas
     \item \textbf{ComfyUI Service:} 350+ lines handling REST API communication and polling
-    \item \textbf{Frontend:} React.js application with 10+ components and screens
-    \item \textbf{Docker:} 2 compose files, 2 Dockerfiles
+    \item \textbf{AI Orchestrator:} 1500+ lines of Python (local orchestrator + remote GPU server)
+    \item \textbf{Frontend:} React.js application with 15+ components and screens
+    \item \textbf{Docker:} 2 compose files, 3 Dockerfiles (frontend, backend, AI service)
 \end{itemize}
 
 % ============================================================================
@@ -176,9 +197,12 @@ A fully operational web-based interior design platform enabling Egyptian and MEN
 
 The project demonstrates:
 \begin{itemize}
-    \item Successful integration of state-of-the-art AI models (SAM2, Florence-2, ControlNet) for interior design applications
+    \item Successful integration of state-of-the-art AI models (SAM2, Florence-2, RT-DETR, SigLIP2, Qwen3-VL, ControlNet, Flux2Klein 4B) for interior design applications
     \item Real-time AI workflow execution via ComfyUI REST API integration
-    \item Custom LoRA model training for cultural style adaptation
+    \item A novel two-plane architecture for GPU inference via zrok tunneling to a dedicated GPU server
+    \item Vector database-powered furniture recommendation using visual similarity and taxonomy-constrained metadata filtering
+    \item Custom LoRA model training for cultural style adaptation (in progress)
+    \item Empirical model selection via ablation study (Qwen3-VL 2B/4B/8B comparison)
     \item Novel Egyptian furniture retrieval framework connecting AI-generated designs to local marketplace
 \end{itemize}
 
@@ -202,11 +226,11 @@ The remaining project phases will follow a structured implementation plan, build
 
 \textbf{Priority Tasks:}
 \begin{itemize}
-    \item Complete user authentication with JWT
-    \item Build frontend UI components for design workflow
+    \item Conduct usability testing on the finalized frontend admin and marketplace tools
     \item Implement before/after comparison visualization
     \item Deploy user engagement features (gamification during generation)
-    \item Create design generation workflow UI connecting to completed ComfyUI pipelines
+    \item Finalize design generation workflow UI connecting to completed ComfyUI pipelines
+    \item Integrate recommendation engine results into the frontend product display
 \end{itemize}
 
 \subsection{Phase 3: Cultural Customization and Marketplace}
@@ -215,8 +239,8 @@ The remaining project phases will follow a structured implementation plan, build
 \begin{itemize}
     \item Train custom LoRA models for Egyptian/Arabic styles
     \item Connect furniture recommendations to marketplace
-    \item Implement payment integration (Fawry, InstaPay)
-    \item Build community gallery sharing features
+    \item Refine billing system, subscription lifecycle management, and invoice tracking
+    \item Scale out recommendation engine instances to support higher concurrency
     \item Complete plugin marketplace integration
 \end{itemize}
 
@@ -288,17 +312,19 @@ Beyond the graduation project scope, IntelliRoom has potential for significant f
 \section{Concluding Remarks}
 \label{sec:concluding}
 
-The IntelliRoom project represents a significant step toward democratizing interior design through AI technology while respecting cultural identity. The completed backend infrastructure and ComfyUI integration provide a solid foundation for the AI-powered design generation features.
+The IntelliRoom project represents a significant step toward democratizing interior design through AI technology while respecting cultural identity. The completed backend infrastructure, authentication system, ComfyUI integration, and AI vector recommendation engine provide a comprehensive foundation for the platform's core value proposition.
 
 Key accomplishments:
 \begin{itemize}
     \item Comprehensive market analysis validating the business opportunity
-    \item Complete backend API with 20+ endpoints
+    \item Complete backend API with 35+ endpoints including secure JWT authentication
     \item Full e-commerce functionality ready for marketplace integration
-    \item ComfyUI integration enabling AI workflow execution
+    \item Operational AI recommendation engine with vector similarity search and taxonomy-constrained metadata filtering
+    \item ComfyUI integration enabling AI workflow execution with multiple specialized workflows
+    \item Flux2Klein 4B integration under Apache 2.0 license for commercial deployment
     \item Docker-based development environment for team collaboration
 \end{itemize}
 
-The project is on track to deliver a functional prototype demonstrating the core value proposition: AI-powered interior design with Egyptian and Arabic cultural awareness. The remaining work focuses on AI model integration and frontend development, building upon the solid infrastructure already in place.
+The project is on track to deliver a functional prototype demonstrating the core value proposition: AI-powered interior design with Egyptian and Arabic cultural awareness. The remaining work focuses on frontend development and cultural LoRA fine-tuning, building upon the solid AI and backend infrastructure already in place.
 
 By addressing the specific needs of Egyptian and MENA users, including cultural aesthetics, local furniture sourcing, and Egyptian Pound pricing, IntelliRoom aims to establish a new category of culturally-intelligent design tools that respect and celebrate regional identity while leveraging cutting-edge AI technology.

@@ -1,0 +1,18 @@
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor': '#f4f4f4', 'edgeLabelBackground':'#ffffff', 'tertiaryColor': '#e2e8f0'}}}%%
+flowchart TD
+    U[User Client / React.js] --> API[Node.js Express API Gateway]
+    
+    subgraph BACKEND [Backend Infrastructure]
+        API --> DB[(MongoDB Database)]
+        API --> AUTH[JWT Auth Service]
+        API --> COMM[E-commerce & Community]
+    end
+    
+    subgraph AI_PIPELINE [AI Processing & Recommendation]
+        API <-->|REST Polling| COMFY[ComfyUI Workflow Engine<br/>Stable Diffusion, ControlNet, SAM2]
+        API <-->|HTTP API| ORCH[Python FastAPI Orchestrator<br/>Local Control Plane]
+        
+        ORCH <--> CHROMA[(ChromaDB Vector Store)]
+        
+        ORCH <-->|zrok Secure Tunnel| GPU[Remote GPU Inference Server<br/>RT-DETR, SigLIP2, Qwen3-VL]
+    end

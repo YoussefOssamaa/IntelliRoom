@@ -1,0 +1,24 @@
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor': '#f4f4f4', 'edgeLabelBackground':'#ffffff', 'tertiaryColor': '#e2e8f0'}}}%%
+flowchart TD
+    START([Start Ingestion Job]) --> SCAN[Scan furniture_assets/ directory]
+    SCAN --> LOOP{For each image}
+    
+    LOOP -->|Next Image| DETECT[POST /detect<br/>Extract furniture crops]
+    
+    DETECT --> CROP_LOOP{For each crop}
+    
+    CROP_LOOP -->|Process Crop| PARALLEL[Parallel Execution via remote API]
+    
+    PARALLEL --> EMBED[POST /embed_b64<br/>SigLIP2 Vector]
+    PARALLEL --> TAG[POST /tag_b64<br/>Qwen3-VL Taxonomy]
+    
+    EMBED --> NORM[Normalize 1152-d Vector]
+    TAG --> SNAP[Semantic Snapper<br/>Map to allowed taxonomy]
+    SNAP --> FLAT[Flatten List Metadata to CSV]
+    
+    NORM --> UPSERT
+    FLAT --> UPSERT
+    
+    UPSERT[(Upsert to ChromaDB)] --> CROP_LOOP
+    CROP_LOOP -->|No more crops| LOOP
+    LOOP -->|No more images| END([Print Ingestion Summary])

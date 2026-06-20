@@ -39,7 +39,7 @@ The implemented architecture consists of the following layers:
         \item \textbf{E-commerce Service:} Product catalog, shopping cart, orders, categories, wishlist management
         \item \textbf{Design 2D Service:} Project management, floor planning, 3D asset handling
         \item \textbf{Upload Service:} Image upload with ComfyUI processing integration
-        \item \textbf{Authentication Service:} User registration (signup) implemented; login and token refresh flows planned and currently disabled in routes
+        \item \textbf{Authentication Service:} Complete JWT-based authentication with asymmetric RS256 signing, refresh token rotation, and cookie-based session management
         \item \textbf{Plugin Marketplace Service:} Community plugins with CRUD operations, ratings, and reviews
         \item \textbf{Contact Service:} Contact form submission handling
     \end{itemize}
@@ -48,7 +48,7 @@ The implemented architecture consists of the following layers:
     \begin{itemize}
         \item \textbf{ComfyUI Engine:} Node-based engine executing complex generative workflows including Stable Diffusion, ControlNet, and SAM2.
         \item \textbf{Direct Integration:} The Node.js backend communicates directly with the ComfyUI API to trigger workflows and retrieve results.
-        \item \textbf{AI Service Container:} A Python-based FastAPI service is scaffolded for future custom model serving.
+        \item \textbf{AI Recommendation Service:} A Python-based FastAPI orchestrator running locally, connected to a remote GPU inference server via zrok tunneling. Uses RT-DETR for detection, SigLIP2 for embeddings, Qwen3-VL for taxonomy tagging, and ChromaDB for vector storage and retrieval.
     \end{itemize}
     
     \item \textbf{Data Layer:} MongoDB 7 document database with Mongoose ODM:
@@ -70,11 +70,11 @@ The system is orchestrated using Docker Compose with the following services:
 
 The Compose configuration defines a development container that runs the React frontend and Node.js backend with live source mounting and port exposure for both services. It depends on a MongoDB 7 database container that is configured with authentication, persistent storage, and a dedicated bridge network. A named volume is used to ensure database persistence across restarts.
 
-\subsection{AI Service Container}
+\subsection{AI Recommendation Service}
 
-A separate Docker configuration handles the AI processing service:
+A separate Docker configuration handles the AI recommendation service:
 
-The AI container definition is scaffolded with a lightweight Python runtime, system build tools, and project dependencies. The configuration targets a Uvicorn entrypoint on port 8000, but the FastAPI application module is not yet present in the repository. This service remains planned until the app entrypoint is implemented.
+The AI container runs a Python 3.12 runtime with FastAPI and Uvicorn serving the local orchestrator on port 7860. Dependencies are managed via \texttt{pyproject.toml} with \texttt{uv} as the package manager. The service provides three endpoints: \texttt{/health} for status monitoring, \texttt{/search} for room-photo-to-recommendation queries, and \texttt{/ingest/single} for incremental catalog ingestion. ChromaDB data is persisted via a local volume mount. The remote GPU inference plane is accessed through a zrok public tunnel, configured via the \texttt{REMOTE\_GPU\_BASE\_URL} environment variable.
 
 % ============================================================================
 \section{Backend API Architecture}
@@ -157,11 +157,15 @@ Table~\ref{tab:api_endpoints} documents the implemented REST API endpoints.
     \hline
     POST & / & Upload image for AI processing \\
     \hline
-    \multicolumn{3}{|c|}{\textbf{Authentication Routes}} \\
+    \multicolumn{3}{|c|}{\textbf{Authentication Routes (/api/auth)}} \\
     \hline
-    POST & /api/auth/login & User login (currently disabled in code) \\
+    POST & /api/auth/login & User login with JWT (RS256) cookie session \\
     \hline
-    POST & /api/signup & User registration with username, email, password \\
+    POST & /api/auth/register & User registration with bcrypt password hashing \\
+    \hline
+    POST & /api/auth/refresh & Refresh expired auth token using refresh cookie \\
+    \hline
+    POST & /api/auth/logout & Invalidate session and clear auth cookies \\
     \hline
     \multicolumn{3}{|c|}{\textbf{Plugin Marketplace Routes (/api/plugins)}} \\
     \hline
@@ -175,6 +179,32 @@ Table~\ref{tab:api_endpoints} documents the implemented REST API endpoints.
     \hline
     DELETE & /:id & Delete plugin (author-only) \\
     \hline
+    \multicolumn{3}{|c|}{\textbf{Subscription \& Billing Routes (/api/subscription)}} \\
+    \hline
+    GET & /me & Get current active subscription and usage limits \\
+    \hline
+    POST & /subscribe & Subscribe to a new pricing plan \\
+    \hline
+    POST & /change-plan & Upgrade or downgrade active plan \\
+    \hline
+    POST & /fawaterk-webhook & Secure webhook endpoint for Fawaterk integration \\
+    \hline
+    \multicolumn{3}{|c|}{\textbf{Administrative Routes (/api/admin)}} \\
+    \hline
+    GET & /users & List all registered users (admin only) \\
+    \hline
+    GET & /logs & View system and authentication logs \\
+    \hline
+    GET & /plans & Manage available pricing plans \\
+    \hline
+    \multicolumn{3}{|c|}{\textbf{User Profile \& Community (/api/updateProfile, /api/community)}} \\
+    \hline
+    PUT & /updateProfile & Update user profile information \\
+    \hline
+    GET & /community/posts & Fetch public gallery posts with pagination \\
+    \hline
+    POST & /contact & Submit a new contact/support inquiry \\
+    \hline
     \multicolumn{3}{|c|}{\textbf{Contact Routes (/api/contact)}} \\
     \hline
     POST & / & Submit contact form message \\
@@ -186,6 +216,26 @@ Table~\ref{tab:api_endpoints} documents the implemented REST API endpoints.
 The main server entry point configures Express with middleware and route mounting:
 
 The server initializes environment variables, connects to MongoDB, enables JSON parsing and CORS, and exposes static directories for uploaded images and generated outputs at \texttt{/api/uploads} and \texttt{/api/comfyOutputs}. It mounts domain routes for e-commerce, design, and uploads, then starts listening on a configurable port. The ComfyUI integration is instantiated during startup using a configurable host address.
+
+\subsection{Authentication Architecture}
+\label{subsec:auth_architecture}
+
+The IntelliRoom backend implements an asymmetric JWT authentication system using the RS256 algorithm. Separate RSA key pairs are used for authentication tokens (15-minute TTL) and refresh tokens (7-day TTL). Tokens are delivered via \texttt{httpOnly}, \texttt{secure}, \texttt{sameSite=none} cookies to prevent XSS and CSRF attacks. Figure~\ref{fig:jwt_auth_flow} illustrates the complete authentication lifecycle including token refresh and rotation.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1.0\textwidth]{figures/2_jwt_auth_flow.png}
+    \caption{JWT Authentication Flow: RS256 token generation, cookie-based session management, and refresh token rotation sequence.}
+    \label{fig:jwt_auth_flow}
+\end{figure}
+
+Key security features of the authentication implementation include:
+\begin{itemize}
+    \item \textbf{Asymmetric Signing:} Private keys sign tokens; public keys verify them, enabling microservice-compatible verification without sharing secrets.
+    \item \textbf{Refresh Token Rotation:} Each refresh invalidates the previous token and issues a new pair, limiting the window of token compromise.
+    \item \textbf{Input Validation:} All authentication inputs are validated with Zod schemas before processing.
+    \item \textbf{Credit Management:} The login handler integrates a monthly credit reset system that automatically refreshes free-tier user balances every 30 days.
+\end{itemize}
 
 % ============================================================================
 \section{Database Design}
@@ -357,6 +407,17 @@ The Contact schema stores contact form submissions:
 
 Contact records capture the sender's name, email, subject line, and message body. Automatic timestamps enable follow-up tracking and support queue management.
 
+\subsubsection{Subscription and Billing Schemas}
+
+To support premium subscription tiers and usage tracking, four MongoDB schemas are implemented:
+
+\begin{itemize}
+    \item \textbf{Plan Schema:} Stores pricing and feature tier configurations. Key fields include the tier name (free, pro, or enterprise), price in EGP, currency, Fawaterk product mappings, and specific tier limits (renderLimit, model3DLimit) along with available features.
+    \item \textbf{Subscription Schema:} Manages active customer subscriptions. It references the user and plan, tracking subscription status (active, canceled, expired, trial, or past\_due), billing cycle (monthly or yearly), validity dates, and Fawaterk tokens for recurring billing.
+    \item \textbf{Payment Schema:} Tracks all invoice transactions. It records the associated user, subscription, payment gateway provider (Fawaterk), gateway order identifiers, transaction status (pending, paid, failed, or refunded), amount, and payment timestamp.
+    \item \textbf{Usage Schema:} Implements runtime throttling. It tracks consumed and remaining renders for the active billing cycle.
+\end{itemize}
+
 % ============================================================================
 \section{ComfyUI Integration Service}
 \label{sec:comfyui}
@@ -393,28 +454,144 @@ Image uploads are sent to the ComfyUI upload endpoint with optional subfolder pl
 The repository includes ComfyUI workflow definitions that are imported and executed by the ComfyUI engine. These workflow files serve as the reference implementations for generation tasks and can be executed directly in ComfyUI.
 
 % ============================================================================
-\section{AI Pipeline Architecture}
+\section{AI Vector Recommendation Engine}
 \label{sec:ai_pipeline}
 
-The planned AI generation pipeline will leverage the ComfyUI infrastructure with advanced models for interior design transformation.
+The AI recommendation engine enables users to upload a room photograph and receive visually similar furniture recommendations from a curated catalog. The system employs a two-plane architecture that separates resource-intensive GPU inference from lightweight control logic.
 
-\subsection{Planned Pipeline Stages}
+\subsection{Two-Plane Architecture}
+
+The recommendation system is split into two cooperating services, as illustrated in Figure~\ref{fig:two_plane_arch}.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1.0\textwidth]{figures/3_two_plane_architecture.png}
+    \caption{Two-Plane Architecture: Local control plane (FastAPI orchestrator, ChromaDB, Semantic Snapper) communicates with the remote GPU inference plane (RT-DETR, SigLIP2, Qwen3-VL) via a zrok public tunnel.}
+    \label{fig:two_plane_arch}
+\end{figure}
 
 \begin{enumerate}
-    \item \textbf{Input Processing:} Room photograph upload, validation, and preprocessing
-    \item \textbf{Object Detection:} Florence-2 model for room type and furniture identification
-    \item \textbf{Semantic Segmentation:} SAM2 for precise furniture and room element masks
-    \item \textbf{Style Configuration:} User-selected cultural style presets (Arabic, Egyptian)
-    \item \textbf{Generative Transformation:} ControlNet-guided style transfer with structure preservation
-    \item \textbf{Compositing:} Seamless blending and quality enhancement
-    \item \textbf{Output Generation:} Multiple design variations with furniture recommendations
+    \item \textbf{Local Control Plane} (\texttt{intelliroom\_local\_orchestrator.py}): A FastAPI application running on the host machine that orchestrates the end-to-end pipeline. It manages the ChromaDB vector database, applies taxonomy normalization via a semantic snapper, builds metadata query filters, and exposes the public API endpoints (\texttt{/health}, \texttt{/search}, \texttt{/ingest/single}).
+    
+    \item \textbf{Remote Inference Plane} (GPU Server): A FastAPI server running on a dedicated GPU-accelerated instance, exposed to the local orchestrator through a \textbf{zrok} public tunnel. This plane hosts three inference models:
+    \begin{itemize}
+        \item \textbf{RT-DETR r50vd:} Real-time Detection Transformer for furniture bounding box extraction and crop generation.
+        \item \textbf{SigLIP2 so400m:} Vision encoder producing normalized 1152-dimensional embedding vectors for visual similarity search.
+        \item \textbf{Qwen3-VL 4B Instruct:} Vision-language model that generates structured taxonomy metadata (color, material, style, room fit, complementary styles) and natural-language descriptions from furniture crop images.
+    \end{itemize}
 \end{enumerate}
+
+The local orchestrator communicates with the remote plane via HTTP through the zrok tunnel. A custom header (\texttt{skip\_zrok\_interstitial}) bypasses the zrok landing page for programmatic access.
+
+\subsection{VLM Model Selection: Qwen3-VL Ablation Study}
+\label{subsec:vlm_selection}
+
+To select the optimal vision-language model for taxonomy tagging, an ablation study was conducted across three Qwen3-VL variants on representative furniture images. The evaluation criteria were: (1) JSON format compliance (the model must output valid JSON without markdown fences or extraneous text), (2) semantic accuracy of predicted attributes, and (3) inference latency on the GPU inference server.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Qwen3-VL Model Comparison for Furniture Taxonomy Tagging}
+    \label{tab:vlm_comparison}
+    \begin{tabularx}{\textwidth}{|p{3cm}|p{2cm}|p{2cm}|X|}
+        \hline
+        \textbf{Model} & \textbf{Latency} & \textbf{JSON Valid} & \textbf{Notes} \\
+        \hline
+        Qwen3-VL 2B & 9s & \texttimes{} Failed & Prepends \texttt{json} markdown fence; parse fails at char 0 \\
+        \hline
+        Qwen3-VL 4B & 18s & \checkmark{} Pass & Clean JSON output; accurate color/material/style; good complementary tags \\
+        \hline
+        Qwen3-VL 8B & 23.5s & \checkmark{} Pass & Slightly richer complementary tags; 31\% slower than 4B for marginal gain \\
+        \hline
+    \end{tabularx}
+\end{table}
+
+The 2B variant consistently failed JSON parsing due to prepending a \texttt{json} markdown fence before the JSON body, violating the structured output constraint. The 8B variant produced marginally richer complementary search tags (e.g., ``crystal chandelier'' vs.~``gold floor lamp'') but at a 31\% latency penalty over the 4B model. The \textbf{4B Instruct} variant was selected as the production model, offering the optimal balance of format compliance, semantic accuracy, and inference speed.
+
+\subsection{Offline Ingestion Pipeline}
+\label{subsec:ingestion}
+
+The ingestion pipeline processes catalog images into searchable vector entries. Figure~\ref{fig:ingestion_pipeline} illustrates the complete ingestion flow.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[height=0.75\textheight,keepaspectratio]{figures/4_offline_ingestion.png}
+    \caption{Offline Ingestion Pipeline: Catalog images are scanned, furniture crops are detected, parallel embedding and tagging are performed, metadata is normalized via the semantic snapper, and results are upserted into ChromaDB.}
+    \label{fig:ingestion_pipeline}
+\end{figure}
+
+\begin{enumerate}
+    \item \textbf{Health Check:} The orchestrator verifies the remote GPU backend is reachable via \texttt{/health}.
+    \item \textbf{Catalog Scan:} All JPEG/PNG images in the \texttt{furniture\_assets/} directory are enumerated.
+    \item \textbf{Detection:} Each image is sent to the remote \texttt{/detect} endpoint. RT-DETR extracts bounding boxes for detected furniture items with confidence scores.
+    \item \textbf{Crop Processing:} For each detected crop, two parallel remote calls are made:
+    \begin{itemize}
+        \item \texttt{/embed\_b64}: SigLIP2 computes a normalized 1152-dimensional embedding vector.
+        \item \texttt{/tag\_b64}: Qwen3-VL generates taxonomy metadata (color, material, style, room\_fit, complementary\_styles, description).
+    \end{itemize}
+    \item \textbf{Taxonomy Snapping:} Raw tags are normalized to the allowed taxonomy using a two-tier strategy:
+    \begin{itemize}
+        \item \textbf{Tier 1 --- Color Alias Map:} Common color synonyms (e.g., ``Cream'' $\rightarrow$ ``Beige'', ``Charcoal'' $\rightarrow$ ``Gray'') are resolved via a deterministic alias lookup.
+        \item \textbf{Tier 2 --- Character N-Gram Cosine Similarity:} Remaining unmatched tags are compared against the allowed taxonomy using character n-gram vectorization and cosine similarity, selecting the closest canonical label.
+    \end{itemize}
+    \item \textbf{Metadata Flattening:} List-valued metadata fields (\texttt{room\_fit}, \texttt{complementary\_styles}) are serialized as comma-separated strings to comply with ChromaDB's scalar metadata constraints.
+    \item \textbf{Upsert:} The embedding vector and flattened metadata are upserted into the ChromaDB \texttt{furniture} collection (cosine similarity space).
+\end{enumerate}
+
+\subsection{Online Search Pipeline}
+\label{subsec:search}
+
+When a user uploads a room photograph, the search pipeline executes the sequence illustrated in Figure~\ref{fig:search_pipeline}.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[height=0.8\textheight,keepaspectratio]{figures/5_online_search.png}
+    \caption{Online Search Pipeline: User uploads a room photo, the system detects furniture, performs parallel embedding and tagging, queries ChromaDB with metadata filters, and falls back to pure vector search if filtered results are empty.}
+    \label{fig:search_pipeline}
+\end{figure}
+
+\begin{enumerate}
+    \item \textbf{Detection:} The room photo is sent to \texttt{/detect}. RT-DETR returns all detected furniture crops with labels, confidence scores, and bounding boxes.
+    \item \textbf{Crop Selection:} The orchestrator selects the highest-confidence crop for recommendation matching.
+    \item \textbf{Parallel Inference:} The selected crop is sent simultaneously to:
+    \begin{itemize}
+        \item \texttt{/embed\_b64} for embedding extraction (SigLIP2).
+        \item \texttt{/tag\_b64} for taxonomy tagging (Qwen3-VL).
+    \end{itemize}
+    \item \textbf{Taxonomy Snapping:} Raw tags are snapped to canonical values using the same two-tier snapper.
+    \item \textbf{Filtered Vector Query:} A ChromaDB query is constructed with:
+    \begin{itemize}
+        \item The embedding vector as the similarity anchor.
+        \item A \texttt{where} filter on \texttt{color}, \texttt{material}, and \texttt{style} metadata fields.
+    \end{itemize}
+    \item \textbf{Fallback:} If the filtered query returns no results (due to narrow metadata constraints), the system automatically retries with a pure vector search (no metadata filter), ensuring the user always receives recommendations.
+    \item \textbf{Scoring:} Results are ranked by similarity score computed as $\text{score} = 1 - \text{cosine\_distance}$ and returned with full metadata.
+\end{enumerate}
+
+\subsection{ChromaDB Data Model}
+
+Each ingested furniture item is stored in the ChromaDB \texttt{furniture} collection with the following schema:
+
+\begin{itemize}
+    \item \textbf{id:} Unique crop identifier (format: \texttt{source\_image\_cropN})
+    \item \textbf{embedding:} 1152-dimensional normalized float vector (SigLIP2)
+    \item \textbf{Scalar metadata:} \texttt{color}, \texttt{material}, \texttt{style}, \texttt{label}, \texttt{bbox} (JSON string), \texttt{source\_image}, \texttt{description}
+    \item \textbf{CSV metadata:} \texttt{room\_fit} and \texttt{complementary\_styles} stored as comma-separated strings
+\end{itemize}
+
+The \texttt{room\_fit} and \texttt{complementary\_styles} fields are persisted and returned in search results but are not yet used for retrieval ranking, providing a foundation for future multi-signal ranking.
 
 \subsection{AI Service Dependencies}
 
-The Python-based AI service includes the following dependencies:
+The local orchestrator dependencies are managed via \texttt{pyproject.toml} with \texttt{uv} as the package manager:
 
-The AI service dependencies are declared in \texttt{ai/requirements.txt}, including FastAPI (0.115.4) and Uvicorn (0.32.0) for the API layer, PyTorch (2.5.1) and Transformers (4.45.2) for model execution, and data utilities such as Pandas (2.2.3), NumPy (2.1.2), and scikit-learn (1.5.2). Validation and async support rely on Pydantic (2.9.2), Starlette (0.41.2), and HTTPX (0.27.2). The service entrypoint remains planned until the FastAPI app module is implemented.
+\begin{itemize}
+    \item \textbf{API Layer:} FastAPI, Uvicorn, python-multipart
+    \item \textbf{Vector Database:} ChromaDB (cosine similarity space)
+    \item \textbf{HTTP Client:} HTTPX (async communication with remote GPU backend)
+    \item \textbf{Data Processing:} NumPy, Pillow
+\end{itemize}
+
+The remote GPU backend loads PyTorch, HuggingFace Transformers, and model-specific processors (RT-DETR, SigLIP2, Qwen3-VL) at server startup. Models are cached in persistent storage to avoid re-downloading across sessions.
 
 \subsection{Single-View 3D Object Reconstruction Pipeline}
 \label{subsec:3d_reconstruction}
@@ -539,6 +716,7 @@ The Empty Room workflow addresses the requirement of furnishing an unfurnished s
 
 \textbf{Integration with Requirements:} Supports FR-15 (structural preservation during style transformations).
 
+
 % ---------------------------------------------------------------------------
 \subsection{Object Replacement Workflow}
 \label{subsec:object_replacement_workflow}
@@ -604,6 +782,7 @@ This workflow extends selective replacement by injecting a reference product ima
 \end{itemize}
 
 \textbf{Integration with Requirements:} Supports FR-16 (selective replacement) and FR-22 (marketplace visualization).
+
 
 % ---------------------------------------------------------------------------
 \subsection{Sketch-to-Render Workflow}
@@ -781,31 +960,263 @@ Regardless of the path taken (segmentation, conditioning, or style injection), a
 
 The Universal Workflow satisfies Non-Functional Requirement NFR-01 (Performance) by eliminating workflow reload latency, and NFR-13 (Maintainability) by centralizing model updates. When the team upgrades the underlying checkpoint (e.g., swapping RealisticVisionV6 for a newer model), the improvement instantly propagates to Empty Room, Replacement, Sketch, and Upscale modes simultaneously.
 
+% ---------------------------------------------------------------------------
+\subsection{Flux2Klein 4B Generation Workflow}
+\label{subsec:flux2klein_workflow}
+
+In the second semester, the team introduced Flux2Klein 4B as a new generative backbone for high-quality image synthesis. This model was specifically selected for its \textbf{Apache 2.0 license}, which permits unrestricted commercial use, redistribution, and modification --- a critical requirement for IntelliRoom's planned commercial deployment.
+
+\subsubsection*{Architectural Advancement over Stable Diffusion}
+
+The earlier ComfyUI workflows (Sections~\ref{subsec:empty_room_workflow}--\ref{subsec:universal_master_workflow}) rely on Stable Diffusion 1.5/SDXL, which uses a \textbf{UNet} architecture with iterative denoising. Flux2Klein 4B represents a generational leap by adopting a \textbf{Transformer-based flow matching} architecture (derived from the Flux model family). Key architectural differences include:
+
+\begin{itemize}
+    \item \textbf{Flow Matching vs.\ Denoising:} Instead of predicting noise at each timestep, Flux2Klein learns a direct velocity field that transports samples from noise to data along optimal paths. This reduces the number of sampling steps required for high-fidelity output.
+    \item \textbf{DiT Backbone:} Replaces the UNet's convolutional encoder-decoder with a Diffusion Transformer (DiT), enabling better global coherence across large image regions --- critical for maintaining architectural consistency in room-scale scenes.
+    \item \textbf{Image Edit Mode:} Unlike standard text-to-image generation, the Flux2Klein Image-edit variant accepts a \textbf{source image} alongside a text prompt, enabling precise structural preservation during restyling, object replacement, and atmospheric transformations.
+\end{itemize}
+
+\subsubsection*{Model Selection Rationale}
+
+The Flux2Klein family is available in two variants: a 4B-parameter model (Apache 2.0) and a 9B-parameter model (restricted license). While the 9B variant offers marginally higher visual fidelity, the licensing constraints make it unsuitable for a commercial product. The 4B variant provides:
+
+\begin{itemize}
+    \item \textbf{Licensing Freedom:} Apache 2.0 permits commercial use without royalty obligations or usage restrictions, enabling IntelliRoom to deploy the model in production and distribute generated outputs to end users.
+    \item \textbf{Reduced VRAM Footprint:} The 4B model requires approximately 12\,GB of VRAM in float16 precision, compared to $\sim$22\,GB for the 9B variant, enabling inference on consumer-grade GPUs and cost-effective cloud instances.
+    \item \textbf{Competitive Quality:} Despite the smaller parameter count, the 4B model produces photorealistic interior design outputs that meet the platform's quality standards.
+\end{itemize}
+
+\subsubsection*{Workflow Architecture}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1.0\textwidth]{figures/Flux2Klein_ImageEdit_workflow.png}
+    \caption{Flux2Klein 4B Image Edit Workflow: ComfyUI node graph detailing the generation pipeline, including text conditioning via the Qwen-3 4B text encoder, the DiT-based KSampler, and VAE decoding for photorealistic interior synthesis.}
+    \label{fig:flux2klein_workflow}
+\end{figure}
+
+The Flux2Klein 4B workflow (Figure~\ref{fig:flux2klein_workflow}) is integrated into the ComfyUI pipeline and can be invoked through the same backend service infrastructure as the existing workflows. The pipeline accepts a source image and a text prompt, producing an edited output that preserves the structural layout of the input while applying the requested transformations.
+
+\subsubsection*{Generation Results}
+
+To demonstrate the versatility of the Flux2Klein 4B generative backbone, the following figures showcase its capabilities across multiple design tasks. All results below were generated exclusively using the Flux2Klein 4B Image-edit workflow.
+
+\paragraph{Room Staging.} The most common use case: transforming an existing or empty room into a fully styled interior design.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/before1.jpg}\\
+        \vspace{0.2cm}
+        \small (a) Original Room
+    \end{minipage}\hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/after1.png}\\
+        \vspace{0.2cm}
+        \small (b) AI Generated Design
+    \end{minipage}
+    \caption{Flux2Klein 4B --- Room Staging (1): Transforming a basic room into a styled interior.}
+    \label{fig:flux_result1}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/before2.jpg}\\
+        \vspace{0.2cm}
+        \small (a) Original Room
+    \end{minipage}\hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/after2.png}\\
+        \vspace{0.2cm}
+        \small (b) AI Generated Design
+    \end{minipage}
+    \caption{Flux2Klein 4B --- Room Staging (2): Applying stylistic changes and furniture population.}
+    \label{fig:flux_result2}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/empty3.jpg}\\
+        \vspace{0.2cm}
+        \small (a) Original Room (Empty)
+    \end{minipage}\hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/after3.png}\\
+        \vspace{0.2cm}
+        \small (b) AI Generated Design
+    \end{minipage}
+    \caption{Flux2Klein 4B --- Room Staging (3): Complete staging of an empty architectural space.}
+    \label{fig:flux_result3}
+\end{figure}
+
+\paragraph{Sketch-to-Render.} The model converts hand-drawn architectural sketches into photorealistic renders, providing designers with rapid concept visualization without requiring the tri-layer ControlNet stack used by the older Stable Diffusion workflow.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/sketch_before.png}\\
+        \vspace{0.2cm}
+        \small (a) Architectural Sketch Input
+    \end{minipage}\hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/sketch_after.png}\\
+        \vspace{0.2cm}
+        \small (b) Flux2Klein Photorealistic Render
+    \end{minipage}
+    \caption{Flux2Klein 4B --- Sketch-to-Render: Converting a hand-drawn architectural sketch into a photorealistic interior render without ControlNet.}
+    \label{fig:flux_result_sketch}
+\end{figure}
+
+\paragraph{Reference-Guided Object Replacement.} A specific product image is provided as a reference, and the model replaces the target furniture item in the room while preserving the surrounding scene geometry, lighting, and shadows.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.32\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/beachroombed_before.png}\\
+        \vspace{0.2cm}
+        \small (a) Original Room
+    \end{minipage}\hfill
+    \begin{minipage}{0.32\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/ref_bed.png}\\
+        \vspace{0.2cm}
+        \small (b) Reference Product
+    \end{minipage}\hfill
+    \begin{minipage}{0.32\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/beachroombed_after_ref_bed.png}\\
+        \vspace{0.2cm}
+        \small (c) Generated Result
+    \end{minipage}
+    \caption{Flux2Klein 4B --- Object Replacement: A reference bed product is seamlessly injected into the target room, preserving lighting and perspective.}
+    \label{fig:flux_result_objreplace}
+\end{figure}
+
+\paragraph{Monochrome-to-Photorealistic Restyling.} The model receives a black-and-white structural blockout and produces a fully detailed, colored, and lit photorealistic interior --- demonstrating its ability to ``understand'' spatial layout from minimal input.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/bwroom1_before.png}\\
+        \vspace{0.2cm}
+        \small (a) Black and White Structural Blockout
+    \end{minipage}\hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/bwroom1_after.png}\\
+        \vspace{0.2cm}
+        \small (b) Flux2Klein Colorized Output
+    \end{minipage}
+    \caption{Flux2Klein 4B --- Restyling: Transforming a monochrome structural blockout into a fully colored and detailed photorealistic interior.}
+    \label{fig:flux_result_restyle}
+\end{figure}
+
+\paragraph{Scene Decluttering.} The model removes clutter and disorganized items from a room photograph, producing a clean and neatly arranged version of the same space --- a high-value capability for real estate staging applications.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/untidyroom_before.png}\\
+        \vspace{0.2cm}
+        \small (a) Cluttered Room
+    \end{minipage}\hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/untidyrom_after.png}\\
+        \vspace{0.2cm}
+        \small (b) Decluttered Output
+    \end{minipage}
+    \caption{Flux2Klein 4B --- Scene Decluttering: Removing clutter and disorganized items from a room photograph while preserving the underlying architecture and furnishings.}
+    \label{fig:flux_result_declutter}
+\end{figure}
+
+\paragraph{Lighting and Atmosphere Control.} The model modifies the lighting conditions and atmosphere of a room while maintaining the physical layout of furniture and architecture --- a capability that requires understanding of light physics, shadow casting, and material reflectance.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/teenroom_before.png}\\
+        \vspace{0.2cm}
+        \small (a) Daytime Lighting
+    \end{minipage}\hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/teenroom_after_night_light.png}\\
+        \vspace{0.2cm}
+        \small (b) Nighttime with Warm Artificial Lighting
+    \end{minipage}
+    \caption{Flux2Klein 4B --- Lighting Control: Transforming a room from natural daylight to a warm nighttime atmosphere with artificial lamp lighting, while preserving furniture placement and room geometry.}
+    \label{fig:flux_result_lighting}
+\end{figure}
+
+\clearpage
+
+% ---------------------------------------------------------------------------
+\subsection{SeedVR2 Video-Consistent Upscaling}
+\label{subsec:seedvr2_upscaling}
+
+While the Ultimate SD Upscale node provides adequate high-resolution exports for static imagery, the team integrated \textbf{SeedVR2} as an advanced alternative upscaling pipeline. SeedVR2 offers superior performance in cleaning up AI-generated artifacts and maintaining texture consistency.
+
+\subsubsection*{Technical Rationale}
+Unlike standard tiled upscalers that can introduce ``seam'' artifacts or hallucinate unwanted details in large, uniform areas (such as blank walls or carpets), SeedVR2 employs advanced temporal and spatial consistency mechanisms. This makes it highly resilient against the high-frequency noise typically introduced during the latent diffusion process. 
+
+\subsubsection*{Upscaling Result}
+
+Figure~\ref{fig:result_seedvr2} compares a standard low-resolution AI generation against its SeedVR2-upscaled counterpart, demonstrating significant enhancements in material texture clarity (e.g., fabric weave, wood grain) and edge definition without compromising the original composition.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/seedvr2_before.png}\\
+        \vspace{0.2cm}
+        \small (a) Low-Resolution Generation
+    \end{minipage}\hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/seedvr2_after.png}\\
+        \vspace{0.2cm}
+        \small (b) SeedVR2 4K Upscale
+    \end{minipage}
+    \caption{SeedVR2 Upscaling Result: The upscaler drastically improves texture fidelity, edge sharpness, and artifact reduction compared to the base generation.}
+    \label{fig:result_seedvr2}
+\end{figure}
+
 % ============================================================================
 \newpage
 \section{Frontend Architecture}
 \label{sec:frontend}
 
-The frontend application uses React.js with a component-based architecture and React Router for navigation.
+The frontend application uses React.js with a component-based architecture and React Router for navigation, functioning as a complete Single Page Application (SPA). It implements distinct layouts, role-based access control, and dynamic state management across an extensive suite of user-facing and administrative interfaces.
 
 \subsection{Directory Structure}
 
-The frontend codebase is structured into reusable components, context providers, and custom hooks. It also includes page-level screens, API service modules, shared styles, and utility helpers. The application entry point (App.jsx) initializes the React application and mounts the Routes component.
+The frontend codebase is structurally segregated into reusable components, context providers, and custom hooks. It features modularized page-level screens, separated layouts (e.g., Dashboard Layout vs. Marketplace Layout vs. Admin Layout), API service modules, shared aesthetic tokens, and utility helpers. The application entry point initializes the React application and mounts the comprehensive Routes component.
 
 \subsection{Implemented Screens}
 
-The following screens have been implemented:
+The application provides a robust suite of production-ready screens:
 
 \begin{itemize}
-    \item \textbf{Plugin Marketplace:} Community marketplace for custom styles and plugins, featuring:
-    \begin{itemize}
-        \item Search and filter functionality (by most recent, highest rated, most downloaded, price)
-        \item Category browsing (Style Presets, Custom Configs, AI Plugins, Community Bundles)
-        \item Plugin cards displaying title, author, rating, reviews, and pricing
-        \item Featured and trending sections
-        \item Loading and error states
-        \item Responsive grid layout
-    \end{itemize}
+    \item \textbf{Authentication \& Onboarding:} Dynamic Login and SignUp modals with JWT integration, a high-conversion Landing Page, and an informative About Page.
+    \item \textbf{Core Design Tools:} Centralized User Dashboard, Profile Update interface, Image Upload Workspace for generative AI tasks, interactive 2D/3D Planner, and the Community Gallery.
+    \item \textbf{E-Commerce \& Billing:} Full marketplace discovery (Special Offers, Product Details, Category Listing, Shop-By-Room), cart and wishlist management, tiered Pricing Plans, and secure Checkout with Payment Success/Failure handlers.
+    \item \textbf{Administrative Portal:} A protected layout offering granular control over users, logs, marketplace products, categories, pricing plans, room metadata, and active orders.
+    \item \textbf{Plugin Marketplace:} Community marketplace featuring search and filter functionality, category browsing, plugin cards (displaying ratings and pricing), featured/trending sections, and a responsive grid layout.
 \end{itemize}
 
 \subsection{Component Architecture}
@@ -846,25 +1257,39 @@ Table~\ref{tab:tech_stack} summarizes the implemented and planned technology sta
         \hline
         Backend & Node.js, Express & Done & REST API server \\
         \hline
-        Database & MongoDB 7 & Done & Document database \\
+        Authentication & JWT (RS256) & Done & Asymmetric cookie-based auth with refresh rotation \\
+        \hline
+        Document Database & MongoDB 7 & Done & Primary structured data store \\
+        \hline
+        Vector Database & ChromaDB & Done & Furniture embedding storage and cosine retrieval \\
         \hline
         ODM & Mongoose & Done & Schema validation and queries \\
         \hline
         AI Engine & ComfyUI & Done & Node-based AI workflow execution \\
         \hline
-        AI Service & Python, FastAPI & Scaffolded & Model inference service \\
+        AI Orchestrator & Python, FastAPI & Done & Local recommendation service on port 7860 \\
         \hline
-        ML Framework & PyTorch 2.5 & Scaffolded & Deep learning framework \\
+        ML Framework & PyTorch & Done & Deep learning framework (remote GPU backend) \\
         \hline
-        Transformers & HuggingFace & Scaffolded & Pre-trained model integration \\
+        Transformers & HuggingFace & Done & Pre-trained model integration \\
         \hline
         Containerization & Docker Compose & Done & Development environment \\
         \hline
-        Object Detection & Florence-2 & Done & Room and furniture analysis \\
+        Object Detection & RT-DETR r50vd & Done & Real-time furniture crop extraction \\
+        \hline
+        Object Detection & Florence-2 & Done & Room and furniture analysis (ComfyUI workflows) \\
+        \hline
+        Visual Embeddings & SigLIP2 so400m & Done & 1152-d normalized vectors for similarity search \\
+        \hline
+        VLM Tagging & Qwen3-VL 4B & Done & Structured taxonomy metadata generation \\
         \hline
         Segmentation & SAM2 & Done & Precision image segmentation \\
         \hline
         Generation & ControlNet & Done & Style-preserving transformation \\
+        \hline
+        Generation & Flux2Klein 4B & Done & Apache 2.0 licensed generative model \\
+        \hline
+        Inference Tunnel & zrok & Done & Public tunnel for remote GPU access \\
         \hline
         Style Adaptation & LoRA & Planned & Cultural style fine-tuning \\
         \hline
@@ -1146,23 +1571,31 @@ Table~\ref{tab:impl_status} provides a summary of the current implementation sta
         \hline
         ComfyUI Integration & Complete & REST API polling, upload, workflow execution \\
         \hline
-        User Authentication & Partial & Signup implemented; login endpoints disabled; JWT pending \\
+        User Authentication & Complete & JWT RS256, refresh rotation, cookie sessions \\
         \hline
         Plugin Marketplace & Complete & Full CRUD with ratings, reviews, pricing \\
         \hline
         Contact Form & Complete & Contact submission handling \\
         \hline
-        Frontend UI & Partial & React app structure, routing, Plugin Marketplace screen implemented \\
+        Frontend UI & Partial & React app structure, routing, multiple screens implemented \\
         \hline
-        AI Model Inference & Complete & ComfyUI workflows integrated \\
+        AI Recommendation Engine & Complete & Two-plane architecture with ChromaDB \\
+        \hline
+        RT-DETR Detection & Complete & Furniture crop extraction (remote GPU backend) \\
+        \hline
+        SigLIP2 Embeddings & Complete & 1152-d visual similarity vectors \\
+        \hline
+        Qwen3-VL Tagging & Complete & Taxonomy metadata generation \\
         \hline
         SAM2/Florence-2 & Complete & Integrated in ComfyUI workflows \\
         \hline
         ControlNet & Complete & Multiple workflow variants \\
         \hline
+        Flux2Klein 4B & Complete & Apache 2.0 licensed generation workflows \\
+        \hline
         Cultural Style LoRA & Planned & Not yet implemented \\
         \hline
-        Payment Integration & Planned & Not yet started \\
+        Payment Integration & Complete & Integrated with Fawaterk API v2 payment gateway \\
         \hline
     \end{tabularx}
 \end{table}

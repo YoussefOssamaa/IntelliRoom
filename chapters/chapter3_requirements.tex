@@ -78,7 +78,7 @@ The functional requirements define the specific behaviors and capabilities that 
     \hline
     FR-26 & Credits & The system shall display remaining credit balance in user dashboard & High & Complete \\
     \hline
-    FR-27 & Credits & The system shall support credit purchase via InstaPay, Fawry, and card payments & Medium & Planned \\
+    FR-27 & Credits & The system shall support subscription purchase via Fawaterk (supporting Fawry, cards, and wallets) & Medium & Complete \\
     \hline
     FR-28 & Community & The system shall allow users to share designs to a public gallery & Medium & Complete \\
     \hline
@@ -208,7 +208,14 @@ This engagement-first design philosophy transforms IntelliRoom from a passive to
 \section{Use Case Diagrams}
 \label{sec:use_cases}
 
-This section presents the primary use cases that define user interactions with the IntelliRoom system. The following diagrams illustrate the five most critical use cases; complete use case documentation is provided in Appendix~\ref{app:use_cases}.
+This section presents the primary use cases that define user interactions with the IntelliRoom system. Figure~\ref{fig:uc_overview} provides a high-level overview of user roles and their access to system capabilities. The following subsections illustrate the five most critical use cases in detail; complete use case documentation is provided in Appendix~\ref{app:use_cases}.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1.0\textwidth]{figures/6_use_cases.png}
+    \caption{System Use Case Overview: Guest and Registered User roles mapped to E-Commerce, Community, and AI Design capabilities.}
+    \label{fig:uc_overview}
+\end{figure}
 
 \subsection{Use Case 1: User Registration and Authentication}
 
@@ -396,17 +403,17 @@ Table~\ref{tab:req_completion} summarizes the implementation status across requi
         \hline
         \textbf{Category} & \textbf{Total} & \textbf{Complete} & \textbf{Partial} & \textbf{Planned} & \textbf{Progress} \\
         \hline
-        Authentication & 3 & 1 & 0 & 2 & 33\% \\
+        Authentication & 3 & 3 & 0 & 0 & 100\% \\
         \hline
         Profile \& Projects & 4 & 4 & 0 & 0 & 100\% \\
         \hline
-        Room Upload & 3 & 1 & 1 & 1 & 50\% \\
+        Room Upload & 3 & 3 & 0 & 0 & 100\% \\
         \hline
-        Room Analysis & 3 & 0 & 0 & 3 & 0\% \\
+        Room Analysis & 3 & 3 & 0 & 0 & 100\% \\
         \hline
         Style Selection & 2 & 0 & 1 & 1 & 25\% \\
         \hline
-        AI Generation & 3 & 2 & 1 & 0 & 83\% \\
+        AI Generation & 3 & 3 & 0 & 0 & 100\% \\
         \hline
         Visualization & 2 & 0 & 0 & 2 & 0\% \\
         \hline
@@ -414,7 +421,7 @@ Table~\ref{tab:req_completion} summarizes the implementation status across requi
         \hline
         E-commerce/\\ Marketplace & 8 & 8 & 0 & 0 & 100\% \\
         \hline
-        Credits & 3 & 2 & 0 & 1 & 67\% \\
+        Credits & 3 & 3 & 0 & 0 & 100\% \\
         \hline
         Community & 2 & 2 & 0 & 0 & 100\% \\
         \hline
@@ -422,7 +429,7 @@ Table~\ref{tab:req_completion} summarizes the implementation status across requi
         \hline
         Tutorial & 1 & 0 & 0 & 1 & 0\% \\
         \hline
-        \textbf{Overall} & \textbf{38} & \textbf{22} & \textbf{5} & \textbf{11} & \textbf{58\%} \\
+        \textbf{Overall} & \textbf{38} & \textbf{31} & & \textbf{5} & \textbf{82\%} \\
         \hline
     \end{tabularx}
 \end{table}
@@ -433,12 +440,14 @@ The following major components have been fully implemented:
 
 \begin{itemize}
     \item \textbf{Backend API Infrastructure:} Complete REST API with Express.js, organized into modular routes, controllers, and services
+    \item \textbf{User Authentication \& Security:} Asymmetric JWT (RS256) authentication with separate public/private key pairs for auth and refresh tokens, httpOnly secure cookie sessions, refresh token rotation tracked in MongoDB, Zod input validation schemas, bcrypt password hashing, and automated monthly credit reset logic for free-tier users
     \item \textbf{Database Layer:} MongoDB schemas for all data entities including Users, Projects, Products, Cart, Orders, and Gallery Posts
     \item \textbf{E-commerce Module:} Full CRUD operations for products, categories, shopping cart, orders, and wishlists with search, pagination, and filtering
     \item \textbf{Design Project Management:} Project creation, retrieval, update, and deletion with flexible sceneData storage for 2D/3D scenes
     \item \textbf{ComfyUI Integration:} REST API-based service for AI workflow execution, image upload, and result retrieval
+    \item \textbf{AI Vector Recommendation Engine:} Two-plane architecture with a local FastAPI orchestrator (ChromaDB vector store, semantic taxonomy snapper) and a remote GPU inference server (RT-DETR for detection, SigLIP2 for embeddings, Qwen3-VL 4B for taxonomy tagging) connected via zrok tunneling
     \item \textbf{Community Features:} Gallery post schema with likes, comments, and tags support
-    \item \textbf{Credit System:} User credits, transaction tracking, and subscription plan support (free, monthly, yearly)
+    \item \textbf{Credit System:} User credits, transaction tracking, and subscription plan support (free, monthly, yearly) with automated monthly reset
     \item \textbf{Docker Configuration:} Development containers for frontend, backend, and MongoDB services
 \end{itemize}
 
@@ -447,8 +456,7 @@ The following major components have been fully implemented:
 The following components are actively being developed:
 
 \begin{itemize}
-    \item \textbf{User Authentication:} User schema defined with password hash support; JWT implementation pending
-    \item \textbf{Frontend UI:} React.js structure established; component implementation ongoing
+    \item \textbf{Frontend UI:} React.js structure established; component implementation ongoing across multiple screens
     \item \textbf{Cultural LoRA Models:} Training for Arabic/Egyptian aesthetics in progress
 \end{itemize}
 
@@ -458,7 +466,6 @@ The following components are planned for future implementation:
 
 \begin{itemize}
     \item Cultural style LoRA models for Arabic/Egyptian aesthetics
-    \item Payment integration (InstaPay, Fawry, cards)
     \item Before/after comparison visualization
     \item PDF export functionality
     \item Mobile camera capture

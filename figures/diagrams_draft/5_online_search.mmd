@@ -1,0 +1,35 @@
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor': '#f4f4f4', 'edgeLabelBackground':'#ffffff', 'tertiaryColor': '#e2e8f0'}}}%%
+sequenceDiagram
+    actor User
+    participant Local API
+    participant Remote API
+    participant ChromaDB
+    
+    User->>Local API: POST /search (Room Photo)
+    Local API->>Remote API: POST /detect
+    Remote API-->>Local API: Bounding boxes & confidence scores
+    
+    Local API->>Local API: Select highest-confidence crop
+    
+    par Parallel Inference
+        Local API->>Remote API: POST /embed_b64
+        Remote API-->>Local API: Visual Embedding Vector
+    and
+        Local API->>Remote API: POST /tag_b64
+        Remote API-->>Local API: Raw Taxonomy Tags
+    end
+    
+    Local API->>Local API: Apply Semantic Snapper to Tags
+    Local API->>Local API: Build Scalar Where Filter<br/>(Color, Material, Style)
+    
+    Local API->>ChromaDB: Query with Filter & Embedding
+    
+    alt Empty Results
+        Local API->>ChromaDB: Fallback Query (No Metadata Filter)
+        ChromaDB-->>Local API: Results
+    else Results Found
+        ChromaDB-->>Local API: Results
+    end
+    
+    Local API->>Local API: Rank by Cosine Similarity Score
+    Local API-->>User: Top-K Recommendations

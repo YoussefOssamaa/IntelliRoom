@@ -36,6 +36,10 @@ const protect = (req, res, next) => {
         if (!payload) {
             return res.status(401).json({ success: false, message: genericError })
         }
+        
+        if (payload.role !== 'user') {
+            return res.status(403).json({ success: false, message: "Access denied. User role required." });
+        }
     } catch (e) {
         console.log("protect middleware : token verification message", e.message);
         return res.status(401).json({ success: false, message: genericError })

@@ -94,7 +94,57 @@ export const registerHandler = async (req, res) => {
         }
         // --- END OF FREE PLAN AUTO-SUBSCRIPTION ---
 
-        return res.status(201).json({ success: true, message: "User registered successfully." })
+        const payload = {
+            userId: newUser._id,
+        }
+
+        const commonCookieOptions = {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none"
+        }
+
+        const refreshCookieOptions = {
+            ...commonCookieOptions,
+            maxAge: 7 * 24 * 60 * 60 * 1000 //in melliseconds
+        }
+
+        const authCookieOptions = {
+            ...commonCookieOptions,
+            maxAge: 24 * 60 * 60 * 1000 //in melliseconds
+        }
+
+        const authToken = jwt.sign(payload, authPrivateKey, {
+            expiresIn: 24 * 60 * 60,
+            algorithm: "RS256",
+        });
+
+        const refreshToken = jwt.sign(payload, refreshPrivateKey, {
+            expiresIn: 7 * 24 * 60 * 60,
+            algorithm: "RS256",
+        });
+
+        await Refresh.create({
+            user_id: newUser._id,
+            refreshToken,
+            expireTime: Date.now() + 7 * 24 * 60 * 60 * 1000
+        });
+
+        return res.status(201)
+            .cookie("Authentication", authToken, authCookieOptions)
+            .cookie("Refresh", refreshToken, refreshCookieOptions)
+            .json({
+                success: true,
+                message: "User registered successfully.",
+                user: {
+                    email: newUser.email,
+                    firstName: newUser.firstName,
+                    lastName: newUser.lastName,
+                    user_name: newUser.user_name,
+                    plan: newUser.plan,
+                    credits: newUser.credits
+                }
+            });
 
     } catch (e) {
         console.log(e.message);

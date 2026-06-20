@@ -8,7 +8,7 @@ import Room from '../../models/ecommerceModels/room.js';
 // @access  Public
 export const getProducts = async (req, res) => {
     try {
-        const { category, categories, room, inStockOnly, materials, colors, sort, search, minPrice, maxPrice } = req.query;
+        const { category, categories, room, inStockOnly, materials, colors, sort, search, minPrice, maxPrice, onSale } = req.query;
         let query = {};
 
         // 1. Filter by Room (Translating slug to ObjectId!)
@@ -57,13 +57,15 @@ export const getProducts = async (req, res) => {
             if (maxPrice) query['pricing.currentPrice'].$lte = Number(maxPrice);
         }
 
-        if (onSale === 'true') {
-            query['pricing.isOnSale'] = true;
-        }
 
         // 5. Filter by Availability
         if (inStockOnly === 'true') {
             query['inventory.inStock'] = true;
+        }
+
+        // Filter by Sale Status
+        if (onSale === 'true') {
+            query['pricing.isOnSale'] = true;
         }
 
         // 6. Filter by Materials

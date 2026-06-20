@@ -162,7 +162,7 @@ export default function DashboardPage() {
             <div className="welcome-section">
               <p className="welcome-eyebrow">Dashboard</p>
               <h1 className="welcome-title">
-                Hello, <span>{user?.firstName || "there"}</span>
+                Hello, <span>{user?.firstName.toUpperCase() || "there"}</span>
               </h1>
               <p className="welcome-subtitle">
                 Here's what's happening with your designs today.

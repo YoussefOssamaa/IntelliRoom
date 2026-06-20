@@ -23,7 +23,7 @@ import SignUpModal from "./pages/auth/signUp";
 import ProtectedRoute from "./components/protectedRoute";
 import LandingPage from "./pages/landingPage/landingPage";
 import Ecomm from "./pages/marketplace/MarketPlacePage";
-import CategoryListingPage from "./pages/marketplace/CategoryListingPage";
+import CategoryPage from "./pages/marketplace/CategoryPage";
 import ProductDetailsPage from "./pages/marketplace/ProductDetailsPage";
 import SpecialOffersPage from "./pages/marketplace/SpecialOffersPage";
 import AboutPage from "./pages/about/AboutPage";
@@ -125,7 +125,7 @@ const AppRoutes = () => {
           <Route path="/ecomm/product/:slug" element={<ProductDetailsPage />} />
           <Route
             path="/ecomm/category/:categoryId"
-            element={<CategoryListingPage />}
+            element={<CategoryPage />}
           />
           <Route path="/ecomm/offers" element={<SpecialOffersPage />} />
           <Route path="/ecomm/cart" element={<CartPage />} />

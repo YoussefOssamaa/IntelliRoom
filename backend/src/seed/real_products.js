@@ -25,7 +25,10 @@ const seedRealProducts = async () => {
 
   try {
     // Connect to DB
+    //const MONGO_URI = `mongodb://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@${process.env.MONGO_HOST}:${process.env.MONGO_PORT}/${process.env.MONGO_DB}?authSource=${process.env.MONGO_AUTH_DB}`;
+    //const MONGO_URI = process.env.MONGO_URI;
     const MONGO_URI = `mongodb://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@${process.env.MONGO_HOST}:${process.env.MONGO_PORT}/${process.env.MONGO_DB}?authSource=${process.env.MONGO_AUTH_DB}`;
+
     console.log(MONGO_URI);
     await mongoose.connect(MONGO_URI)
       .then(() => console.log("✅ MongoDB Connected"))

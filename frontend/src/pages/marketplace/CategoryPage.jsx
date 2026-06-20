@@ -7,7 +7,7 @@ import axios from "../../config/axios.config";
 const CategoryPage = () => {
   // 1. ROUTER PARAMS
   const params = useParams();
-  const activeSlug = params.categorySlug || params.slug || Object.values(params)[0];
+  const activeSlug = params.categoryId || params.categorySlug || params.slug || Object.values(params)[0];
 
   // 2. STATE DECLARATIONS (Must always come before UseEffects!)
   const [formOptions, setFormOptions] = useState(null);

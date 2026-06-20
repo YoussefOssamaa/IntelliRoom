@@ -106,7 +106,7 @@ export default function Navigation({ progress = 0, isSticky = false }: Navigatio
           {/* Nav Links - Desktop */}
           <div className="hidden lg:flex items-center gap-8 ">
             {[
-              { label: 'My Projects', link: '/dashboard' },
+              { label: 'My Dashboard', link: '/dashboard' },
               { label: 'AI Studio', link: '/upload' },
               { label: 'Architect', link: '/planner' },
               { label: 'Pricing', link: '/pricingPlans' },

@@ -1,10 +1,45 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from '../../config/axios.config'; 
 
 const NewAndFeatured = () => {
     const navigate = useNavigate();
 
-    // The 3 distinct editorial columns
+    const [newProducts, setNewProducts] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchNewArrivals = async () => {
+            try {
+                const response = await axios.get('/products?limit=8');
+                const fetched = response.data.data || response.data;
+                
+                if (Array.isArray(fetched)) {
+                    setNewProducts(fetched.slice(0, 8));
+                }
+            } catch (error) {
+                console.error("Failed to fetch new products:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchNewArrivals();
+    }, []);
+
+    
+    const getGridClass = (index) => {
+        // Indices 1, 3, 4, and 6 will be tall vertical rectangles
+        if (index === 1 || index === 3 || index === 4 || index === 6) {
+            return 'row-span-2'; 
+        }
+        // The rest will be perfect squares
+        return 'row-span-1';
+    };
+
+    /* =========================================================================
+       OLD CODE - PRESERVED AND COMMENTED OUT
+       =========================================================================
     const featuredItems = [
         {
             id: 'community-spotlight',
@@ -15,76 +50,86 @@ const NewAndFeatured = () => {
             targetUrl: '/marketplace/room/biophilic-loft',
             image: 'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?auto=format&fit=crop&w=800&q=80'
         },
-        {
-            id: 'new-ai-model',
-            tag: 'New AI Update',
-            title: 'Generating: Japandi Style',
-            description: 'Our newest diffusion model update just dropped. You can now generate flawless Japanese-Scandinavian fusion interiors.',
-            linkText: 'Try it in the Studio',
-            targetUrl: '/upload', 
-            image: 'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=800&q=80'
-        },
-        {
-            id: 'new-arrivals',
-            tag: 'Just Landed',
-            title: 'The Spring \'26 Seating Collection',
-            description: 'Curved silhouettes and sustainable fabrics. Discover the newest pieces added to the IntelliRoom marketplace this week.',
-            linkText: 'Shop New Arrivals',
-            targetUrl: '/marketplace/category/seating',
-            image: 'https://images.unsplash.com/photo-1505693314120-0d443867891c?auto=format&fit=crop&w=800&q=80'
-        }
+        ...
     ];
+    ========================================================================= */
 
     return (
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-gray-200 mt-8">
             
             {/* Header */}
-            <div className="mb-10">
-                <h3 className="text-3xl font-extrabold text-text-primary tracking-tight">New & Featured</h3>
-                <p className="text-lg text-gray-500 mt-2">Discover the latest designs, AI updates, and marketplace additions.</p>
+            <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <h3 className="text-3xl font-extrabold text-gray-900 tracking-tight">New Arrivals</h3>
+                    <p className="text-lg text-gray-500 mt-2">Discover the latest pieces added to the marketplace.</p>
+                </div>
+                {/* <button 
+                    onClick={() => navigate('/ecomm')}
+                    className="text-sky-600 hover:text-sky-700 font-bold tracking-wide transition-colors"
+                >
+                    SHOP ALL NEW
+                </button> */}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
-                {featuredItems.map((item) => (
-                    <div key={item.id} className="group flex flex-col cursor-pointer" onClick={() => navigate(item.targetUrl)}>
-                        
-                        {/* Image Container */}
-                        <div className="relative aspect-[4/3] rounded-2xl overflow-hidden mb-6 bg-gray-100 shadow-sm">
+            {/*  
+                - grid-cols-2 on mobile, grid-cols-4 on desktop
+                - grid-flow-dense perfectly packs the squares into the gaps 
+                - auto-rows-[250px] forces a strict height so math works out perfectly
+            */}
+            {isLoading ? (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[250px] grid-flow-dense">
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map((skeleton, index) => (
+                        <div key={skeleton} className={`bg-gray-200 animate-pulse ${getGridClass(index)}`}></div>
+                    ))}
+                </div>
+            ) : (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[250px] grid-flow-dense">
+                    {newProducts.map((product, index) => (
+                        <div 
+                            key={product._id} 
+                            onClick={() => navigate(`/ecomm/product/${product.slug}`)}
+                            className={`group relative overflow-hidden rounded-none cursor-pointer border border-gray-200 ${getGridClass(index)}`}
+                        >
+                            {/* Product Image */}
                             <img 
-                                src={item.image} 
-                                alt={item.title} 
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out !rounded-none"
-                                style={{ borderRadius: '0px', clipPath: 'none' }}
+                                src={product.media?.primaryImage || '/images/default-product.jpg'} 
+                                alt={product.name} 
+                                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                             />
-                        </div>
+                            
+                            {/* Dark gradient overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity"></div>
 
-                        {/* Text Content */}
-                        <div className="flex flex-col flex-grow">
-                            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">
-                                {item.tag}
-                            </p>
-                            
-                            <h4 className="text-xl font-bold text-text-primary mb-3 group-hover:text-text-accent transition-colors leading-tight">
-                                {item.title}
-                            </h4>
-                            
-                            <p className="text-sm text-gray-600 mb-6 leading-relaxed flex-grow">
-                                {item.description}
-                            </p>
-                            
-                            {/* Call to Action Link */}
-                            <div className="inline-flex items-center text-sm font-bold text-text-primary group-hover:text-text-accent transition-colors mt-auto">
-                                {item.linkText}
-                                <svg className="w-4 h-4 ml-1.5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-                                </svg>
+                            {/* Top Left Tag */}
+                            <div className="absolute top-4 left-4 flex gap-2">
+                                <span className="bg-white text-gray-900 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-none shadow-sm">
+                                    NEW
+                                </span>
+                            </div>
+
+                            {/* Product Info (Bottom Left) */}
+                            <div className="absolute bottom-0 left-0 p-5 flex flex-col w-full">
+                                <p className="text-sky-400 text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1">
+                                    {product.categorization?.primary?.name || "Furniture"}
+                                </p>
+                                <h4 className="text-white text-lg sm:text-xl font-bold line-clamp-1 mb-1">
+                                    {product.name}
+                                </h4>
+                                <div className="flex items-center gap-3">
+                                    <span className="text-white font-extrabold text-base sm:text-lg">
+                                        ${product.pricing?.currentPrice}
+                                    </span>
+                                    {product.pricing?.isOnSale && (
+                                        <span className="text-gray-400 font-medium text-xs sm:text-sm line-through">
+                                            ${product.pricing?.originalPrice}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         </div>
-
-                    </div>
-                ))}
-            </div>
-
+                    ))}
+                </div>
+            )}
         </div>
     );
 };

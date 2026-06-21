@@ -46,7 +46,7 @@ const FavoritesPage = () => {
                         </div>
                         <h2 className="text-2xl font-bold text-text-primary mb-2">You haven't saved any favorites yet</h2>
                         <p className="text-gray-500 mb-8 max-w-md">Tap the heart icon on any product to save it here for later.</p>
-                        <Link to="/marketplace" className="bg-text-accent text-white font-bold py-3 px-8 rounded-xl shadow-md hover:bg-blue-600 hover:shadow-lg transition-all duration-300">
+                        <Link to="/ecomm" className="bg-text-accent text-white font-bold py-3 px-8 rounded-xl shadow-md hover:bg-blue-600 hover:shadow-lg transition-all duration-300">
                             Discover Products
                         </Link>
                     </div>

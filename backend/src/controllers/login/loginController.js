@@ -257,7 +257,7 @@ export const loginHandler = async (req, res) => {
 
 export const refreshTokenHandler = async (req, res) => {
     const genericError = "not authenticated"
-
+    
     try {
         await normalizeResponseTime();
 
@@ -293,7 +293,7 @@ export const refreshTokenHandler = async (req, res) => {
             algorithm: "RS256",
         })
 
-
+        // console.log("refresh token")
         return res.status(200)
             .cookie("Authentication", authToken, authCookieOptions)
             .json({

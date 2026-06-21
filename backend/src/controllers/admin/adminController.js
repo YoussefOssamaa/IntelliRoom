@@ -161,18 +161,18 @@ export const signIn = async (req, res) => {
       expiresAt,
     });
 
-    res.cookie("Authentication", accessToken, {
+    res.cookie("Admin-Authentication", accessToken, {
       httpOnly: true,
-      secure: true, // لازم تكون true
-      sameSite: "none", // لازم تكون none عشان admin.localhost
-      maxAge: 15 * 60 * 1000, // 15 دقيقة
+      secure: true,
+      sameSite: "none",
+      maxAge: 15 * 60 * 1000,
     });
 
-    res.cookie("Refresh", refreshToken, {
+    res.cookie("Admin-Refresh", refreshToken, {
       httpOnly: true,
-      secure: true, 
+      secure: true,
       sameSite: "none",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 أيام
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     res.status(200).json({ success: true, message: "Admin signed in" });
@@ -185,7 +185,7 @@ export const signIn = async (req, res) => {
 
 export const Refresh = async (req, res) => {
   try {
-    const refreshToken = req.cookies?.Refresh;
+    const refreshToken = req.cookies?.['Admin-Refresh'];
 
     if (!refreshToken) {
       return res
@@ -211,8 +211,8 @@ export const Refresh = async (req, res) => {
     });
 
     if (!existingToken) {
-      res.clearCookie("Authentication");
-      res.clearCookie("Refresh");
+      res.clearCookie("Admin-Authentication");
+      res.clearCookie("Admin-Refresh");
       return res.status(401).json({
         success: false,
         message: "Refresh token revoked or not found",
@@ -225,7 +225,7 @@ export const Refresh = async (req, res) => {
       { algorithm: "RS256", expiresIn: "15m" },
     );
 
-    res.cookie("Authentication", newAccessToken, {
+    res.cookie("Admin-Authentication", newAccessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
@@ -245,14 +245,14 @@ export const Refresh = async (req, res) => {
 
 export const logout = async (req, res) => {
   try {
-    const refreshToken = req.cookies?.Refresh;
+    const refreshToken = req.cookies?.['Admin-Refresh'];
 
     if (refreshToken) {
       await AdminRefreshToken.deleteOne({ token: refreshToken });
     }
 
-    res.clearCookie("Authentication");
-    res.clearCookie("Refresh", { path: "/api/admin/refresh" }); // لازم تحدد الـ path طالما كنت محدده وأنت بتعملها
+    res.clearCookie("Admin-Authentication");
+    res.clearCookie("Admin-Refresh", { path: "/api/admin/refresh" });
 
     res
       .status(200)

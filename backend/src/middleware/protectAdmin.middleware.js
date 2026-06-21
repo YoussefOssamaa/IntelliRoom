@@ -2,39 +2,31 @@ import jwt from "jsonwebtoken";
 import Admin from "../models/admin/admin.js";
 
 import { adminAuthPublicKey } from "../utils/getKeys.js";
-import { authCookieSchema } from "../validations/login.validator.js";
-
 const protectAdmin = async (req, res, next) => {
   try {
     // console.log(req.cookies);
-    
-    const validation = authCookieSchema.safeParse(req.cookies);
-    // console.log(validation);
-    
-    if (!validation.success || !validation.data.Authentication) {
+
+    const token = req.cookies["Admin-Authentication"];
+
+    if (!token) {
       return res
         .status(401)
         .json({ success: false, message: "Not authenticated" });
     }
-
-    const token = validation.data.Authentication;
     // console.log(token);
-    
+
     const payload = jwt.verify(token, adminAuthPublicKey, {
       algorithms: ["RS256"],
     });
     const currentAdmin = await Admin.findById(payload.userId);
-    
-    if (!currentAdmin) {
-      res.clearCookie("Authentication");
 
-      return res
-        .status(401)
-        .json({
-          success: false,
-          message: "The admin belonging to this token no longer exists.",
-        });
-        
+    if (!currentAdmin) {
+      res.clearCookie("Admin-Authentication");
+
+      return res.status(401).json({
+        success: false,
+        message: "The admin belonging to this token no longer exists.",
+      });
     }
 
     req.userId = payload.userId;

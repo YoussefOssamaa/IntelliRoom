@@ -193,6 +193,7 @@ export const loginHandler = async (req, res) => {
 
         const payload = {
             userId: logging_user._id,
+            role: 'user'
         }
 
         const commonCookieOptions = {
@@ -283,7 +284,8 @@ export const refreshTokenHandler = async (req, res) => {
             maxAge: 24 * 60 * 60 * 1000
         }
         const authPayload = {
-            userId: user.user_id
+            userId: user.user_id,
+            role: 'user'
         }
 
         const authToken = jwt.sign(authPayload, authPrivateKey, {

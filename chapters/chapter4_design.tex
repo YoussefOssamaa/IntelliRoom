@@ -48,7 +48,7 @@ The implemented architecture consists of the following layers:
     \begin{itemize}
         \item \textbf{ComfyUI Engine:} Node-based engine executing complex generative workflows including Stable Diffusion, ControlNet, and SAM2.
         \item \textbf{Direct Integration:} The Node.js backend communicates directly with the ComfyUI API to trigger workflows and retrieve results.
-        \item \textbf{AI Recommendation Service:} A Python-based FastAPI orchestrator running locally, connected to a remote GPU inference server via zrok tunneling. Uses RT-DETR for detection, SigLIP2 for embeddings, Qwen3-VL for taxonomy tagging, and ChromaDB for vector storage and retrieval.
+        \item \textbf{AI Recommendation Service:} A Python-based FastAPI orchestrator running locally, connected to a remote GPU inference server via zrok tunneling. Uses RF-DETR~\cite{rfdetr2025} for detection, SigLIP2~\cite{siglip22025} for embeddings, Qwen3-VL~\cite{qwen2024} for taxonomy tagging, and ChromaDB for vector storage and retrieval.
     \end{itemize}
     
     \item \textbf{Data Layer:} MongoDB 7 document database with Mongoose ODM:
@@ -329,7 +329,7 @@ Figure~\ref{fig:erd_core} presents the core user management and e-commerce entit
     
     \item \textbf{User $\rightarrow$ Cart (1:1):} Each user maintains a single persistent shopping cart. The cart stores a reference to the user and contains an embedded array of CartItem subdocuments.
     
-    \item \textbf{Cart $\rightarrow$ CartItem (1:N, Embedded):} CartItems are embedded within the Cart document. Each item references a Product and stores the quantity and price at time of addition (preserving price if product pricing changes).
+    \item \textbf{Cart $\rightarrow$ CartItem (1:N, Embedded):} CartItems are embedded within the Cart document. Each item references a Product and stores the quantity. The price is dynamic and fetched from the referenced Product at retrieval and checkout times, meaning price changes in the catalog are reflected in the active cart. The price is frozen only upon checkout when items are copied to the OrderItem document.
     
     \item \textbf{User $\rightarrow$ Order (1:N):} Users can place multiple orders over time. Orders are separate documents to support independent querying, status updates, and historical analysis.
     
@@ -362,23 +362,17 @@ Figure~\ref{fig:erd_design} illustrates the design workflow and community featur
 \textbf{Key Relationships in Design \& Community Schema:}
 
 \begin{itemize}
-    \item \textbf{User $\rightarrow$ Project (1:N):} Users create multiple design projects. Each project stores flexible \texttt{sceneData} as a JSON object, accommodating various 2D/3D scene structures without schema migrations.
+    \item \textbf{User $\rightarrow$ Project (1:N):} Users create multiple design projects. A single unified \texttt{Project} model is used where the entire layout state (2D floor plan, 3D furniture coordinates, active materials, and camera perspectives) is stored within a flexible \texttt{data} field (Mongoose Mixed type), avoiding separate collections for 2D designs and 3D scenes.
     
-    \item \textbf{Project $\rightarrow$ 2D Design (1:N):} A project can contain multiple 2D design iterations. The \texttt{version} field in Project enables tracking design evolution.
+    \item \textbf{Project $\rightarrow$ GalleryPost (1:N):} Users share designs publicly by posting them to the gallery. A separate \texttt{GalleryPost} collection is used, storing a reference to the project ID, user ID, tags, and caption, decoupling the active creative workspace from the community feed.
     
-    \item \textbf{2D Design $\rightarrow$ 3D Design (1:N):} Each 2D design can be expanded into multiple 3D representations. The \texttt{is\_public} flag controls whether designs appear in the community gallery.
+    \item \textbf{GalleryPost $\rightarrow$ Comment (Embedded):} Comments are embedded directly as subdocuments inside the parent \texttt{GalleryPost} document. This eliminates the need for separate query roundtrips when fetching a post and its comments.
     
-    \item \textbf{Style $\rightarrow$ 2D Design (1:N):} Styles represent reusable design templates (e.g., "Modern Egyptian", "Arabic Traditional"). The \texttt{config\_data} field stores AI model parameters (LoRA weights, ControlNet settings) required for style application.
+    \item \textbf{User $\rightarrow$ Reaction (1:N):} Users react to posts (e.g., likes), tracked via the \texttt{Reaction} entity, which stores references to the \texttt{user\_id} and the target \texttt{post\_id}.
     
-    \item \textbf{3D Design $\rightarrow$ Object (1:N):} 3D designs reference multiple Object entities representing furniture and decor items. Objects include \texttt{object\_model\_url} for 3D mesh files and \texttt{provider} for e-commerce integration.
+    \item \textbf{Style $\rightarrow$ Project (1:N):} Styles represent reusable design templates. The style ID is referenced inside projects when applying cultural presets.
     
-    \item \textbf{User $\rightarrow$ GalleryPost (1:N):} Users share designs publicly via gallery posts. Each post includes \texttt{likes}, \texttt{tags}, and an optional \texttt{caption} for community engagement.
-    
-    \item \textbf{2D Design $\rightarrow$ GalleryPost (1:N):} A design can be featured in multiple gallery posts (e.g., before/after comparisons, different room angles).
-    
-    \item \textbf{User $\rightarrow$ Comment (1:N):} Users comment on gallery posts. Comments are stored as separate documents to support pagination and moderation workflows.
-    
-    \item \textbf{User $\rightarrow$ Reaction (1:N):} The Reaction entity supports likes, upvotes, and downvotes on both posts and comments. The \texttt{target\_type} field enables polymorphic associations.
+    \item \textbf{Project $\rightarrow$ Object (1:N):} Projects reference multiple 3D object assets representing furniture and decor items, referencing their specific mesh URL and manufacturer catalog information.
 \end{itemize}
 
 \textbf{Design Decisions:}
@@ -502,7 +496,7 @@ The recommendation system is split into two cooperating services, as illustrated
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=1.0\textwidth]{figures/3_two_plane_architecture.png}
-    \caption{Two-Plane Architecture: Local control plane (FastAPI orchestrator, ChromaDB, Semantic Snapper) communicates with the remote GPU inference plane (RT-DETR, SigLIP2, Qwen3-VL) via a zrok public tunnel.}
+    \caption{Two-Plane Architecture: Local control plane (FastAPI orchestrator, ChromaDB, Semantic Snapper) communicates with the remote GPU inference plane (RF-DETR, SigLIP2, Qwen3-VL) via a zrok public tunnel.}
     \label{fig:two_plane_arch}
 \end{figure}
 
@@ -511,7 +505,7 @@ The recommendation system is split into two cooperating services, as illustrated
     
     \item \textbf{Remote Inference Plane} (GPU Server): A FastAPI server running on a dedicated GPU-accelerated instance, exposed to the local orchestrator through a \textbf{zrok} public tunnel. This plane hosts three inference models:
     \begin{itemize}
-        \item \textbf{RT-DETR r50vd:} Real-time Detection Transformer for furniture bounding box extraction and crop generation.
+        \item \textbf{RF-DETR:} Roboflow Detection Transformer for furniture bounding box extraction and crop generation.
         \item \textbf{SigLIP2 so400m:} Vision encoder producing normalized 1152-dimensional embedding vectors for visual similarity search.
         \item \textbf{Qwen3-VL 4B Instruct:} Vision-language model that generates structured taxonomy metadata (color, material, style, room fit, complementary styles) and natural-language descriptions from furniture crop images.
     \end{itemize}
@@ -558,7 +552,7 @@ The ingestion pipeline processes catalog images into searchable vector entries. 
 \begin{enumerate}
     \item \textbf{Health Check:} The orchestrator verifies the remote GPU backend is reachable via \texttt{/health}.
     \item \textbf{Catalog Scan:} All JPEG/PNG images in the \texttt{furniture\_assets/} directory are enumerated.
-    \item \textbf{Detection:} Each image is sent to the remote \texttt{/detect} endpoint. RT-DETR extracts bounding boxes for detected furniture items with confidence scores.
+    \item \textbf{Detection:} Each image is sent to the remote \texttt{/detect} endpoint. RF-DETR extracts bounding boxes for detected furniture items with confidence scores.
     \item \textbf{Crop Processing:} For each detected crop, two parallel remote calls are made:
     \begin{itemize}
         \item \texttt{/embed\_b64}: SigLIP2 computes a normalized 1152-dimensional embedding vector.
@@ -586,7 +580,7 @@ When a user uploads a room photograph, the search pipeline executes the sequence
 \end{figure}
 
 \begin{enumerate}
-    \item \textbf{Detection:} The room photo is sent to \texttt{/detect}. RT-DETR returns all detected furniture crops with labels, confidence scores, and bounding boxes.
+    \item \textbf{Detection:} The room photo is sent to \texttt{/detect}. RF-DETR returns all detected furniture crops with labels, confidence scores, and bounding boxes.
     \item \textbf{Crop Selection:} The orchestrator selects the highest-confidence crop for recommendation matching.
     \item \textbf{Parallel Inference:} The selected crop is sent simultaneously to:
     \begin{itemize}
@@ -627,7 +621,7 @@ The local orchestrator dependencies are managed via \texttt{pyproject.toml} with
     \item \textbf{Data Processing:} NumPy, Pillow
 \end{itemize}
 
-The remote GPU backend loads PyTorch, HuggingFace Transformers, and model-specific processors (RT-DETR, SigLIP2, Qwen3-VL) at server startup. Models are cached in persistent storage to avoid re-downloading across sessions.
+The remote GPU backend loads PyTorch, HuggingFace Transformers, and model-specific processors (RF-DETR, SigLIP2, Qwen3-VL) at server startup. Models are cached in persistent storage to avoid re-downloading across sessions.
 
 \subsection{Single-View 3D Object Reconstruction Pipeline}
 \label{subsec:3d_reconstruction}
@@ -1258,12 +1252,12 @@ The application provides a robust suite of production-ready screens:
 \subsection{Split-Domain Routing Architecture}
 \label{subsec:split_domain_routing}
 
-To ensure strict tenant and context segregation, the frontend implements a subdomain-based routing split in \texttt{Routes.jsx}. The application dynamically inspects the current hostname (\texttt{window.location.hostname}) to isolate administrative panels from user-facing screens:
+To ensure strict tenant and context segregation, the frontend implements a hybrid split-domain routing architecture. The application dynamically inspects the current hostname (\texttt{window.location.hostname}) and URI pathing to isolate administrative views:
 \begin{itemize}
-    \item \textbf{Consumer Context:} The root domain serves consumer-facing paths, including the 2D/3D design planner, style uploads, product discovery, and cart/checkout systems.
-    \item \textbf{Administrative Context:} Subdomains starting with \texttt{admin} (e.g., \texttt{admin.localhost}) mount a separate router root. This root exposes dashboards for managing user accounts, audit logs, system configurations, and pricing plans. Access is enforced by the \texttt{ProtectedAdminRoute} wrapper.
+    \item \textbf{Administrative Subdomain:} Subdomains starting with \texttt{admin} (e.g., \texttt{admin.localhost} or \texttt{admin.intelliroom.com}) mount the core administrative dashboard. This dashboard is responsible for user accounts, global audit logs, system configurations, and subscription plan management.
+    \item \textbf{E-commerce Path-Based Admin:} Product and store management administrative panels (managing product listings, categories, rooms, and order tracking) are integrated on a path-based layout (\texttt{/ecomm/admin}) under the consumer root domain, allowing retailer-administrators to seamlessly navigate between store views and product catalogs.
 \end{itemize}
-This client-side split prevents normal users from traversing administrative routes. To prevent cross-context session contamination, the backend separates session states into distinct cookie namespaces: \texttt{Authentication}/\texttt{Refresh} for consumers and \texttt{Admin-Authentication}/\texttt{Admin-Refresh} for administrators.
+Access to both portals is strictly enforced client-side by the \texttt{ProtectedAdminRoute} wrapper, and validated server-side via role-based token checks. To prevent cross-context session contamination, the backend separates session states into distinct cookie namespaces: \texttt{Authentication}/\texttt{Refresh} for consumers and \texttt{Admin-Authentication}/\texttt{Admin-Refresh} for administrators.
 
 \subsection{Component Architecture}
 
@@ -1321,7 +1315,7 @@ Table~\ref{tab:tech_stack} summarizes the implemented and planned technology sta
         \hline
         Containerization & Docker Compose & Done & Development environment \\
         \hline
-        Object Detection & RT-DETR r50vd & Done & Real-time furniture crop extraction \\
+        Object Detection & RF-DETR & Done & Real-time furniture crop extraction \\
         \hline
         Object Detection & Florence-2 & Done & Room and furniture analysis (ComfyUI workflows) \\
         \hline
@@ -1661,7 +1655,7 @@ Table~\ref{tab:impl_status} provides a summary of the current implementation sta
         \hline
         AI Recommendation Engine & Complete & Two-plane architecture with ChromaDB \\
         \hline
-        RT-DETR Detection & Complete & Furniture crop extraction (remote GPU backend) \\
+        RF-DETR Detection & Complete & Furniture crop extraction (remote GPU backend) \\
         \hline
         SigLIP2 Embeddings & Complete & 1152-d visual similarity vectors \\
         \hline

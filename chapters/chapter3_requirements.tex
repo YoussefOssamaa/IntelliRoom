@@ -30,7 +30,7 @@ The functional requirements define the specific behaviors and capabilities that 
     \hline
     FR-02 & Authentication & The system shall support social login via Google and Facebook & Medium & Planned \\
     \hline
-    FR-03 & Authentication & The system shall implement secure password recovery via email & High & Planned \\
+    FR-03 & Authentication & The system shall implement secure password recovery via email & High & Complete \\
     \hline
     FR-04 & Profile & The system shall allow users to update profile information including name, photo, and bio & Medium & Complete \\
     \hline
@@ -38,21 +38,21 @@ The functional requirements define the specific behaviors and capabilities that 
     \hline
     FR-06 & Room Upload & The system shall accept room photographs in JPEG and PNG formats & High & Complete \\
     \hline
-    FR-07 & Room Upload & The system shall validate image quality and provide feedback on unsuitable uploads & High & Partial \\
+    FR-07 & Room Upload & The system shall validate image quality and provide feedback on unsuitable uploads & High & Complete \\
     \hline
     FR-08 & Room Upload & The system shall support direct camera capture from mobile devices & Medium & Planned \\
     \hline
-    FR-09 & Room Analysis & The system shall automatically detect room type (bedroom, living room, kitchen, etc.) & High & Planned \\
+    FR-09 & Room Analysis & The system shall automatically detect room type (bedroom, living room, kitchen, etc.) & High & Complete \\
     \hline
-    FR-10 & Room Analysis & The system shall identify existing furniture items in uploaded photographs & High & Planned \\
+    FR-10 & Room Analysis & The system shall identify existing furniture items in uploaded photographs & High & Complete \\
     \hline
-    FR-11 & Room Analysis & The system shall analyze current room style and provide style classification & Medium & Planned \\
+    FR-11 & Room Analysis & The system shall analyze current room style and provide style classification & Medium & Complete \\
     \hline
-    FR-12 & Style Selection & The system shall offer predefined style presets including Arabic Traditional, Modern Egyptian, Mediterranean, and Contemporary & High & Partial \\
+    FR-12 & Style Selection & The system shall offer predefined style presets including Arabic Traditional, Modern Egyptian, Mediterranean, and Contemporary & High & Complete \\
     \hline
     FR-13 & Style Selection & The system shall allow mood-based design preferences (cozy, minimalist, luxurious) & Medium & Planned \\
     \hline
-    FR-14 & AI Generation & The system shall generate 3-5 design variations for each request & High & In Progress \\
+    FR-14 & AI Generation & The system shall generate 3-5 design variations for each request & High & Complete \\
     \hline
     FR-15 & AI Generation & The system shall preserve room structure (walls, windows, doors) during transformation & High & Complete \\
     \hline
@@ -66,7 +66,7 @@ The functional requirements define the specific behaviors and capabilities that 
     \hline
     FR-20 & 2D Planning & The system shall support drag-and-drop furniture placement in 2D view & Medium & Complete \\
     \hline
-    FR-21 & 3D Visualization & The system shall convert 2D layouts to 3D visualization & Low & Partial \\
+    FR-21 & 3D Visualization & The system shall convert 2D layouts to 3D visualization & Low & Complete \\
     \hline
     FR-22 & Marketplace & The system shall display furniture product recommendations based on generated designs & High & Complete \\
     \hline
@@ -84,7 +84,7 @@ The functional requirements define the specific behaviors and capabilities that 
     \hline
     FR-29 & Community & The system shall support design likes and comments & Low & Complete \\
     \hline
-    FR-30 & Export & The system shall enable high-resolution download of generated designs & High & Partial \\
+    FR-30 & Export & The system shall enable high-resolution download of generated designs & High & Complete \\
     \hline
     FR-31 & Export & The system shall generate PDF reports with furniture specifications & Medium & Planned \\
     \hline
@@ -385,7 +385,6 @@ Requirements traceability ensures that each user story maps to functional requir
     \end{tabular}
 \end{table}
 
-% ============================================================================
 \section{Implementation Status Summary}
 \label{sec:impl_status}
 
@@ -403,33 +402,39 @@ Table~\ref{tab:req_completion} summarizes the implementation status across requi
         \hline
         \textbf{Category} & \textbf{Total} & \textbf{Complete} & \textbf{Partial} & \textbf{Planned} & \textbf{Progress} \\
         \hline
-        Authentication & 3 & 3 & 0 & 0 & 100\% \\
+        Authentication & 3 & 2 & 0 & 1 & 67\% \\
         \hline
         Profile \& Projects & 4 & 4 & 0 & 0 & 100\% \\
         \hline
-        Room Upload & 3 & 3 & 0 & 0 & 100\% \\
+        Room Upload & 3 & 2 & 0 & 1 & 67\% \\
         \hline
         Room Analysis & 3 & 3 & 0 & 0 & 100\% \\
         \hline
-        Style Selection & 2 & 0 & 1 & 1 & 25\% \\
+        Style Selection & 2 & 1 & 0 & 1 & 50\% \\
         \hline
         AI Generation & 3 & 3 & 0 & 0 & 100\% \\
         \hline
         Visualization & 2 & 0 & 0 & 2 & 0\% \\
         \hline
-        2D/3D Planning & 3 & 2 & 1 & 0 & 83\% \\
+        2D/3D Planning & 3 & 3 & 0 & 0 & 100\% \\
         \hline
-        E-commerce/\\ Marketplace & 8 & 8 & 0 & 0 & 100\% \\
+        Marketplace & 3 & 3 & 0 & 0 & 100\% \\
         \hline
         Credits & 3 & 3 & 0 & 0 & 100\% \\
         \hline
         Community & 2 & 2 & 0 & 0 & 100\% \\
         \hline
-        Export & 2 & 0 & 1 & 1 & 25\% \\
+        Export & 2 & 1 & 0 & 1 & 50\% \\
         \hline
         Tutorial & 1 & 0 & 0 & 1 & 0\% \\
         \hline
-        \textbf{Overall} & \textbf{38} & \textbf{31} & & \textbf{5} & \textbf{82\%} \\
+        E-commerce & 4 & 4 & 0 & 0 & 100\% \\
+        \hline
+        Plugin Market & 4 & 4 & 0 & 0 & 100\% \\
+        \hline
+        Contact & 1 & 1 & 0 & 0 & 100\% \\
+        \hline
+        \textbf{Overall} & \textbf{43} & \textbf{36} & \textbf{0} & \textbf{7} & \textbf{84\%} \\
         \hline
     \end{tabularx}
 \end{table}
@@ -445,7 +450,7 @@ The following major components have been fully implemented:
     \item \textbf{E-commerce Module:} Full CRUD operations for products, categories, shopping cart, orders, and wishlists with search, pagination, and filtering
     \item \textbf{Design Project Management:} Project creation, retrieval, update, and deletion with flexible sceneData storage for 2D/3D scenes
     \item \textbf{ComfyUI Integration:} REST API-based service for AI workflow execution, image upload, and result retrieval
-    \item \textbf{AI Vector Recommendation Engine:} Two-plane architecture with a local FastAPI orchestrator (ChromaDB vector store, semantic taxonomy snapper) and a remote GPU inference server (RT-DETR for detection, SigLIP2 for embeddings, Qwen3-VL 4B for taxonomy tagging) connected via zrok tunneling
+    \item \textbf{AI Vector Recommendation Engine:} Two-plane architecture with a local FastAPI orchestrator (ChromaDB vector store, semantic taxonomy snapper) and a remote GPU inference server (RF-DETR for detection, SigLIP2 for embeddings, Qwen3-VL 4B for taxonomy tagging) connected via zrok tunneling
     \item \textbf{Community Features:} Gallery post schema with likes, comments, and tags support
     \item \textbf{Credit System:} User credits, transaction tracking, and subscription plan support (free, monthly, yearly) with automated monthly reset
     \item \textbf{Docker Configuration:} Development containers for frontend, backend, and MongoDB services

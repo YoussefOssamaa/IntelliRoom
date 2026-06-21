@@ -160,14 +160,14 @@ Use Case ID & UC-M02 \\
 \midrule
 Name & Shop This Look (AI-Powered Furniture Matching) \\
 \midrule
-Actors & Consumer User, Product Matching System (Florence-2, CLIP), Egyptian Furniture Retailers \\
+Actors & Consumer User, Product Matching System (RF-DETR, SigLIP2, Qwen3-VL), Egyptian Furniture Retailers \\
 \midrule
 Preconditions & User has generated design (UC-C06), clicks "Shop This Look", retailer catalog populated \\
 \midrule
 Basic Flow &
 \begin{enumerate}[leftmargin=*,noitemsep,topsep=0pt]
-    \item \textbf{Florence-2} detects furniture items and extracts visual features
-    \item \textbf{CLIP} matches items to Egyptian retailer products
+    \item \textbf{RF-DETR} detects furniture items and extracts visual crops
+    \item \textbf{SigLIP2} extracts high-dimensional visual embeddings for vector search matching
     \item System displays interactive overlay with clickable hotspots
     \item Side panel shows 3-5 products per item: name, price (EGP), retailer, similarity, stock
     \item User clicks hotspot to view full details: specs, images, reviews, alternatives
@@ -188,7 +188,7 @@ Includes & UC-M01 (Browse Egyptian Furniture Catalog) for product data access \\
 Extends & UC-M05 (Compare Prices), UC-M08 (Add to Cart), UC-M10 (Place Order) \\
 \midrule
 Technical Notes & 
-Florence-2 provides object detection, while CLIP enables semantic similarity matching. \\
+RF-DETR provides object detection, SigLIP2 enables visual similarity embedding retrieval, and Qwen3-VL generates taxonomy tags for metadata-based filtering. \\
 \bottomrule
 \end{tabular}
 \end{table}

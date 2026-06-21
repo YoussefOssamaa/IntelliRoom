@@ -34,7 +34,7 @@ A robust three-tier architecture has been designed and implemented:
     \item \textbf{Database:} MongoDB 7 with Mongoose ODM (complete)
     \item \textbf{Authentication:} Asymmetric JWT (RS256) with cookie sessions and refresh token rotation (complete)
     \item \textbf{AI Engine:} ComfyUI integration with REST API polling (complete)
-    \item \textbf{AI Recommendation Service:} Python FastAPI orchestrator with ChromaDB, RT-DETR, SigLIP2, and Qwen3-VL 4B via remote GPU backend (complete)
+    \item \textbf{AI Recommendation Service:} Python FastAPI orchestrator with ChromaDB, RF-DETR, SigLIP2, and Qwen3-VL 4B via remote GPU backend (complete)
     \item \textbf{Containerization:} Docker Compose development and production environments (complete)
 \end{itemize}
 
@@ -86,7 +86,7 @@ The following components have been fully implemented:
     \item \textbf{AI Vector Recommendation Engine:}
     \begin{itemize}
         \item Two-plane architecture: local FastAPI orchestrator + remote GPU inference server
-        \item RT-DETR r50vd for furniture detection and crop extraction
+        \item RF-DETR for furniture detection and crop extraction
         \item SigLIP2 so400m for 1152-dimensional visual embeddings
         \item Qwen3-VL 4B Instruct for taxonomy tagging (selected via ablation study over 2B/4B/8B variants)
         \item ChromaDB vector database with cosine similarity search and metadata filtering
@@ -139,7 +139,7 @@ Table~\ref{tab:impl_summary} summarizes the current implementation status by com
         \hline
         AI Recommendation Engine & 100\% & Two-plane architecture with ChromaDB \\
         \hline
-        RT-DETR Detection & 100\% & Furniture crop extraction (remote GPU backend) \\
+        RF-DETR Detection & 100\% & Furniture crop extraction (remote GPU backend) \\
         \hline
         SigLIP2 Embeddings & 100\% & 1152-d visual similarity vectors \\
         \hline
@@ -197,7 +197,7 @@ A fully operational web-based interior design platform enabling Egyptian and MEN
 
 The project demonstrates:
 \begin{itemize}
-    \item Successful integration of state-of-the-art AI models (SAM2, Florence-2, RT-DETR, SigLIP2, Qwen3-VL, ControlNet, Flux2Klein 4B) for interior design applications
+    \item Successful integration of state-of-the-art AI models (SAM2, Florence-2, RF-DETR, SigLIP2, Qwen3-VL, ControlNet, Flux2Klein 4B) for interior design applications
     \item Real-time AI workflow execution via ComfyUI REST API integration
     \item A novel two-plane architecture for GPU inference via zrok tunneling to a dedicated GPU server
     \item Vector database-powered furniture recommendation using visual similarity and taxonomy-constrained metadata filtering

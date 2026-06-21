@@ -21,8 +21,12 @@ export const AuthProvider = ({ children }) => {
 
     const formatUser = (backendUserData) => {
         return {
+            _id: backendUserData._id,
             email: backendUserData.email,
             firstName: backendUserData.firstName,
+            name: backendUserData.firstName && backendUserData.lastName 
+            ? `${backendUserData.firstName} ${backendUserData.lastName}` 
+            : backendUserData.user_name,
             lastName: backendUserData.lastName,
             user_name: backendUserData.user_name,
             plan: backendUserData.plan,
@@ -38,8 +42,6 @@ export const AuthProvider = ({ children }) => {
 
         localStorage.setItem("isLoggedIn", "true");
         localStorage.setItem("user", JSON.stringify(formattedUser));
-
-
     }
 
     const logout = () => {
@@ -47,12 +49,20 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
         localStorage.removeItem("isLoggedIn");
         localStorage.removeItem("user");
-
     }
+    
+    const updateUserLocalState = (updatedData) => {
+        setUser((prev) => {
+            if (!prev) return null;
+            const newUserData = { ...prev, ...updatedData };
+            localStorage.setItem("user", JSON.stringify(newUserData));
+            return newUserData;
+        });
+    };
     
 
     return (
-        <AuthContext.Provider value={{ isLoggedIn, user, loading, login, logout }}>
+        <AuthContext.Provider value={{ isLoggedIn, user, loading, login, logout, updateUserLocalState }}>
             {!loading ? children:(
                 <div className="flex h-screen w-screen items-center justify-center bg-cream font-body text-text-primary">
                     Loading Application...

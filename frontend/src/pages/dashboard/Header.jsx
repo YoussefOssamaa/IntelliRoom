@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import logoImage from '../../../public/assets/site-logo-white.png';
+import { useAuth } from '../../utils/authContext'; // استدعاء الـ Context مباشرة
 
-const Header = ({ user }) => {
+const Header = () => {
+  const { user, logout } = useAuth(); // جلب بيانات المستخدم ودالة تسجيل الخروج
   const [openSubmenu, setOpenSubmenu] = useState(null);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   
@@ -10,19 +12,19 @@ const Header = ({ user }) => {
   const navigate = useNavigate();
 
   const getLinkClass = (path) => {
-   /* const isActive = location.pathname === path;
-    return isActive 
-      ? "text-base font-medium text-[#00e676] bg-transparent border-0 cursor-pointer"
-      : "text-base font-medium text-text-primary hover:text-text-accent transition-colors";*/
-
-    const isActive = location.pathname === path;
-  return "text-base font-medium text-text-primary hover:text-text-accent transition-colors";
+    return "text-base font-medium text-text-primary hover:text-text-accent transition-colors";
   };
 
   const handleLogout = () => {
-    console.log("Logout clicked");
+    logout(); // تنفيذ الخروج الفعلي من الـ Context وتطهير الـ LocalStorage
     setShowProfileMenu(false);
+    navigate('/login');
   };
+
+  // دمج الاسم الأول والثاني بشكل آمن للعرض
+  const displayName = user?.firstName 
+    ? `${user.firstName} ${user.lastName || ''}`.trim() 
+    : (user?.name || "User");
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white shadow-[0px_1px_2px_#0000000c] border-b border-[#e0e0e0]">
@@ -30,76 +32,24 @@ const Header = ({ user }) => {
         
         <div className="flex justify-between items-center w-full">
           
-
           <Link to="/" className="flex items-center gap-3 cursor-pointer">
             <img
               src={logoImage}
               alt="IntelliRoom AI Logo"
               className="h-10 sm:h-12 lg:h-14 w-auto object-contain"
             />
-
             <span className="text-xl sm:text-2xl font-bold text-text-primary tracking-wide leading-none">
               IntelliRoom <span className="text-text-accent">AI</span>
             </span>
           </Link>
 
-
           <nav className="flex items-center space-x-7">
-            
-            <Link to="/" className={getLinkClass('/')}>
-              Home
-            </Link>
-            
-            <div 
-              className="relative h-full flex items-center" 
-              onMouseEnter={() => setOpenSubmenu('features')} 
-              onMouseLeave={() => setOpenSubmenu(null)}
-            >
-            {/*
-              <button className="text-base font-medium text-text-primary hover:text-text-accent transition-colors">
-                Features
-                <img 
-                   src="/images/img_.png" 
-                   alt="" 
-                   className={`w-3 h-4 ml-2 transition-transform ${openSubmenu === 'features' ? 'rotate-180' : ''}`}
-                   onError={(e) => {e.target.style.display='none'}}
-                />
-              </button>
-              
-              {openSubmenu === 'features' && (
-                <ul className="absolute top-full left-0 mt-0 w-48 bg-white border border-[#e0e0e0] rounded-md shadow-lg z-50">
-                  <li><button className="w-full px-4 py-3 text-left text-sm text-[#333333] hover:bg-[#f0fdf4] transition-colors bg-transparent border-0 cursor-pointer">Style Transfer</button></li>
-                  <li><button onClick={()=>{navigate("/upload"); setOpenSubmenu(null);  }}  className="w-full px-4 py-3 text-left text-sm text-[#333333] hover:bg-[#f0fdf4] transition-colors bg-transparent border-0 cursor-pointer">AI Generation</button></li>
-                  <li><button className="w-full px-4 py-3 text-left text-sm text-[#333333] hover:bg-[#f0fdf4] transition-colors bg-transparent border-0 cursor-pointer">Custom Configs</button></li>
-                </ul>
-              )}
-            */}
-            </div>
-
-
-            <Link to="/upload" className={getLinkClass('/upload')}>
-              AI Generation
-            </Link>
-{/*
-            <Link to="/marketplace" className={getLinkClass('/gallery')}>
-              Gallery
-            </Link>
-*/}
-            <Link to="/ecomm" className={getLinkClass('/marketplace')}>
-              Marketplace
-            </Link>
-
-            <Link to="/pricingPlans" className={getLinkClass('/pricingPlans')}>
-              Pricing
-            </Link>
-
-            <Link to="/planner" className={getLinkClass('/planner')}>
-              3D Planner
-            </Link>
-            
-            <Link to="/dashboard" className={getLinkClass('/dashboard')}>
-              Dashboard
-            </Link>
+            <Link to="/" className={getLinkClass('/')}>Home</Link>
+            <Link to="/upload" className={getLinkClass('/upload')}>AI Generation</Link>
+            <Link to="/ecomm" className={getLinkClass('/marketplace')}>Marketplace</Link>
+            <Link to="/pricingPlans" className={getLinkClass('/pricingPlans')}>Pricing</Link>
+            <Link to="/planner" className={getLinkClass('/planner')}>3D Planner</Link>
+            <Link to="/dashboard" className={getLinkClass('/dashboard')}>Dashboard</Link>
           </nav>
 
           <div className="flex items-center space-x-6">
@@ -130,7 +80,7 @@ const Header = ({ user }) => {
                      <img src={user.profile_picture_url} alt="Profile" className="w-full h-full object-cover" />
                    ) : (
                      <div className="w-full h-full bg-[#e0e0e0] flex items-center justify-center text-[#666] font-bold text-lg">
-                        {user?.name?.charAt(0) || 'U'}
+                        {displayName.charAt(0)}
                      </div>
                    )}
                 </div>
@@ -139,12 +89,12 @@ const Header = ({ user }) => {
               {showProfileMenu && (
                 <div className="absolute right-0 mt-2 w-56 bg-white border border-[#e0e0e0] rounded-md shadow-lg z-50">
                   <div className="px-4 py-3 border-b border-[#e0e0e0]">
-                    <p className="text-sm font-semibold text-[#333333]">{user?.name || "User"}</p>
+                    <p className="text-sm font-semibold text-[#333333]">{displayName}</p>
                     <p className="text-xs text-[#666666] truncate">{user?.plan || "Free"} Plan</p>
                   </div>
                   <ul className="py-2">
                     <li><button onClick={() => navigate('/updateProfile')} className="w-full px-4 py-2 text-left text-sm text-[#333333] hover:bg-[#f0fdf4] transition-colors bg-transparent border-0 cursor-pointer">Profile Settings</button></li>
-                    <li><button onClick={() => navigate('/myProjects')} className="w-full px-4 py-2 text-left text-sm text-[#333333] hover:bg-[#f0fdf4] transition-colors bg-transparent border-0 cursor-pointer">My Projects</button></li>
+                    <li><button onClick={() => navigate('/projects')} className="w-full px-4 py-2 text-left text-sm text-[#333333] hover:bg-[#f0fdf4] transition-colors bg-transparent border-0 cursor-pointer">My Projects</button></li>
                     <li><button onClick={() => navigate('/billing')} className="w-full px-4 py-2 text-left text-sm text-[#333333] hover:bg-[#f0fdf4] transition-colors bg-transparent border-0 cursor-pointer">Billing</button></li>
                     <li className="border-t border-[#e0e0e0] mt-2 pt-2">
                         <button 

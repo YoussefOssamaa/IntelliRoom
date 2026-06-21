@@ -11,13 +11,13 @@ const CategoryPage = () => {
 
   // 2. STATE DECLARATIONS (Must always come before UseEffects!)
   const [formOptions, setFormOptions] = useState(null);
-  const [currentCategory, setCurrentCategory] = useState(null); 
+  const [currentCategory, setCurrentCategory] = useState(null);
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [categoryNotFound, setCategoryNotFound] = useState(false);
 
   // Filter States
-  const [selectedSubCategories, setSelectedSubCategories] = useState([]); 
+  const [selectedSubCategories, setSelectedSubCategories] = useState([]);
   const [priceRange, setPriceRange] = useState("All");
   const [inStockOnly, setInStockOnly] = useState(false);
   const [sortBy, setSortBy] = useState("Recommended");
@@ -35,7 +35,7 @@ const CategoryPage = () => {
   useEffect(() => {
     const fetchOptions = async () => {
       try {
-        const response = await axios.get("/products/form-options"); 
+        const response = await axios.get("/products/form-options");
         if (response.data.success) {
           setFormOptions(response.data.data);
         }
@@ -49,13 +49,13 @@ const CategoryPage = () => {
   // Identify the exact category from the Slug/Name
   useEffect(() => {
     if (formOptions && formOptions.categories && activeSlug) {
-      
+
       const exactCategory = formOptions.categories.find(c => {
         const dbSlug = c.slug;
         const generatedSlug = c.name.toLowerCase().replace(/\s+/g, '-');
         return dbSlug === activeSlug || generatedSlug === activeSlug;
       });
-      
+
       if (exactCategory) {
         setCurrentCategory(exactCategory);
       } else {
@@ -68,13 +68,13 @@ const CategoryPage = () => {
   // Fetch Products
   useEffect(() => {
     const fetchCategoryProducts = async () => {
-      if (!currentCategory) return; 
+      if (!currentCategory) return;
 
       setIsLoading(true);
       try {
         const queryParams = new URLSearchParams();
-        
-        queryParams.append("category", currentCategory._id); 
+
+        queryParams.append("category", currentCategory._id);
 
         if (inStockOnly) queryParams.append("inStockOnly", "true");
         if (sortBy !== "Recommended") queryParams.append("sort", sortBy);
@@ -91,6 +91,7 @@ const CategoryPage = () => {
         const response = await axios.get(`/products?${queryParams.toString()}`);
         if (response.data.success) {
           setProducts(response.data.data);
+          console.log("THE PRODUCTSSSSSS: ", response.data.data);
         }
       } catch (error) {
         console.error("Failed to fetch category products:", error);
@@ -147,12 +148,12 @@ const CategoryPage = () => {
       {/* MAIN LAYOUT */}
       <div className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex flex-col lg:flex-row gap-8 items-start">
-          
+
           {/* THE SIDEBAR */}
           <div className="w-full lg:w-1/4 lg:sticky lg:top-8 flex-shrink-0 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto pr-2 custom-scrollbar">
             <ProductFilter
               formOptions={formOptions}
-              activeCategoryPage={currentCategory?.name} 
+              activeCategoryPage={currentCategory?.name}
               selectedCategories={selectedSubCategories}
               setSelectedCategories={setSelectedSubCategories}
               priceRange={priceRange}
@@ -206,7 +207,7 @@ const CategoryPage = () => {
             ) : products.length === 0 ? (
               <div className="bg-white p-12 rounded-3xl border border-[#e0e0e0] text-center shadow-sm flex flex-col items-center">
                 <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6">
-                  <svg className="w-10 h-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                  <svg className="w-10 h-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
                 </div>
                 <h2 className="text-2xl font-bold text-text-primary mb-2">No products found</h2>
                 <p className="text-gray-500 max-w-md mb-6">Try adjusting your filters or removing some materials to see more results.</p>

@@ -53,3 +53,4 @@ logs/
 # furniture images
 furniture_images/
 
+/backend/ai

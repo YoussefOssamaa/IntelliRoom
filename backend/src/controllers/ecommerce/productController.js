@@ -105,11 +105,16 @@ export const getProducts = async (req, res) => {
         }
 
         // Execute the massive, perfectly structured query
+        console.log("THE QUERY: ", query);
+        console.log("THE SORT OPTION: ", sortOption);
+
+
         const products = await Product.find(query)
             .populate('categorization.primary', 'name slug')
             .populate('categorization.subCategory', 'name slug')
             .sort(sortOption);
 
+        console.log("PRODUCTSSS:", products)
         res.status(200).json({
             success: true,
             count: products.length,

@@ -4,7 +4,7 @@ import fs from 'fs';
 import { comfyUIServiceInstance } from '../../server.js';
 import { setTimeout } from 'node:timers/promises';
 import { escape } from 'node:querystring';
-import { buildComfyWorkflow, COMFYUI_OUTPUT_NODE } from '../../../../ai/ComfyUI_Workflows/API_Format/Final_workflow_API.mjs';
+import { buildComfyWorkflow, COMFYUI_OUTPUT_NODE } from '../../../ai/ComfyUI_Workflows/API_Format/Final_workflow_API.mjs';
 import { getRecommendations } from './getRecommendations.js';
 import { getMatchedProductsFromDB } from './getMatchedProductsFromDB.js';
 import axios from 'axios';
@@ -141,7 +141,7 @@ export const postImageController = async (req, res) => {
         await setTimeout(500);  /// delay to allow the output image to appear on the frontend page
 
 
-        postingImage = {
+        const postingImage = {
             user: req.userId,
             inputPrompt: inputPrompt,
             originalImageUrl: `/uploads/uploadedImages/${mainImage.filename}`,
@@ -149,7 +149,7 @@ export const postImageController = async (req, res) => {
             generatedImageUrl: `/uploads/comfyOutputs/${localFileName}`,
             isFavorite: false
         }
-
+        console.log("THIS IS THE POSTING IMAGE before calling the function", postingImage);
         await postGeneratedImageController(postingImage);
 
         return res.status(200).json({

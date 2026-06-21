@@ -1,11 +1,32 @@
+/* ============================================================
+   PricingPlansPage.css  — IntelliRoom editorial design system
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&family=League+Spartan:wght@700;800&display=swap');
+
+/* ---------- Design Tokens ---------- */
+:root {
+  --cream:       hsl(36, 20%, 94%);
+  --cream-dark:  hsl(34, 14%, 88%);
+  --carbon:      hsl(24, 12%, 8%);
+  --carbon-60:   hsl(24, 6%, 38%);
+  --carbon-30:   hsl(30, 8%, 62%);
+  --carbon-10:   hsl(30, 10%, 80%);
+  --accent:      hsl(17, 100%, 62%);
+  --accent-pale: hsl(17, 100%, 95%);
+  --radius-sm:   0.5rem;
+  --radius-md:   1rem;
+}
+
 /* Container Logic */
 .main-wrapper {
     position: relative;
     overflow: hidden;
-    padding: 40px 20px;
-    font-family: sans-serif;
-    background-color: white;
-    background-image: linear-gradient(200deg, #F59F0A20 30%, #5048E580);
+    /* 👇 هنا زودنا الـ padding-top لـ 120px عشان الـ Header مايغطيش على العنوان */
+    padding: 120px 20px 100px;
+    font-family: 'Inter', sans-serif;
+    background-color: var(--cream);
+    color: var(--carbon);
     max-width: 100vw;
     width: 100%;
     min-height: 100vh;
@@ -13,146 +34,132 @@
     z-index: 1;
 }
 
+/* Background Decorations */
 .deco-shape {
   position: absolute;
-  width: 100px;       /* Default size */
-  height: 100px;      /* Default size */
-  border-radius: 70px; /* Makes it a rounded square */
-  background-color: #FFFFFF; /* Uses your theme blue */
-  opacity: 0.20;       /* Very faint (10% visibility) */
-  z-index: -1;        /* Puts it BEHIND the text and cards */
-  pointer-events: none; /* Allows you to click through it */
-  transform: rotate(30deg); /* Optional: Tults it slightly for style */
+  border-radius: 70px;
+  background-color: var(--accent);
+  opacity: 0.05;
+  z-index: -1;
+  pointer-events: none;
 }
 
 .cards-container, 
-.header-section, 
-.toggle-area {
+.header-section {
   position: relative;
-  z-index: 2; /* Ensures content is above the shapes */
+  z-index: 2;
 }
 
 .header-section {
     text-align: center;
-    margin-bottom: 40px;
-    /* Space between title and toggle */
+    margin-bottom: 60px; /* كبرنا المسافة دي شوية بعد ما شيلنا الـ Toggle */
 }
 
 .main-title {
-    font-size: 2.5rem;
+    font-family: 'League Spartan', sans-serif;
+    font-size: 3.5rem;
     font-weight: 800;
-    margin-bottom: 10px;
-    background-image: linear-gradient(to right, black 40%, #F59F0A, #5048E5 70%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-
+    line-height: 1.05;
+    color: var(--carbon);
+    letter-spacing: -0.02em;
+    margin-bottom: 15px;
 }
 
 .sub-title {
     font-size: 1.1rem;
-    color: #4c4b4b;
+    color: var(--carbon-60);
     margin-top: 0;
+    font-family: 'Inter', sans-serif;
 }
 
 .cards-container {
     display: flex;
     justify-content: center;
-    align-items: flex-start;
-    /* Ensure they align at the top */
-    gap: 20px;
+    align-items: stretch;
+    gap: 24px;
     flex-wrap: wrap;
-    /* Allows stacking on mobile */
     width: 100%;
-    max-width: 1200px;
+    max-width: 1100px;
     margin: 0 auto;
 }
 
 /* Base Card Style */
 .card {
-    background: white;
-    color: #333;
-    /* Forces text to be dark grey/black */
-    border: 1px solid #ddd;
-    padding: 20px;
-    border-radius: 12px;
+    background: #fff;
+    color: var(--carbon);
+    border: 1px solid var(--carbon-10);
+    padding: 30px;
+    border-radius: var(--radius-md);
     width: 100%;
-    max-width: 280px;
+    max-width: 320px;
     box-sizing: border-box;
     position: relative;
-    /* Needed for positioning the badge */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
     transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-    cursor: pointer;
 }
 
 .card:hover {
-  /* Move the card up by 10 pixels */
-  transform: translateY(-10px); 
-  
-  /* Make the shadow deeper and softer */
-  box-shadow: 0 20px 40px var(--shadow-color);
-  
-  /* Optional: Highlight the border color */
-  border-color: var(--primary-color);
+  transform: translateY(-8px); 
+  box-shadow: 0 20px 40px rgba(20, 18, 16, 0.08);
 }
 
-/* --- MOST POPULAR (PRO) STYLES --- */
-.popular-card {
-    transform: scale(1.05);
-    /* Slightly bigger */
-    box-shadow: 0 15px 30px rgba(0, 123, 255, 0.15);
-    z-index: 10;
-    border: 2px solid #8c7ae6;
-
+.card.current-plan {
+    border: 2px solid var(--carbon);
+    box-shadow: 0 10px 30px rgba(20, 18, 16, 0.05);
 }
 
-.popular-badge {
-    text-align: center;
-    position: absolute;
-    top: -12px;
-    left: 50%;
-    transform: translateX(-50%);
-    /* Centers the badge */
-    background-color: #f3e8ff;
-    color: #7e22ce;
-    padding: 5px 15px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border: 1px solid #d8b4fe;
-}
-
-.popular-card:hover {
-  transform: scale(1.05) translateY(-10px);
-}
-
-/* Typography explicitly set to visible colors */
+/* Typography */
 .plan-name {
-    font-size: 1.5rem;
+    font-family: 'League Spartan', sans-serif;
+    font-size: 1.75rem;
+    font-weight: 800;
     margin-top: 0;
-    color: #000;
+    color: var(--carbon);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.current-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    background-color: var(--carbon-10);
+    color: var(--carbon);
+    padding: 4px 10px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .description {
-    color: #666;
-    font-size: 0.9rem;
+    color: var(--carbon-60);
+    font-size: 0.95rem;
     margin-bottom: 20px;
+    line-height: 1.5;
 }
 
 .price-tag {
-    font-size: 2.5rem;
-    font-weight: bold;
-    color: #000;
+    font-family: 'League Spartan', sans-serif;
+    font-size: 3.5rem;
+    font-weight: 800;
+    color: var(--carbon);
+    line-height: 1;
     margin: 20px 0;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.price-currency {
+    font-size: 1.5rem;
+    color: var(--carbon-60);
 }
 
 .price-tag .period {
+    font-family: 'Inter', sans-serif;
     font-size: 1rem;
-    color: #666;
+    color: var(--carbon-30);
     font-weight: normal;
 }
 
@@ -160,179 +167,132 @@
 .features {
     list-style: none;
     padding: 0;
-    margin: 20px 0;
+    margin: 20px 0 30px;
     text-align: left;
+    flex-grow: 1;
 }
 
 .features li {
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     display: flex;
     align-items: flex-start;
-    color: #444;
+    color: var(--carbon-60);
+    font-size: 0.95rem;
 }
 
 .checkmark {
-    color: #007bff;
-    /* Blue checkmark */
-    margin-right: 10px;
+    color: var(--accent);
+    margin-right: 12px;
     font-weight: bold;
 }
 
 /* CTA Button */
 .cta-button {
     width: 100%;
-    padding: 12px;
-    background-color: #007bff;
-    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--carbon);
+    color: var(--cream);
+    padding: 1rem 1.5rem;
+    border-radius: 999px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     border: none;
-    border-radius: 6px;
-    font-weight: bold;
     cursor: pointer;
+    transition: background-color 0.2s ease, opacity 0.2s ease;
     margin-top: auto;
-    /* Pushes button to bottom */
 }
 
-.cta-button:hover {
-    background-color: #0056b3;
+.cta-button:hover:not(:disabled) {
+    background-color: hsl(24, 12%, 16%);
 }
 
+.cta-button:disabled {
+    background-color: var(--carbon-30);
+    cursor: not-allowed;
+}
 
+.card-divider {
+  border: 0;
+  border-top: 1px solid var(--carbon-10); 
+  margin: 24px 0; 
+  width: 100%;
+}
 
-/* Toggle Switch Area */
+/* =========================================
+   Toggle Switch Styles (الزرار اللي كان طاير)
+   ========================================= */
 .toggle-area {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 50px;
-    font-size: 1rem;
+    gap: 16px;
+    margin-bottom: 60px;
+    width: 100%;
 }
 
-/* The Background Pill */
 .toggle-switch {
-    width: 50px;
-    height: 26px;
-    background-color: #ccc;
-    border-radius: 13px;
+    width: 56px;
+    height: 30px;
+    background-color: var(--carbon-30);
+    border-radius: 15px;
     position: relative;
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
 
-/* Change background color when active (Annual) */
 .toggle-switch.active {
-    background-color: #007bff;
+    background-color: var(--accent);
 }
 
-/* The Moving Circle */
 .switch-knob {
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
     background-color: white;
     border-radius: 50%;
     position: absolute;
-    top: 2px;
-    left: 2px;
+    top: 3px;
+    left: 3px;
     transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-    /* Bouncy effect */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* Move the circle to the right when active */
 .toggle-switch.active .switch-knob {
-    transform: translateX(24px);
+    transform: translateX(26px);
 }
 
-/* Text Styles */
 .label-text {
-    color: #666;
-    font-weight: 500;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--carbon-60);
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
     cursor: pointer;
     transition: color 0.2s;
 }
 
 .active-text {
-    color: #000;
-    font-weight: bold;
-}
-
-/* Save 17% Badge */
-.save-badge, 
-.active-save-badge {
-  font-size: 0.75rem;
-  font-weight: bold;
-  padding: 4px 8px;
-  border-radius: 12px;
-  text-transform: uppercase;
-  margin-left: -5px;
-  
-  transition: background-color 0.3s ease, color 0.3s ease;
+    color: var(--carbon);
+    font-weight: 600;
 }
 
 .save-badge {
-  background-color: #f0f0f0;  /* Light Grey */
-  color: #888888;             /* Dark Grey text */
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  margin-left: -5px;
+  background-color: var(--carbon-10);
+  color: var(--carbon-60);
+  transition: all 0.3s ease;
 }
 
 .active-save-badge {
-  background-color: #e6f4ea;  /* Light Green */
-  color: #137333;             /* Dark Green text */
-  
-  /* subtle glow when active */
-  box-shadow: 0 0 8px rgba(19, 115, 51, 0.2); 
-}
-
-.card-divider {
-  border: 0;
-  border-top: 1px solid ; 
-  margin: 20px 0; 
-  width: 100%;
-}
-
-/* --- SKELETON LOADING EFFECTS --- */
-.skeleton {
-  background-color: #333; 
-  border-radius: 4px;
-  animation: pulse 1.5s infinite ease-in-out;
-}
-
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.4; }
-  100% { opacity: 1; }
-}
-
-.skeleton-card {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.skeleton-title { height: 28px; width: 50%; margin-bottom: 10px; }
-.skeleton-desc { height: 16px; width: 80%; margin-bottom: 20px; }
-.skeleton-price { height: 40px; width: 60%; margin-bottom: 20px; }
-.skeleton-feature { height: 16px; width: 90%; margin-bottom: 12px; }
-.skeleton-feature.short { width: 70%; }
-.skeleton-button { height: 45px; width: 100%; border-radius: 8px; margin-top: auto; }
-
-/* --- EMPTY / ERROR STATE STYLES --- */
-.status-message {
-  grid-column: 1 / -1; 
-  text-align: center;
-  padding: 80px 20px; 
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-  border: 1px dashed rgba(255, 255, 255, 0.2);
-}
-
-.status-message h3 { 
-  margin-bottom: 15px; 
-  color: #D946EF; 
-  font-size: 2.5rem; 
-}
-
-.status-message p { 
-  color: #33373a; 
-  font-size: 1.2rem; 
-  line-height: 1.6;
+  background-color: var(--accent-pale);
+  color: var(--accent);
 }

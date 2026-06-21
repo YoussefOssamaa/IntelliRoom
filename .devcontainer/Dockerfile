@@ -6,6 +6,9 @@ RUN apt-get update && apt-get install -y \
     curl wget unzip git nano \
     && rm -rf /var/lib/apt/lists/*
 
+# Keep pnpm compatible with Node.js 20.
+RUN npm install -g pnpm@9.15.9 --force
+
 # Download and install mongosh directly
 RUN curl -fsSL https://downloads.mongodb.com/compass/mongosh-2.3.8-linux-x64.tgz -o mongosh.tgz \
     && tar -xzf mongosh.tgz \

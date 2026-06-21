@@ -30,7 +30,7 @@ const FavoritesPage = () => {
                             <Link to="/login" className="px-4 py-2 bg-white text-amber-700 text-sm font-bold rounded-lg border border-amber-200 hover:bg-amber-50 transition-colors shadow-sm">
                                 Log In
                             </Link>
-                            <Link to="/signup" className="px-4 py-2 bg-amber-500 text-white text-sm font-bold rounded-lg hover:bg-amber-600 transition-colors shadow-sm">
+                            <Link to="/signUp" className="px-4 py-2 bg-amber-500 text-white text-sm font-bold rounded-lg hover:bg-amber-600 transition-colors shadow-sm">
                                 Sign Up
                             </Link>
                         </div>

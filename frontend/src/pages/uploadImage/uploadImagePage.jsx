@@ -603,7 +603,7 @@ function UploadImagePage() {
                   </div>
                   <div className={styles.productActions}>
                     <button className={styles.viewDetailsBtn}>View Details</button>
-                    <button className={styles.addToCartBtn}><Icons.Plus size={16} /></button>
+                    <button className={styles.addToCartBtn} onClick={() => alert("This is a placeholder! Generate a room to see real products.")}><Icons.Plus size={16} /></button>
                   </div>
                 </div>
 
@@ -621,7 +621,7 @@ function UploadImagePage() {
                   </div>
                   <div className={styles.productActions}>
                     <button className={styles.viewDetailsBtn}>View Details</button>
-                    <button className={styles.addToCartBtn}><Icons.Plus size={16} /></button>
+                    <button className={styles.addToCartBtn} onClick={() => alert("This is a placeholder! Generate a room to see real products.")}><Icons.Plus size={16} /></button>
                   </div>
                 </div>
 
@@ -639,7 +639,7 @@ function UploadImagePage() {
                   </div>
                   <div className={styles.productActions}>
                     <button className={styles.viewDetailsBtn}>View Details</button>
-                    <button className={styles.addToCartBtn}><Icons.Plus size={16} /></button>
+                    <button className={styles.addToCartBtn} onClick={() => alert("This is a placeholder! Generate a room to see real products.")}><Icons.Plus size={16} /></button>
                   </div>
                 </div>
               </div>

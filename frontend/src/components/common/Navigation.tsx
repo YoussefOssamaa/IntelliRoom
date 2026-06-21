@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../utils/authContext.jsx';
 import axios from '../../config/axios.config';
 import { checkLoggedIn } from '../../utils/checkLoggedIn.jsx';
+import { useShop } from '../../context/ShopContext';
+import * as Icons from 'lucide-react';
 
 
 interface NavigationProps {
@@ -13,8 +15,13 @@ interface NavigationProps {
 export default function Navigation({ progress = 0, isSticky = false }: NavigationProps) {
   const [scrolled, setScrolled] = useState(false);
   const { isLoggedIn, user, logout } = useAuth();
+  const { cart } = useShop();
   const [isDroppedDownMenu, setDroppedDownMenu] = useState(false);
-
+  
+  const totalCartItems = cart?.reduce(
+    (total, item) => total + (item.cartQuantity || 1),
+    0,
+  ) || 0;
 
   const navigate = useNavigate();
   //const dropDownRef = useRef(null);
@@ -128,8 +135,23 @@ export default function Navigation({ progress = 0, isSticky = false }: Navigatio
           {/* Right Side: Links + Auth */}
           <div className="flex items-center gap-14">
 
-            {/* Auth Buttons */}
-            <div className="flex items-center gap-4">
+            {/* Auth & Actions */}
+            <div className="flex items-center gap-6">
+              
+              {/* Cart Icon */}
+              <button 
+                onClick={() => goToPage("/ecomm/cart")}
+                className="relative text-text-primary hover:text-blue-500 transition-colors"
+              >
+                <Icons.ShoppingCart size={20} />
+                {totalCartItems > 0 && (
+                  <span className="absolute -top-2 -right-2 flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-blue-500 rounded-full">
+                    {totalCartItems}
+                  </span>
+                )}
+              </button>
+
+              <div className="flex items-center gap-4 border-l border-gray-300 pl-6">
               {!isLoggedIn && (
                 <button
                   className="font-body text-xs uppercase tracking-widest text-text-primary hover:underline underline-offset-4 transition-all"
@@ -225,6 +247,7 @@ export default function Navigation({ progress = 0, isSticky = false }: Navigatio
                   )}
                 </div>
               )}
+              </div>
 
             </div>
           </div>

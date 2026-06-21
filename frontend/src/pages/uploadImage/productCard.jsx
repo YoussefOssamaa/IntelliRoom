@@ -1,11 +1,13 @@
 import React from 'react';
 import styles from "./uploadImagePage.module.css";
 import * as Icons from 'lucide-react';
+import { useShop } from '../../context/ShopContext';
 
 const BACKEND_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/api$/, '');
 
 {/* Product Card Component */ }
 export default function ProductCard({ product }) {
+    const { addToCart } = useShop();
     const { name, shortDescription, pricing, media, slug } = product;
 
     const currentPrice = pricing?.currentPrice || 0;
@@ -51,7 +53,13 @@ export default function ProductCard({ product }) {
                 >
                     View Details
                 </button>
-                <button className={styles.addToCartBtn}>
+                <button 
+                    className={styles.addToCartBtn}
+                    onClick={() => {
+                        addToCart(product, 1);
+                        alert("Item added to cart!");
+                    }}
+                >
                     <Icons.Plus size={16} />
                 </button>
             </div>

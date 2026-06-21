@@ -6,7 +6,6 @@ export const postGeneratedImageController = async (reqOrImage, res) => {
 
     const postingImage = reqOrImage;
     try {
-        console.log("Posting Imageeeeee: ", postingImage);
         const user_id = postingImage.user;
 
         if (!user_id) {
@@ -25,11 +24,9 @@ export const postGeneratedImageController = async (reqOrImage, res) => {
         });
         await newImage.save();
 
-        console.log(" THIS IS before DEDUCTED credits");
 
         // Deduct 50 credits for the workflow
         await deductCredits(user_id, 50, "Generated Image");
-        console.log(" THIS IS THE USER AFTER CREDITS ARE DEDUCTED", user_id);
 
         return { message: "Image created successfully", data: newImage };
 

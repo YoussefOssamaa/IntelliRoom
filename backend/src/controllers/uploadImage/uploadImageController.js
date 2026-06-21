@@ -96,16 +96,16 @@ export const postImageController = async (req, res) => {
             inputPrompt
             if (TEST_MODE) {
                 recommendations = await getRecommendations("", 10);
-                console.log("THIS IS THE RECOMMENDATIONS ARRAY", recommendations)
+                //console.log("THIS IS THE RECOMMENDATIONS ARRAY", recommendations)
 
             }
             else {
                 recommendations = await getRecommendations(localFileName, 10);
-                console.log("THIS IS THE RECOMMENDATIONS ARRAY", recommendations)
+                //console.log("THIS IS THE RECOMMENDATIONS ARRAY", recommendations)
             }
 
             const recommendedImagesArray = recommendations.map(item => item.filename);
-            console.log("THIS IS THE RECOMMENDED IMAGE URLS", recommendedImagesArray)
+            //console.log("THIS IS THE RECOMMENDED IMAGE URLS", recommendedImagesArray)
 
             /*
                 the array looks like this: 
@@ -131,7 +131,7 @@ export const postImageController = async (req, res) => {
             */
 
             matchedProducts = await getMatchedProductsFromDB(recommendedImagesArray);
-            console.log("THIS IS THE MATCHED PRODUCTS", matchedProducts)
+            //console.log("THIS IS THE MATCHED PRODUCTS", matchedProducts)
 
 
         } catch (error) {
@@ -149,7 +149,6 @@ export const postImageController = async (req, res) => {
             generatedImageUrl: `/uploads/comfyOutputs/${localFileName}`,
             isFavorite: false
         }
-        console.log("THIS IS THE POSTING IMAGE before calling the function", postingImage);
         await postGeneratedImageController(postingImage);
 
         return res.status(200).json({

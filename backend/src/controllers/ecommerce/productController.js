@@ -104,9 +104,7 @@ export const getProducts = async (req, res) => {
                 sortOption = { createdAt: -1 };
         }
 
-        // Execute the massive, perfectly structured query
-        console.log("THE QUERY: ", query);
-        console.log("THE SORT OPTION: ", sortOption);
+
 
 
         const products = await Product.find(query)
@@ -114,7 +112,6 @@ export const getProducts = async (req, res) => {
             .populate('categorization.subCategory', 'name slug')
             .sort(sortOption);
 
-        console.log("PRODUCTSSS:", products)
         res.status(200).json({
             success: true,
             count: products.length,

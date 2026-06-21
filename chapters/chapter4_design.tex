@@ -139,19 +139,25 @@ Table~\ref{tab:api_endpoints} documents the implemented REST API endpoints.
     \hline
     POST & /order & Create new order \\
     \hline
-    \multicolumn{3}{|c|}{\textbf{Design 2D Routes (/api/design2D)}} \\
+    \multicolumn{3}{|c|}{\textbf{Design 2D/3D Workspace Routes (/api/design2D3D)}} \\
     \hline
-    GET & /projects & Get all user projects \\
+    GET & / & Get all user projects \\
     \hline
-    GET & /projects/:id & Get project by ID \\
+    GET & /:id & Get project by ID \\
     \hline
-    POST & /projects & Create new project \\
+    POST & / & Create new project \\
     \hline
-    PUT & /projects/:id & Update project \\
+    PUT & /:id & Update project \\
     \hline
-    DELETE & /projects/:id & Delete project \\
+    DELETE & /:id & Delete project \\
     \hline
-    GET & /assets & Get available 3D assets \\
+    GET & /assets & Get available 3D assets by category \\
+    \hline
+    GET & /assets/categories & Get available 3D asset categories \\
+    \hline
+    GET & /textures & Get available planner textures \\
+    \hline
+    GET & /textures/categories & Get available texture categories \\
     \hline
     \multicolumn{3}{|c|}{\textbf{Upload Routes (/api/uploadImage)}} \\
     \hline
@@ -159,13 +165,15 @@ Table~\ref{tab:api_endpoints} documents the implemented REST API endpoints.
     \hline
     \multicolumn{3}{|c|}{\textbf{Authentication Routes (/api/auth)}} \\
     \hline
-    POST & /api/auth/login & User login with JWT (RS256) cookie session \\
+    GET & /me & Verify active user authentication session \\
     \hline
-    POST & /api/auth/register & User registration with bcrypt password hashing \\
+    POST & /login & User login with JWT (RS256) cookie session \\
     \hline
-    POST & /api/auth/refresh & Refresh expired auth token using refresh cookie \\
+    POST & /signup & User registration with bcrypt password hashing \\
     \hline
-    POST & /api/auth/logout & Invalidate session and clear auth cookies \\
+    POST & /refreshToken & Refresh expired auth token using refresh cookie \\
+    \hline
+    POST & /logout & Invalidate session and clear auth cookies \\
     \hline
     \multicolumn{3}{|c|}{\textbf{Plugin Marketplace Routes (/api/plugins)}} \\
     \hline
@@ -189,13 +197,41 @@ Table~\ref{tab:api_endpoints} documents the implemented REST API endpoints.
     \hline
     POST & /fawaterk-webhook & Secure webhook endpoint for Fawaterk integration \\
     \hline
-    \multicolumn{3}{|c|}{\textbf{Administrative Routes (/api/admin)}} \\
+    \multicolumn{3}{|c|}{\textbf{Administrative Base Routes (/api/admin)}} \\
     \hline
-    GET & /users & List all registered users (admin only) \\
+    POST & /signin & Admin login with dedicated cookie session \\
     \hline
-    GET & /logs & View system and authentication logs \\
+    POST & /refresh & Refresh admin session token \\
     \hline
-    GET & /plans & Manage available pricing plans \\
+    GET & /me & Get current admin profile details \\
+    \hline
+    POST & /logout & Invalidate admin session and clear cookies \\
+    \hline
+    POST & /addAdmin & Add new admin account (superadmin only) \\
+    \hline
+    GET & /all & List all admin accounts (superadmin only) \\
+    \hline
+    PATCH & /unlock/:id & Unlock suspended admin account (superadmin only) \\
+    \hline
+    GET & /logs & View system audit and authentication logs \\
+    \hline
+    \multicolumn{3}{|c|}{\textbf{Administrative Dashboard Routes (/api/admin/dashboard)}} \\
+    \hline
+    GET & /users & List all registered users with subscription tiers \\
+    \hline
+    PATCH & /users/:userId/suspend & Suspend active user subscription \\
+    \hline
+    PATCH & /users/:userId/change-plan & Manually edit user subscription plan \\
+    \hline
+    \multicolumn{3}{|c|}{\textbf{Pricing Plan Configuration Routes (/api/plans)}} \\
+    \hline
+    GET & / & List all available pricing plans \\
+    \hline
+    POST & / & Create a new pricing plan \\
+    \hline
+    PUT & /:id & Edit pricing plan configuration \\
+    \hline
+    DELETE & /:id & Delete a pricing plan \\
     \hline
     \multicolumn{3}{|c|}{\textbf{User Profile \& Community (/api/updateProfile, /api/community)}} \\
     \hline
@@ -1219,6 +1255,16 @@ The application provides a robust suite of production-ready screens:
     \item \textbf{Plugin Marketplace:} Community marketplace featuring search and filter functionality, category browsing, plugin cards (displaying ratings and pricing), featured/trending sections, and a responsive grid layout.
 \end{itemize}
 
+\subsection{Split-Domain Routing Architecture}
+\label{subsec:split_domain_routing}
+
+To ensure strict tenant and context segregation, the frontend implements a subdomain-based routing split in \texttt{Routes.jsx}. The application dynamically inspects the current hostname (\texttt{window.location.hostname}) to isolate administrative panels from user-facing screens:
+\begin{itemize}
+    \item \textbf{Consumer Context:} The root domain serves consumer-facing paths, including the 2D/3D design planner, style uploads, product discovery, and cart/checkout systems.
+    \item \textbf{Administrative Context:} Subdomains starting with \texttt{admin} (e.g., \texttt{admin.localhost}) mount a separate router root. This root exposes dashboards for managing user accounts, audit logs, system configurations, and pricing plans. Access is enforced by the \texttt{ProtectedAdminRoute} wrapper.
+\end{itemize}
+This client-side split prevents normal users from traversing administrative routes. To prevent cross-context session contamination, the backend separates session states into distinct cookie namespaces: \texttt{Authentication}/\texttt{Refresh} for consumers and \texttt{Admin-Authentication}/\texttt{Admin-Refresh} for administrators.
+
 \subsection{Component Architecture}
 
 The frontend implements a modular component architecture:
@@ -1510,6 +1556,38 @@ Tool features include:
 
 The interface design follows NFR-11 (WCAG accessibility) with keyboard navigation support and clear visual contrast.
 
+\subsection{3D Camera Navigation Modes}
+\label{subsec:3d_camera_navigation}
+
+The 3D planner implements two distinct camera modes to support both global structural inspections and immersive design walkthroughs:
+\begin{itemize}
+    \item \textbf{Orbit Mode (Global Inspection):} Utilizes standard Three.js \texttt{OrbitControls} bound to mouse or touch gestures. This allows the user to rotate, pan, and zoom the camera around a central focal point to examine the overall layout, spatial proportions, and material distributions from isometric or perspective angles.
+    \item \textbf{Walkthrough Mode (First-Person Perspective):} Integrates a custom first-person camera controller (\texttt{Viewer3DFirstPerson}) that uses the browser's Pointer Lock API to lock the mouse cursor and translate mouse drag movement directly to camera orientation (yaw and pitch). Movement is controlled via keyboard input (WASD or Arrow keys) with a velocity-based physics calculation.
+\end{itemize}
+
+To maintain physical realism and prevent disorientation in First-Person Mode, the custom controller applies spatial and kinematic constraints:
+\begin{itemize}
+    \item \textbf{Height Clamping:} The camera's vertical position ($Y$-coordinate) is dynamically bound to a constant offset relative to the local floor level (simulating an average human eye-level of $1700\text{ mm}$). This prevents the camera from falling through the floor geometry or flying through the ceiling.
+    \item \textbf{Look Limits:} Pitch rotation is clamped between $-85^\circ$ and $+85^\circ$ to prevent the gimbal lock effect and ensure natural head-movement constraints.
+    \item \textbf{Velocity Dampening:} Keyboard controls apply acceleration and deceleration curves to simulate inertia and prevent jarring movements.
+\end{itemize}
+
+\subsection{3D Snapping System}
+\label{subsec:3d_snapping}
+
+To address the inherent difficulty of positioning objects in a 3D canvas via 2D mouse inputs, the planner incorporates a custom multi-mode 3D Snapping System (\texttt{snap-3d.js}). This utility executes three coordinate adjustment algorithms during object dragging:
+\begin{enumerate}
+    \item \textbf{Wall Snapping (\texttt{SNAP\_3D\_WALL}):} Computes the perpendicular distance from the cursor's 3D intersection point on the ground plane to the nearest segment representing a wall center-line. If the distance falls below the snapping threshold ($150\text{ mm}$), the item snaps flush against the wall, applying a spatial offset equal to half the wall thickness plus half the item's depth. It also automatically aligns the item's Y-rotation perpendicular to the wall's normal vector.
+    \item \textbf{Grid Snapping (\texttt{SNAP\_3D\_GRID}):} Rounds the object coordinates to the nearest point on a virtual $100\text{ mm}$ module grid, allowing for quick alignment of structural elements.
+    \item \textbf{Item-to-Item Snapping (\texttt{SNAP\_3D\_ITEM}):} Calculates the 2D bounding boxes (footprints) of all items based on their current dimensions and $Y$-rotations. When a dragged item approaches another item's edge, it snaps to a flush-contact position.
+\end{enumerate}
+
+To prevent overlaps and stability problems, the snapping engine includes:
+\begin{itemize}
+    \item \textbf{Collision Resolution (Pushback):} An iterative overlap solver detects bounding box intersections. If a collision occurs, it applies a pushback vector along the axis of minimum intersection depth. The system resolves overlapping geometry using up to 8 projection iterations.
+    \item \textbf{Snapping Hysteresis:} To avoid rapid snapping and release oscillation (jitter), the system uses a dual-threshold hysteresis. The distance required to break a snap connection ($250\text{ mm}$) is defined as significantly larger than the initial activation threshold ($150\text{ mm}$).
+\end{itemize}
+
 \subsection{Integrated 2D/3D Workflow}
 
 The synchronized dual-view interface (Figure~\ref{fig:planner_integrated}) represents the core innovation of the floor planner, enabling simultaneous blueprint editing and 3D preview.
@@ -1543,6 +1621,8 @@ The floor planner output integrates with the ComfyUI workflows described in Sect
     \item \textbf{Structural Preservation:} ControlNet workflows leverage the precise wall dimensions and furniture placement from the planner to maintain architectural accuracy during style transformation.
     
     \item \textbf{Object Replacement:} The planner's furniture catalog links to marketplace products, enabling the Object Replacement workflow to suggest compatible real-world items.
+    
+    \item \textbf{Viewport-Based Contextual Prompting:} In the first-person walkthrough view, the system utilizes WebGL frustum culling and bounding-box raycasting (\texttt{getVisibleFrameItemNames}) to dynamically identify all 3D furniture models visible in the user's immediate field of view. When a generation is triggered, the system extracts the names of these visible objects and automatically constructs a descriptive text prompt (e.g., ``a living room containing a sofa and a coffee table''). This contextually-enriched prompt is passed to the ComfyUI workflow to guide style diffusion, while the identified object categories are used to query the MongoDB e-commerce database, returning visually matched real-world Egyptian products for purchase.
 \end{itemize}
 
 This integration satisfies FR-19 (2D floor planner), US-11 (user story: create floor plan), and contributes to the professional design workflow required by the Designer Segment.
@@ -1577,7 +1657,7 @@ Table~\ref{tab:impl_status} provides a summary of the current implementation sta
         \hline
         Contact Form & Complete & Contact submission handling \\
         \hline
-        Frontend UI & Partial & React app structure, routing, multiple screens implemented \\
+        Frontend UI & Complete & Fully responsive React SPA with dashboard layout, user profiles, marketplace shop, checkout, and admin dashboard \\
         \hline
         AI Recommendation Engine & Complete & Two-plane architecture with ChromaDB \\
         \hline

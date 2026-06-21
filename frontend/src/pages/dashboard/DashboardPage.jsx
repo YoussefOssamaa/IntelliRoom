@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import axios from "../../config/axios.config";
-import { useNavigate } from "react-router-dom";
 import "./DashboardPage.css";
 import Navigation from "../../components/common/Navigation";
 import { useAuth } from "../../utils/authContext";
@@ -18,6 +18,10 @@ export default function DashboardPage() {
 
   const [isArchitectProjectLoading, setIsArchitectProjectLoading] = useState(true);
   const [architectProjects, setArchitectProjects] = useState([]);
+
+  // View All States
+  const [showAllGenerated, setShowAllGenerated] = useState(false);
+  const [showAllArchitect, setShowAllArchitect] = useState(false);
 
   useEffect(() => {
     const fetchGeneratedImagesData = async () => {
@@ -162,7 +166,7 @@ export default function DashboardPage() {
             <div className="welcome-section">
               <p className="welcome-eyebrow">Dashboard</p>
               <h1 className="welcome-title">
-                Hello, <span>{user?.firstName || "there"}</span>
+                Hello, <span>{user?.firstName.toUpperCase() || "there"}</span>
               </h1>
               <p className="welcome-subtitle">
                 Here's what's happening with your designs today.
@@ -304,8 +308,8 @@ export default function DashboardPage() {
                   <p className="section-eyebrow">Recents</p>
                   <h2 className="section-title">Recent AI Studio Projects</h2>
                 </div>
-                <button onClick={() => navigate("/projects")} className="btn-text">
-                  View All →
+                <button onClick={() => setShowAllGenerated(!showAllGenerated)} className="btn-text">
+                  {showAllGenerated ? "View Less ↑" : "View All ↓"}
                 </button>
               </div>
 
@@ -327,7 +331,7 @@ export default function DashboardPage() {
                     No designs yet — launch the AI Studio to get started.
                   </div>
                 ) : (
-                  generatedImages.slice(0, 9).map((project) => (
+                  generatedImages.slice(0, showAllGenerated ? generatedImages.length : 6).map((project) => (
                     <div
                       key={project._id}
                       className="project-card group"
@@ -383,8 +387,8 @@ export default function DashboardPage() {
                   <p className="section-eyebrow">Recents</p>
                   <h2 className="section-title">Recent Architect Projects</h2>
                 </div>
-                <button onClick={() => navigate("/projects")} className="btn-text">
-                  View All →
+                <button onClick={() => setShowAllArchitect(!showAllArchitect)} className="btn-text">
+                  {showAllArchitect ? "View Less ↑" : "View All ↓"}
                 </button>
               </div>
 
@@ -406,11 +410,11 @@ export default function DashboardPage() {
                     No designs yet — launch the Architect Mode to get started.
                   </div>
                 ) : (
-                  architectProjects.slice(0, 9).map((project) => (
+                  architectProjects.slice(0, showAllArchitect ? architectProjects.length : 6).map((project) => (
                     <div
                       key={project._id}
                       className="project-card group"
-                      onClick={() => navigate(`/2D3DProjects/${project._id}`)}
+                     onClick={() => navigate(`/planner/${project._id}`)}
                     >
                       <div className="project-image-wrapper">
                         <img

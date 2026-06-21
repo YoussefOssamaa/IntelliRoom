@@ -14,7 +14,7 @@ const userSchema = new mongoose.Schema({
 
   credits: { type: Number, default: 1000 },
   last_credit_reset: { type: Date, default: Date.now },
-  plan: { type: String, enum: ['free', 'pro', 'business'], default: 'free' },
+  plan: { type: String, enum: ['free', 'pro', 'enterprise'], default: 'free' },
   is_first_time: { type: Boolean, default: true },
 
   ecommerce_wishlist: [

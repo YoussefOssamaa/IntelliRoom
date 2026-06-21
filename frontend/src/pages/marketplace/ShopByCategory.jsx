@@ -16,12 +16,9 @@ const ShopByCategory = () => {
       try {
         const response = await axios.get("/categories");
         if (response.data.success) {
-          
-          // 🚀 THE FIX: Filter out subcategories! Only keep items where parentCategory is null
           const primaryCategories = response.data.data.filter(
-            (category) => !category.parentCategory
+            (category) => !category.parentCategory,
           );
-          
           setCategories(primaryCategories);
         }
       } catch (error) {
@@ -47,8 +44,7 @@ const ShopByCategory = () => {
     }
   };
 
-  // If we finished loading and found absolutely nothing, hide the section
-  if (!isLoading && categories.length === 0) return null;
+  // 🚀 REMOVED: The `return null` line that was hiding the section!
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -63,94 +59,122 @@ const ShopByCategory = () => {
           </p>
         </div>
 
-        {/* Custom Left/Right Navigation Buttons */}
-        <div className="hidden md:flex space-x-3">
-          <button
-            onClick={() => slide("left")}
-            className="p-3 rounded-full bg-white border border-gray-200 text-gray-600 hover:bg-sky-50 hover:text-sky-500 hover:border-sky-200 transition-all shadow-sm"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+        {/* Custom Left/Right Navigation Buttons (Hide if no categories) */}
+        {categories.length > 0 && (
+          <div className="hidden md:flex space-x-3">
+            <button
+              onClick={() => slide("left")}
+              className="p-3 rounded-full bg-white border border-gray-200 text-gray-600 hover:bg-sky-50 hover:text-sky-500 hover:border-sky-200 transition-all shadow-sm"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M15 19l-7-7 7-7"
-              ></path>
-            </svg>
-          </button>
-          <button
-            onClick={() => slide("right")}
-            className="p-3 rounded-full bg-white border border-gray-200 text-gray-600 hover:bg-sky-50 hover:text-sky-500 hover:border-sky-200 transition-all shadow-sm"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M15 19l-7-7 7-7"
+                ></path>
+              </svg>
+            </button>
+            <button
+              onClick={() => slide("right")}
+              className="p-3 rounded-full bg-white border border-gray-200 text-gray-600 hover:bg-sky-50 hover:text-sky-500 hover:border-sky-200 transition-all shadow-sm"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M9 5l7 7-7 7"
-              ></path>
-            </svg>
-          </button>
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 5l7 7-7 7"
+                ></path>
+              </svg>
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* The Slider Container OR Empty State */}
+      {isLoading ? (
+        // Loading Skeletons
+        <div className="flex gap-4 sm:gap-6 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-8">
+          {[1, 2, 3, 4].map((skeleton) => (
+            <div
+              key={skeleton}
+              className="min-w-[75%] sm:min-w-[45%] md:min-w-[30%] lg:min-w-[22%] aspect-[4/5] rounded-3xl bg-gray-200 animate-pulse snap-center"
+            ></div>
+          ))}
         </div>
-      </div>
+      ) : categories.length === 0 ? (
+        // 🚀 NEW: The Empty State UI
+        <div className="w-full py-16 flex flex-col items-center justify-center bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
+          <svg
+            className="w-16 h-16 text-gray-300 mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+            ></path>
+          </svg>
+          <h3 className="text-xl font-bold text-gray-900">
+            Categories Coming Soon
+          </h3>
+          <p className="text-gray-500 mt-2 text-center max-w-md">
+            Our marketplace categories are being updated. Fresh furniture and
+            decor are on the way!
+          </p>
+        </div>
+      ) : (
+        // Actual Database Categories
+        <div
+          ref={sliderRef}
+          className="flex gap-4 sm:gap-6 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-8"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          {categories.map((category) => {
+            const imageUrl =
+              category.image ||
+              "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=600&q=80";
 
-      {/* The Slider Container */}
-      <div
-        ref={sliderRef}
-        className="flex gap-4 sm:gap-6 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-8"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-      >
-        {isLoading
-          ? // Loading Skeletons
-            [1, 2, 3, 4].map((skeleton) => (
+            return (
               <div
-                key={skeleton}
-                className="min-w-[75%] sm:min-w-[45%] md:min-w-[30%] lg:min-w-[22%] aspect-[4/5] rounded-3xl bg-gray-200 animate-pulse snap-center"
-              ></div>
-            ))
-          : // Actual Database Categories
-            categories.map((category) => {
-              const imageUrl =
-                category.image ||
-                "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=600&q=80";
-
-              return (
-                <div
-                  key={category._id}
-                  className="relative min-w-[75%] sm:min-w-[45%] md:min-w-[30%] lg:min-w-[22%] aspect-[4/5] rounded-3xl overflow-hidden snap-center group cursor-pointer shadow-md hover:shadow-xl transition-shadow"
-                  onClick={() => navigate(`/ecomm/category/${category.slug}`)}
-                >
-                  <img
-                    src={imageUrl}
-                    alt={category.name}
-                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out !rounded-none"
-                    style={{ borderRadius: "0px", clipPath: "none" }}
-                  />
-
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/10 to-transparent"></div>
-
-                  <div className="absolute bottom-0 left-0 p-6 w-full">
-                    <h3 className="text-2xl font-extrabold text-white tracking-tight mb-1 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                      {category.name}
-                    </h3>
-                    <p className="text-sm text-sky-300 font-medium opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 delay-75">
-                      Explore Collection
-                    </p>
-                  </div>
+                key={category._id}
+                className="relative min-w-[75%] sm:min-w-[45%] md:min-w-[30%] lg:min-w-[22%] aspect-[4/5] rounded-3xl overflow-hidden snap-center group cursor-pointer shadow-md hover:shadow-xl transition-shadow"
+                onClick={() => navigate(`/ecomm/category/${category.slug}`)}
+              >
+                <img
+                  src={imageUrl}
+                  alt={category.name}
+                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out !rounded-none"
+                  style={{ borderRadius: "0px", clipPath: "none" }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/10 to-transparent"></div>
+                <div className="absolute bottom-0 left-0 p-6 w-full">
+                  <h3 className="text-2xl font-extrabold text-white tracking-tight mb-1 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                    {category.name}
+                  </h3>
+                  <p className="text-sm text-sky-300 font-medium opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 delay-75">
+                    Explore Collection
+                  </p>
                 </div>
-              );
-            })}
-      </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

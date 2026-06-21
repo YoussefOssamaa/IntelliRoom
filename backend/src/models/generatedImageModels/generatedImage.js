@@ -20,7 +20,7 @@ const generatedImageSchema = new mongoose.Schema({
 
   referenceImageUrl: {
     type: String,
-    required: true
+    required: false
   },
 
   generatedImageUrl: {

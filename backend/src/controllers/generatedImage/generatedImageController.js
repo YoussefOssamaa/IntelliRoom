@@ -1,41 +1,38 @@
-import express from 'express';
+import mongoose from 'mongoose';
 import GeneratedImage from '../../models/generatedImageModels/generatedImage.js';
 import { deductCredits } from '../../services/creditService.js';
 
+export const postGeneratedImageController = async (reqOrImage, res) => {
 
-
-export const postGeneratedImageController = async (postingImage) => {
+    const postingImage = reqOrImage;
     try {
+        const user_id = postingImage.user;
+
+        if (!user_id) {
+            throw new Error("Not authenticated");
+        }
 
         const { inputPrompt, originalImageUrl, referenceImageUrl, generatedImageUrl, isFavorite } = postingImage;
 
-
-        const user_id = postingImage.user;
-        //Security check 1
-        if (!user_id) {
-            console.log("Not authenticated");
-            return res.status(401).json({ message: "Not authenticated" });
-        }
-
-
-        const newImage = await GeneratedImage.create({
-            user: user_id,
+        const newImage = new GeneratedImage({
+            user: new mongoose.Types.ObjectId(user_id),
             inputPrompt,
             originalImageUrl,
             referenceImageUrl,
             generatedImageUrl,
             isFavorite
-        })
+        });
+        await newImage.save();
+
 
         // Deduct 50 credits for the workflow
         await deductCredits(user_id, 50, "Generated Image");
 
-
-        return res.status(201).json({ message: "Image created successfully", image: newImage });
+        return { message: "Image created successfully", data: newImage };
 
     } catch (error) {
-        return res.status(500).json({ error: error.message });
-
+        console.error("Error in postGeneratedImageController (Utility):", error);
+        return { error: error.message };
     }
 }
 
@@ -54,7 +51,6 @@ export const getGeneratedImagesController = async (req, res) => {
         }
 
         const generatedImages = await GeneratedImage.find({ user: user_id });
-        console.log(generatedImages);
         res.status(200).json(generatedImages);
 
 
@@ -106,7 +102,6 @@ export const deleteGeneratedImageController = async (req, res) => {
         if (!deletedGeneratedImage) {
             return res.status(404).json({ message: "Image not found" });
         }
-        console.log(deletedGeneratedImage);
         return res.status(200).json({ message: "Image deleted successfully" });
 
 

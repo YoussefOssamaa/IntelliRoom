@@ -75,7 +75,7 @@ const AdminRoomsPage = () => {
 
       {/* Table & Controls */}
       <div className="bg-white rounded-2xl border border-[#e0e0e0] shadow-sm overflow-hidden flex flex-col">
-        <div className="p-4 border-b border-[#e0e0e0] flex items-center justify-between bg-gray-50">
+        {/* <div className="p-4 border-b border-[#e0e0e0] flex items-center justify-between bg-gray-50">
           <div className="relative w-full max-w-sm">
             <SearchInput 
               value={searchQuery} 
@@ -83,7 +83,7 @@ const AdminRoomsPage = () => {
               placeholder="Search rooms by name or slug..." 
             />
           </div>
-        </div>
+        </div> */}
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-gray-500">

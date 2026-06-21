@@ -709,6 +709,28 @@ export default class Scene3DViewer extends React.Component {
     return null;
   }
 
+  _getIntersectionMaterialIndex(intersection) {
+    const faceMaterialIndex = intersection?.face?.materialIndex;
+    if (Number.isFinite(faceMaterialIndex)) {
+      return faceMaterialIndex;
+    }
+
+    const geometry = intersection?.object?.geometry;
+    const faceIndex = intersection?.faceIndex;
+    if (!geometry || !Number.isFinite(faceIndex)) {
+      return -1;
+    }
+
+    const triangleStart = faceIndex * 3;
+    const group = geometry.groups?.find(
+      (entry) =>
+        triangleStart >= entry.start &&
+        triangleStart < entry.start + entry.count,
+    );
+
+    return Number.isFinite(group?.materialIndex) ? group.materialIndex : -1;
+  }
+
   _shouldSkipPlacementIntersection(object) {
     let current = object;
     while (current) {
@@ -727,26 +749,88 @@ export default class Scene3DViewer extends React.Component {
     return false;
   }
 
+  _isHiddenWallObject(object) {
+    const hiddenWallMeshes = wallVisibilityManager.hiddenWallMeshes;
+    let current = object;
+
+    while (current) {
+      if (hiddenWallMeshes.has(current)) return true;
+      current = current.parent;
+    }
+
+    return false;
+  }
+
+  _isTextureFloorIntersection(intersection) {
+    let current = intersection.object;
+
+    while (current) {
+      if (current.name === "floor-top" || current.name === "floor") {
+        return true;
+      }
+      if (current.name === "ceiling") {
+        return false;
+      }
+      current = current.parent;
+    }
+
+    return false;
+  }
+
+  _getTextureTargetIntersection(intersections, targetType) {
+    const wallHits = [];
+    const floorHits = [];
+
+    for (const intersection of intersections) {
+      if (
+        this._isHiddenWallObject(intersection.object) ||
+        this._shouldSkipPlacementIntersection(intersection.object)
+      ) {
+        continue;
+      }
+
+      const elementData = this._getRaycastElementData(intersection.object);
+      if (!elementData) continue;
+
+      if (!intersection.object?.isMesh || !intersection.face) {
+        continue;
+      }
+
+      if (elementData.elementType === "areas") {
+        if (this._isTextureFloorIntersection(intersection)) {
+          floorHits.push({ intersection, elementData });
+        }
+        continue;
+      }
+
+      if (elementData.elementType === "lines") {
+        const materialIndex = this._getIntersectionMaterialIndex(intersection);
+        if (materialIndex < 0 || materialIndex > 3) continue;
+        wallHits.push({ intersection, elementData });
+      }
+    }
+
+    if (targetType === "floor") return floorHits[0] || null;
+    if (targetType === "wall") return wallHits[0] || null;
+
+    const firstWall = wallHits[0];
+    const firstFloor = floorHits[0];
+    if (!firstWall) return firstFloor || null;
+    if (!firstFloor) return firstWall || null;
+
+    return firstWall.intersection.distance <= firstFloor.intersection.distance
+      ? firstWall
+      : firstFloor;
+  }
+
   _getPlacementSurfaceHint(raycaster) {
     if (!this.planData?.plan) return null;
 
     const intersections = raycaster.intersectObject(this.planData.plan, true);
-    const hiddenWallMeshes = wallVisibilityManager.hiddenWallMeshes;
 
     for (const intersection of intersections) {
-      let current = intersection.object;
-      let hidden = false;
-
-      while (current) {
-        if (hiddenWallMeshes.has(current)) {
-          hidden = true;
-          break;
-        }
-        current = current.parent;
-      }
-
       if (
-        hidden ||
+        this._isHiddenWallObject(intersection.object) ||
         this._shouldSkipPlacementIntersection(intersection.object)
       ) {
         continue;
@@ -839,6 +923,249 @@ export default class Scene3DViewer extends React.Component {
     ) {
       this.gizmoManager.syncSelectionTransform();
     }
+  }
+
+  _getItemFrameDisplayName(layerID, itemID, object) {
+    const objectName = String(object?.userData?.displayName || "").trim();
+    if (objectName) return objectName;
+
+    const item = this.props.state.getIn([
+      "scene",
+      "layers",
+      layerID,
+      "items",
+      itemID,
+    ]);
+    if (!item) return "";
+
+    const read = (key) => {
+      if (typeof item.get === "function") return item.get(key);
+      return item[key];
+    };
+
+    const asset = read("asset");
+    const assetName =
+      asset && typeof asset.get === "function" ? asset.get("name") : asset?.name;
+    const itemType = String(read("type") || "").trim();
+    let catalogTitle = "";
+    if (itemType) {
+      try {
+        catalogTitle = this.context.catalog?.getElement?.(itemType)?.info?.title || "";
+      } catch (_) {
+        catalogTitle = "";
+      }
+    }
+
+    return String(
+      read("displayName") ||
+        assetName ||
+        read("name") ||
+        catalogTitle ||
+        itemType,
+    ).trim();
+  }
+
+  _logFrameDetection(step, details = {}) {
+    if (typeof window === "undefined" || window.__VIEWER3D_FRAME_DEBUG__ !== true) {
+      return;
+    }
+
+    console.log("[Viewer3D][FrameDetection]", step, details);
+  }
+
+  _isObjectVisibleInHierarchy(object) {
+    let current = object;
+    while (current) {
+      if (current.visible === false || current.userData?.isPreview) {
+        return false;
+      }
+      current = current.parent;
+    }
+    return true;
+  }
+
+  _isDescendantOfObject(child, parent) {
+    let current = child;
+    while (current) {
+      if (current === parent) return true;
+      current = current.parent;
+    }
+    return false;
+  }
+
+  _isItemSampleVisibleFromCamera(itemObject, samplePoint) {
+    if (!this.camera || !this.planData?.plan || !samplePoint) return true;
+
+    const direction = new Three.Vector3().subVectors(
+      samplePoint,
+      this.camera.position,
+    );
+    const targetDistance = direction.length();
+    if (!Number.isFinite(targetDistance) || targetDistance <= 0.0001) {
+      return true;
+    }
+
+    direction.normalize();
+    this.raycaster.set(this.camera.position, direction);
+    this.raycaster.far = targetDistance + 1;
+
+    this._logFrameDetection("sample-raycast:start", {
+      itemName: itemObject?.userData?.displayName || itemObject?.name || "",
+      samplePoint: {
+        x: samplePoint.x,
+        y: samplePoint.y,
+        z: samplePoint.z,
+      },
+      targetDistance,
+    });
+
+    const intersections = this.raycaster
+      .intersectObjects(this.planData.plan.children, true)
+      .filter((hit) => {
+        const hitObject = hit.object;
+        return (
+          hitObject &&
+          this._isObjectVisibleInHierarchy(hitObject) &&
+          !hitObject.userData?.isPreview &&
+          hitObject.name !== "snapIndicator"
+        );
+      });
+
+    this.raycaster.far = Infinity;
+
+    this._logFrameDetection("sample-raycast:intersections", {
+      count: intersections.length,
+    });
+
+    if (intersections.length === 0) return true;
+
+    const firstHit = intersections[0];
+    if (this._isDescendantOfObject(firstHit.object, itemObject)) return true;
+
+    this._logFrameDetection("sample-raycast:blocked", {
+      hitName: firstHit.object?.name || "",
+      hitType: firstHit.object?.type || "",
+      hitDistance: firstHit.distance,
+      targetDistance,
+    });
+
+    return firstHit.distance >= targetDistance - 2;
+  }
+
+  _isItemObjectInCurrentFrame(itemObject, frustum) {
+    if (!itemObject || !this._isObjectVisibleInHierarchy(itemObject)) {
+      this._logFrameDetection("item-skipped:hierarchy-hidden", {
+        itemName: itemObject?.userData?.displayName || itemObject?.name || "",
+      });
+      return false;
+    }
+
+    itemObject.updateMatrixWorld(true);
+    const box = new Three.Box3().setFromObject(itemObject);
+    if (
+      !Number.isFinite(box.min.x) ||
+      !Number.isFinite(box.min.y) ||
+      !Number.isFinite(box.min.z)
+    ) {
+      this._logFrameDetection("item-skipped:invalid-bounds", {
+        itemName: itemObject?.userData?.displayName || itemObject?.name || "",
+      });
+      return false;
+    }
+
+    const frustumIntersects = frustum.intersectsBox(box);
+    if (!frustumIntersects) {
+      this._logFrameDetection("item-skipped:outside-frustum", {
+        itemName: itemObject?.userData?.displayName || itemObject?.name || "",
+        boxMin: { x: box.min.x, y: box.min.y, z: box.min.z },
+        boxMax: { x: box.max.x, y: box.max.y, z: box.max.z },
+      });
+      return false;
+    }
+
+    const center = box.getCenter(new Three.Vector3());
+    const samplePoints = [
+      center,
+      new Three.Vector3(box.min.x, center.y, box.min.z),
+      new Three.Vector3(box.min.x, center.y, box.max.z),
+      new Three.Vector3(box.max.x, center.y, box.min.z),
+      new Three.Vector3(box.max.x, center.y, box.max.z),
+    ];
+
+    this._logFrameDetection("item-samples:checking", {
+      itemName: itemObject?.userData?.displayName || itemObject?.name || "",
+      sampleCount: samplePoints.length,
+    });
+
+    const visible = samplePoints.some((point) =>
+      frustum.containsPoint(point) &&
+      this._isItemSampleVisibleFromCamera(itemObject, point),
+    );
+
+    this._logFrameDetection("item-result", {
+      itemName: itemObject?.userData?.displayName || itemObject?.name || "",
+      visible,
+    });
+
+    return visible;
+  }
+
+  getVisibleFrameItemNames() {
+    if (!this.camera || !this.planData?.sceneGraph?.layers) {
+      this._logFrameDetection("frame-scan:missing-camera-or-layers", {
+        hasCamera: !!this.camera,
+        hasSceneGraph: !!this.planData?.sceneGraph,
+        hasLayers: !!this.planData?.sceneGraph?.layers,
+      });
+      return [];
+    }
+
+    this.camera.updateMatrixWorld(true);
+    this.camera.updateProjectionMatrix();
+
+    const projectionScreenMatrix = new Three.Matrix4().multiplyMatrices(
+      this.camera.projectionMatrix,
+      this.camera.matrixWorldInverse,
+    );
+    const frustum = new Three.Frustum().setFromProjectionMatrix(
+      projectionScreenMatrix,
+    );
+    const visibleNames = [];
+
+    this._logFrameDetection("frame-scan:start", {
+      layerCount: Object.keys(this.planData.sceneGraph.layers).length,
+    });
+
+    Object.entries(this.planData.sceneGraph.layers).forEach(
+      ([layerID, layerGraph]) => {
+        if (!layerGraph?.items) return;
+
+        Object.entries(layerGraph.items).forEach(([itemID, itemObject]) => {
+          const isVisible = this._isItemObjectInCurrentFrame(itemObject, frustum);
+          this._logFrameDetection("frame-item:checked", {
+            layerID,
+            itemID,
+            itemName: this._getItemFrameDisplayName(layerID, itemID, itemObject),
+            visible: isVisible,
+          });
+          if (!isVisible) return;
+
+          const displayName = this._getItemFrameDisplayName(
+            layerID,
+            itemID,
+            itemObject,
+          );
+          if (displayName) visibleNames.push(displayName);
+        });
+      },
+    );
+
+    this._logFrameDetection("frame-scan:complete", {
+      visibleCount: visibleNames.length,
+      visibleNames,
+    });
+
+    return visibleNames;
   }
 
   _applyDraggedItemTransform({
@@ -1484,36 +1811,19 @@ export default class Scene3DViewer extends React.Component {
             if (textureApplication) {
               const textureKey = textureApplication.get("textureKey");
               const targetType = textureApplication.get("targetType");
-              console.error("[PlannerTextures][Trace] Click in texture mode", {
-                textureKey: textureKey || null,
-                targetType: targetType || null,
-                intersectionsCount: intersects.length,
-              });
+              const targetHit = this._getTextureTargetIntersection(
+                intersects,
+                targetType,
+              );
 
-              // Find the element associated with the closest intersection
-              for (let i = 0; i < intersects.length; i++) {
-                const intersection = intersects[i];
-                let obj = intersection.object;
-                let elementData = null;
-
-                // Traverse up the parent chain to find an object with userData.elementType
-                while (obj) {
-                  if (obj.userData && obj.userData.elementType) {
-                    elementData = obj.userData;
-                    break;
-                  }
-                  obj = obj.parent;
-                }
-
-                if (!elementData) continue;
-
+              if (targetHit) {
+                const { intersection, elementData } = targetHit;
                 const { elementType, elementID, layerID } = elementData;
 
                 // Apply wall texture
                 if ((targetType === "wall" || targetType === "both") && elementType === "lines") {
-                  const materialIndex = intersection.face
-                    ? intersection.face.materialIndex
-                    : -1;
+                  const materialIndex =
+                    this._getIntersectionMaterialIndex(intersection);
                   const lineElement = this.props.state.getIn([
                     "scene",
                     "layers",
@@ -1559,13 +1869,6 @@ export default class Scene3DViewer extends React.Component {
                     }
 
                     if (propertyName) {
-                      console.error("[PlannerTextures][Trace] Applying wall texture", {
-                        layerID,
-                        elementID,
-                        textureKey: textureKey || null,
-                        materialIndex,
-                        propertyName,
-                      });
                       this.context.textureActions.applyTextureToElement(
                         layerID,
                         elementID,
@@ -1573,25 +1876,12 @@ export default class Scene3DViewer extends React.Component {
                         propertyName,
                         textureKey,
                       );
-                    } else {
-                      console.error("[PlannerTextures][Trace] Wall click did not resolve texture face", {
-                        layerID,
-                        elementID,
-                        materialIndex,
-                        textureFaceMode,
-                      });
                     }
                   }
-                  break;
                 }
 
                 // Apply floor texture
                 if ((targetType === "floor" || targetType === "both") && elementType === "areas") {
-                  console.error("[PlannerTextures][Trace] Applying floor texture", {
-                    layerID,
-                    elementID,
-                    textureKey: textureKey || null,
-                  });
                   this.context.textureActions.applyTextureToElement(
                     layerID,
                     elementID,
@@ -1599,7 +1889,6 @@ export default class Scene3DViewer extends React.Component {
                     "texture",
                     textureKey,
                   );
-                  break;
                 }
               }
               return; // Don't process normal interact when in texture mode

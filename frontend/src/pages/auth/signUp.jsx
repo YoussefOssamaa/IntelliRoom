@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import '../../styles/auth/signup.css';
 import axios from '../../config/axios.config';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../utils/authContext.jsx';
 
 const SignUpModal = () => {
@@ -75,52 +75,72 @@ const SignUpModal = () => {
     }, [isMessageVisible]);
 
     return (
-        <div className="overlay">
-            <div className="login-card">
+        <main className="auth-page">
+            <div className="auth-noise" />
+            <nav className="auth-nav" aria-label="Authentication navigation">
+                <Link to="/" className="auth-brand">IntelliRoom</Link>
+                <Link to="/login" className="auth-nav-link">Access</Link>
+            </nav>
+
+            <section className="auth-shell auth-shell--signup">
+                <div className="auth-visual" aria-hidden="true">
+                    <img src="/images/livable_sofa_scene.jpg" alt="" />
+                    <div className="auth-visual-overlay" />
+                    <div className="auth-visual-copy">
+                        <span className="auth-kicker">Start Designing</span>
+                        <h1>Build rooms that feel ready to live in</h1>
+                        <p>Create projects, generate concepts, and refine every detail in one studio.</p>
+                    </div>
+                </div>
+
+                <div className="auth-panel auth-panel--signup">
                 {isMessageVisible && (
                     <div
                         ref={messageRef}
-                        className={"message-banner " + (isSuccessFullLogin ? 'success-message' : 'error-message')}
+                        className={"auth-message " + (isSuccessFullLogin ? 'auth-message--success' : 'auth-message--error')}
                     >
                         {loginMessage}
                     </div>
                 )}
-                <h2>Become an artist!</h2>
-                <p className="subtitle">Sign up to start designing</p>
+                <span className="auth-kicker">Join IntelliRoom</span>
+                <h2 className="auth-title">Create your studio</h2>
+                <p className="auth-subtitle">Save projects, organize designs, and unlock the AI workspace.</p>
 
-                <div className="social-btns">
-                    <button className="btn google">
-                        <img src="https://www.bing.com/th/id/OIP.AfKMLf4rKX7EqOSAVpujIQHaEK?w=336&h=211&c=8&rs=1&qlt=90&r=0&o=6&pid=3.1&rm=2" alt="Google" />
-                        continue with Google
+                <div className="auth-socials">
+                    <button type="button" className="auth-social-button">
+                        <span>G</span>
+                        Google
                     </button>
-                    <button className="btn facebook">
-                        <img src="https://www.bing.com/th/id/OIP.VgfWevmVdjRKHG8bfhpVsgHaHa?w=245&h=211&c=8&rs=1&qlt=90&r=0&o=6&pid=3.1&rm=2" alt="Google" />
-                        continue with Facebook
+                    <button type="button" className="auth-social-button">
+                        <span>f</span>
+                        Facebook
                     </button>
                 </div>
-                <br></br>
-                <form onSubmit={handleSubmit}>
-                    <div className="input-group">
-                        <label>first name</label>
+
+                <div className="auth-divider"><span>or use email</span></div>
+
+                <form className="auth-form auth-form--signup" onSubmit={handleSubmit}>
+                    <div className="auth-field">
+                        <label>First name</label>
                         <input
                             type="input"
                             name="firstName"
-                            placeholder="badr"
+                            placeholder="Nour"
                             onChange={handleChange}
                             required
                         />
                     </div>
-                    <div className="input-group">
-                        <label>last name</label>
+                    <div className="auth-field">
+                        <label>Last name</label>
                         <input
                             type="input"
                             name="lastName"
-                            placeholder="sayed"
+                            placeholder="Hassan"
                             onChange={handleChange}
                             required
                         />
                     </div>
-                    <div className="input-group">
+                    <div className="auth-field">
                         <label>Email</label>
                         <input
                             type="email"
@@ -130,18 +150,18 @@ const SignUpModal = () => {
                             required
                         />
                     </div>
-                    <div className="input-group">
-                        <label>user name</label>
+                    <div className="auth-field">
+                        <label>Username</label>
                         <input
                             type="input"
                             name="user_name"
-                            placeholder="badr21"
+                            placeholder="nour.studio"
                             onChange={handleChange}
                             required
                         />
                     </div>
 
-                    <div className="input-group">
+                    <div className="auth-field">
                         <label>Password</label>
                         <input
                             type="password"
@@ -151,8 +171,8 @@ const SignUpModal = () => {
                             required
                         />
                     </div>
-                    <div className="input-group">
-                        <label>repeat Password</label>
+                    <div className="auth-field">
+                        <label>Repeat password</label>
                         <input
                             type="password"
                             name="repeatPassword"
@@ -162,15 +182,15 @@ const SignUpModal = () => {
                         />
                     </div>
 
-                    <button type="submit" className="sign-in-btn">Sign up</button>
+                    <button type="submit" className="auth-submit">Sign up</button>
                 </form>
-                <br></br>
 
-                <p className="signup-text">
-                    Already have an account? <a href="/login">Login</a>
+                <p className="auth-switch">
+                    Already have an account? <Link to="/login">Login</Link>
                 </p>
-            </div>
-        </div>
+                </div>
+            </section>
+        </main>
     );
 };
 

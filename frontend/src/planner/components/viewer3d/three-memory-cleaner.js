@@ -1,6 +1,9 @@
 import * as Three from 'three';
 
 function disposeGeometry(geometry) {
+  if (!geometry) {
+    return;
+  }
   geometry.dispose();
 }
 

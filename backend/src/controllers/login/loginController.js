@@ -9,6 +9,9 @@ import Refresh from '../../models/refreshToken.js';
 import { sendEmail } from '../../utils/sendEmail.util.js';
 import ForgetPassword from '../../models/forgetPassword.js';
 import { fileURLToPath } from 'url';
+import Plan from '../../models/billing system/plan.js';
+import Subscription from '../../models/billing system/Subscription.js';
+import Usage from '../../models/billing system/usage.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -51,18 +54,97 @@ export const registerHandler = async (req, res) => {
             user_name,
             password: hashedPassword
         })
-        return res.status(201).json({
-            success: true,
-            message: "User registered successfully.",
-            user: {
-                email: newUser.email,
-                firstName: newUser.firstName,
-                lastName: newUser.lastName,
-                user_name: newUser.user_name,
-                plan: newUser.plan,
-                credits: newUser.credits
+
+        // --- START OF FREE PLAN AUTO-SUBSCRIPTION ---
+        try {
+            const freePlan = await Plan.findOne({ price: 0 });
+
+            if (freePlan) {
+                const startDate = new Date();
+                const endDate = new Date();
+                endDate.setMonth(endDate.getMonth() + 1); // 1 month billing cycle
+
+                // Create the subscription
+                const newSubscription = await Subscription.create({
+                    userId: newUser._id,
+                    planId: freePlan._id,
+                    status: 'active',
+                    billingCycle: 'monthly',
+                    startDate,
+                    endDate,
+                    renewalDate: endDate
+                });
+
+                // Create the usage limits tracker
+                await Usage.create({
+                    userId: newUser._id,
+                    subscriptionId: newSubscription._id,
+                    remainingRenders: freePlan.renderLimit,
+                    periodStart: startDate,
+                    periodEnd: endDate
+                });
+
+                // Update user document with the plan name
+                newUser.plan = freePlan.name;
+                await newUser.save();
             }
-        })
+        } catch (subError) {
+            console.error("Error auto-subscribing new user to free plan:", subError);
+            // We log the error but don't fail the signup process just because the subscription failed
+        }
+        // --- END OF FREE PLAN AUTO-SUBSCRIPTION ---
+
+        const payload = {
+            userId: newUser._id,
+        }
+
+        const commonCookieOptions = {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none"
+        }
+
+        const refreshCookieOptions = {
+            ...commonCookieOptions,
+            maxAge: 7 * 24 * 60 * 60 * 1000 //in melliseconds
+        }
+
+        const authCookieOptions = {
+            ...commonCookieOptions,
+            maxAge: 24 * 60 * 60 * 1000 //in melliseconds
+        }
+
+        const authToken = jwt.sign(payload, authPrivateKey, {
+            expiresIn: 24 * 60 * 60,
+            algorithm: "RS256",
+        });
+
+        const refreshToken = jwt.sign(payload, refreshPrivateKey, {
+            expiresIn: 7 * 24 * 60 * 60,
+            algorithm: "RS256",
+        });
+
+        await Refresh.create({
+            user_id: newUser._id,
+            refreshToken,
+            expireTime: Date.now() + 7 * 24 * 60 * 60 * 1000
+        });
+
+        return res.status(201)
+            .cookie("Authentication", authToken, authCookieOptions)
+            .cookie("Refresh", refreshToken, refreshCookieOptions)
+            .json({
+                success: true,
+                message: "User registered successfully.",
+                user: {
+                    email: newUser.email,
+                    firstName: newUser.firstName,
+                    lastName: newUser.lastName,
+                    user_name: newUser.user_name,
+                    plan: newUser.plan,
+                    credits: newUser.credits
+                }
+            });
 
     } catch (e) {
         console.log(e.message);
@@ -111,6 +193,7 @@ export const loginHandler = async (req, res) => {
 
         const payload = {
             userId: logging_user._id,
+            role: 'user'
         }
 
         const commonCookieOptions = {
@@ -174,7 +257,7 @@ export const loginHandler = async (req, res) => {
 
 export const refreshTokenHandler = async (req, res) => {
     const genericError = "not authenticated"
-
+    
     try {
         await normalizeResponseTime();
 
@@ -201,7 +284,8 @@ export const refreshTokenHandler = async (req, res) => {
             maxAge: 24 * 60 * 60 * 1000
         }
         const authPayload = {
-            userId: user.user_id
+            userId: user.user_id,
+            role: 'user'
         }
 
         const authToken = jwt.sign(authPayload, authPrivateKey, {
@@ -209,7 +293,7 @@ export const refreshTokenHandler = async (req, res) => {
             algorithm: "RS256",
         })
 
-
+        // console.log("refresh token")
         return res.status(200)
             .cookie("Authentication", authToken, authCookieOptions)
             .json({

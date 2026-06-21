@@ -1,14 +1,17 @@
 {
-  "scripts": {
-    "dev": "npx concurrently \"pnpm run dev:backend\" \"pnpm run dev:frontend\"",
-    "dev:backend": "cd backend && pnpm dev",
-    "dev:frontend": "cd frontend && pnpm dev"
-  },
-  "dependencies": {
+	"scripts": {
+		"dev": "npx concurrently \"pnpm run dev:backend\" \"pnpm run dev:frontend\"",
+		"dev:backend": "cd backend && pnpm dev",
+		"dev:frontend": "cd frontend && pnpm dev"
+	},
+	"dependencies": {
+		"csv-parser": "^3.2.1",
 		"express": "^5.2.1",
 		"form-data": "^4.0.5",
 		"git": "^0.1.5",
 		"gsap": "^3.15.0",
+		"ngrok": "5.0.0-beta.2",
+		"sharp": "^0.35.2",
 		"tailwindcss-animate": "^1.0.7"
 	}
 }

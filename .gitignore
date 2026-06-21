@@ -20,7 +20,7 @@ __pycache__/
 *.pyc
 .venv/
 .env/
-
+*.exe
 # VS Code
 .vscode/
 .history/
@@ -65,3 +65,5 @@ database/restore/
 
 
 furniture_images/
+
+/backend/ai

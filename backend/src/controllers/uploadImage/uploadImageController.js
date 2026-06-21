@@ -96,19 +96,19 @@ export const postImageController = async (req, res) => {
             inputPrompt
             if (TEST_MODE) {
                 recommendations = await getRecommendations("", 10);
-                console.log("THIS IS THE RECOMMENDATIONS ARRAY", recommendations)
+                //console.log("THIS IS THE RECOMMENDATIONS ARRAY", recommendations)
 
             }
             else {
                 recommendations = await getRecommendations(localFileName, 10);
-                console.log("THIS IS THE RECOMMENDATIONS ARRAY", recommendations)
+                //console.log("THIS IS THE RECOMMENDATIONS ARRAY", recommendations)
             }
 
             const recommendedImagesArray = recommendations.map(item => item.filename);
-            console.log("THIS IS THE RECOMMENDED IMAGE URLS", recommendedImagesArray)
+            console.log("THIS IS THE RECOMMENDED IMAGE array", recommendedImagesArray)
 
             /*
-                the arrey looks like this: 
+                the array looks like this: 
                 [   'img1080.png',
                 'img0870.png',
                 'img0600.png',
@@ -141,7 +141,7 @@ export const postImageController = async (req, res) => {
         await setTimeout(500);  /// delay to allow the output image to appear on the frontend page
 
 
-        postingImage = {
+        const postingImage = {
             user: req.userId,
             inputPrompt: inputPrompt,
             originalImageUrl: `/uploads/uploadedImages/${mainImage.filename}`,
@@ -149,7 +149,6 @@ export const postImageController = async (req, res) => {
             generatedImageUrl: `/uploads/comfyOutputs/${localFileName}`,
             isFavorite: false
         }
-
         await postGeneratedImageController(postingImage);
 
         return res.status(200).json({

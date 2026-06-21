@@ -3,7 +3,11 @@ import { createArea, updatedArea } from './area-factory-3d';
 import * as SharedStyle from '../../shared-style';
 import Translator from '../../translator/translator';
 import { computeInsetPolygon } from './area-utils';
-import { resolvePlannerTextureDefinition } from '../utils/cloud-texture-registry';
+import {
+  DEFAULT_FLOOR_TEXTURE,
+  DEFAULT_FLOOR_TEXTURE_ID,
+  resolvePlannerTextureDefinition,
+} from '../utils/cloud-texture-registry';
 
 let translator = new Translator();
 
@@ -77,7 +81,11 @@ export default function AreaFactory(name, info, textures) {
       });
 
       // Show applied texture as a tiled SVG pattern in 2D
-      const textureKey = element.properties.get ? element.properties.get('texture') : element.properties.texture;
+      const rawTextureKey = element.properties.get ? element.properties.get('texture') : element.properties.texture;
+      const textureKey =
+        rawTextureKey && rawTextureKey !== 'none'
+          ? rawTextureKey
+          : DEFAULT_FLOOR_TEXTURE_ID;
       const textureData =
         textureKey &&
         textureKey !== 'none' &&
@@ -86,7 +94,7 @@ export default function AreaFactory(name, info, textures) {
           fallbackTextures: areaElement.textures || textures,
         });
 
-      if (textureKey && textureKey !== 'none' && !textureData) {
+      if (textureKey && !textureData) {
         console.error('[PlannerTextures][Trace] Failed to resolve 2D floor texture', {
           textureKey,
           areaId: element.id,
@@ -146,7 +154,10 @@ export default function AreaFactory(name, info, textures) {
   };
 
   // Store raw textures on element for sidebar access
-  areaElement.textures = textures || {};
+  areaElement.textures = {
+    ...(textures || {}),
+    [DEFAULT_FLOOR_TEXTURE_ID]: DEFAULT_FLOOR_TEXTURE,
+  };
 
   if (textures && Object.keys(textures).length > 0) {
 
@@ -155,11 +166,14 @@ export default function AreaFactory(name, info, textures) {
     for (let textureName in textures) {
       textureValues[textureName] = textures[textureName].name
     }
+    textureValues[DEFAULT_FLOOR_TEXTURE_ID] = DEFAULT_FLOOR_TEXTURE.displayName;
 
     areaElement.properties.texture = {
       label: translator.t('Finishes'),
       type: 'enum',
-      defaultValue: 'none',
+      defaultValue: textureValues[DEFAULT_FLOOR_TEXTURE_ID]
+        ? DEFAULT_FLOOR_TEXTURE_ID
+        : 'none',
       values: textureValues
     };
 

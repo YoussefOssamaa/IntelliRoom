@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import '../../styles/auth/login.css';
 import axios from '../../config/axios.config';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../utils/authContext.jsx';
 
 const LoginModal = () => {
@@ -57,26 +57,46 @@ const LoginModal = () => {
 
 
     return (
-        <div className="overlay">
-            <div className="login-card">
-                {/* <button className="close-btn">&times;</button> */}
-                {isMessageVisible && <div className={"message-banner " + (isSuccessFullLogin ? 'success-message' : 'error-message')}>{loginMessage}</div>}
-                <h2>Welcome Back</h2>
-                <p className="subtitle">Sign in to continue designing</p>
+        <main className="auth-page">
+            <div className="auth-noise" />
+            <nav className="auth-nav" aria-label="Authentication navigation">
+                <Link to="/" className="auth-brand">IntelliRoom</Link>
+                <Link to="/signUp" className="auth-nav-link">Join Now</Link>
+            </nav>
 
-                <div className="social-btns">
-                    <button className="btn google">
-                        <img src="https://www.bing.com/th/id/OIP.AfKMLf4rKX7EqOSAVpujIQHaEK?w=336&h=211&c=8&rs=1&qlt=90&r=0&o=6&pid=3.1&rm=2" alt="Google" />
-                        Sign in with Google
-                    </button>
-                    <button className="btn facebook">
-                        <img src="https://www.bing.com/th/id/OIP.VgfWevmVdjRKHG8bfhpVsgHaHa?w=245&h=211&c=8&rs=1&qlt=90&r=0&o=6&pid=3.1&rm=2" alt="Google" />
-                        Sign in with Facebook
-                    </button>
+            <section className="auth-shell">
+                <div className="auth-visual" aria-hidden="true">
+                    <img src="/images/manifesto_full_room.jpg" alt="" />
+                    <div className="auth-visual-overlay" />
+                    <div className="auth-visual-copy">
+                        <span className="auth-kicker">AI Interior Studio</span>
+                        <h1>Your Space Reimagined</h1>
+                        <p>Return to your saved concepts, renders, and room plans.</p>
+                    </div>
                 </div>
-                <form onSubmit={handleSubmit}>
-                    <div className="input-group">
-                        <label>Email</label>
+
+                <div className="auth-panel">
+                    {isMessageVisible && <div className={"auth-message " + (isSuccessFullLogin ? 'auth-message--success' : 'auth-message--error')}>{loginMessage}</div>}
+                    <span className="auth-kicker">Welcome Back</span>
+                    <h2 className="auth-title">Access your studio</h2>
+                    <p className="auth-subtitle">Sign in to continue designing with IntelliRoom.</p>
+
+                    <div className="auth-socials">
+                        <button type="button" className="auth-social-button">
+                            <span>G</span>
+                            Google
+                        </button>
+                        <button type="button" className="auth-social-button">
+                            <span>f</span>
+                            Facebook
+                        </button>
+                    </div>
+
+                    <div className="auth-divider"><span>or use email</span></div>
+
+                    <form className="auth-form" onSubmit={handleSubmit}>
+                        <div className="auth-field">
+                            <label>Email</label>
                         <input
                             type="email"
                             name="email"
@@ -85,9 +105,9 @@ const LoginModal = () => {
                             onChange={handleChange}
                             required
                         />
-                    </div>
-                    <div className="input-group">
-                        <label>Password</label>
+                        </div>
+                        <div className="auth-field">
+                            <label>Password</label>
                         <input
                             type="password"
                             name="password"
@@ -96,16 +116,17 @@ const LoginModal = () => {
                             onChange={handleChange}
                             required
                         />
-                    </div>
+                        </div>
 
-                    <button type="submit" className="sign-in-btn">Sign In</button>
-                </form>
+                        <button type="submit" className="auth-submit">Sign In</button>
+                    </form>
 
-                <p className="signup-text">
-                    Don't have an account? <a href="/signup">Sign Up</a>
-                </p>
-            </div>
-        </div>
+                    <p className="auth-switch">
+                        Don't have an account? <Link to="/signUp">Sign Up</Link>
+                    </p>
+                </div>
+            </section>
+        </main>
     );
 };
 

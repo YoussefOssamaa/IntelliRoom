@@ -20,7 +20,10 @@ import {
   ensureGeometrySupportsAmbientOcclusion,
   markMaterialTextureRequest,
 } from '../utils/texture-map-loader';
-import { resolvePlannerTextureDefinition } from '../utils/cloud-texture-registry';
+import {
+  DEFAULT_FLOOR_TEXTURE_ID,
+  resolvePlannerTextureDefinition,
+} from '../utils/cloud-texture-registry';
 
 /**
  * Apply a texture to a wall face
@@ -69,7 +72,11 @@ export function createArea(element, layer, scene, textures) {
   // so the 3D floor starts at the inner face of each wall.
   const insetVerts = computeInsetPolygon(rawVertices, layer);
 
-  let textureName = element.properties.get('texture');
+  const rawTextureName = element.properties.get('texture');
+  let textureName =
+    rawTextureName && rawTextureName !== 'none'
+      ? rawTextureName
+      : DEFAULT_FLOOR_TEXTURE_ID;
   let color = element.selected ? SharedStyle.AREA_MESH_COLOR.selected : SharedStyle.AREA_MESH_COLOR.unselected;
   let floorThickness = element.properties.getIn(['floorThickness', 'length']) || 20;
   let roomHeight = element.properties.getIn(['roomHeight', 'length']) || 280;
@@ -123,7 +130,7 @@ export function createArea(element, layer, scene, textures) {
     fallbackTextures: textures,
   });
 
-  if (textureName && textureName !== 'none' && !texture) {
+  if (textureName && !texture) {
     console.error('[PlannerTextures][Trace] Failed to resolve floor texture', {
       textureName,
       areaId: element.id,

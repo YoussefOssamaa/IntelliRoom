@@ -1,150 +1,153 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './PricingPlansPage.css';
 import Footer from '../../components/common/Footer';
-import { useNavigate } from 'react-router-dom';
 import Navigation from '../../components/common/Navigation';
-
+import { useNavigate } from 'react-router-dom';
+import { subscribeToPlan, getPublicPlans, getMySubscription } from '../../services/subscriptionService';
 
 export function PricingPlansPage() {
-  const [isAnnual, setIsAnnual] = useState(false);
+  const [plans, setPlans] = useState([]);
+  const [isAnnual, setIsAnnual] = useState(false); // رجعنا الـ State
+  const [loadingPlan, setLoadingPlan] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentPlanId, setCurrentPlanId] = useState(null);
   const navigate = useNavigate();
 
-  const plans = [
-    {
-      name: 'Free',
-      monthlyPrice: 0,
-      annualPrice: 0,
-      description: 'Perfect for getting started',
-      features: [
-        '20 designs per month',
-        'Standard resolution (FHD)',
-        'Basic style library',
-        'Community gallery access',
-        'Earn credits through voting'
-      ],
-      highlighted: false
-    },
-    {
-      name: 'Pro',
-      monthlyPrice: 29,
-      annualPrice: 290,
-      description: 'For professional creators',
-      features: [
-        'Unlimited designs',
-        'Unlimited downloads',
-        'High resolution (4K)',
-        'Full style library + marketplace',
-        'Advanced features (masking, batch)',
-        'Priority processing',
-        'Style mixing',
-        'Priority support'
-      ],
-      highlighted: true
-    },
-    {
-      name: 'Business',
-      monthlyPrice: 99,
-      annualPrice: 990,
-      description: 'For teams and enterprises',
-      features: [
-        'Everything in Pro',
-        'API access',
-        'Team collaboration',
-        'White-label options',
-        'Custom integrations',
-        'Dedicated support',
-        'Custom training',
-        'SLA guarantee'
-      ],
-      highlighted: false
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await getPublicPlans();
+        setPlans(response.data || []);
+      } catch (err) {
+        setError(err.message || 'Error fetching plans');
+      }
+
+      try {
+        const subResponse = await getMySubscription();
+        setIsLoggedIn(true);
+        if (subResponse?.data?.subscription?.planId) {
+          setCurrentPlanId(subResponse.data.subscription.planId._id || subResponse.data.subscription.planId);
+        }
+      } catch (err) {
+        setIsLoggedIn(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const handleSubscribe = async (planId) => {
+    if (!isLoggedIn) {
+      navigate('/login');
+      return;
     }
-  ];
+
+    setLoadingPlan(planId);
+    try {
+      // هنا بنحدد هنبعت للباك إند شهري ولا سنوي
+      const billingCycle = isAnnual ? 'yearly' : 'monthly';
+      const response = await subscribeToPlan(planId, billingCycle);
+      if (response.success && response.checkoutUrl) {
+        window.location.href = response.checkoutUrl;
+        return;
+      }
+    } catch (error) {
+      alert("Failed to initiate subscription");
+    }
+    setLoadingPlan(null);
+  };
+
+  if (loading) return <div className="flex h-screen w-screen items-center justify-center bg-[#f0fdf4] font-body text-[#333333]">Loading plans...</div>;
+  if (error) return <div className="flex justify-center p-10"><p className="text-red-500">{error}</p></div>;
 
   return (
     <>
       <Navigation />
-      <div className='main-wrapper pt-[7%]'>
-
-        <div
-          className="deco-shape"
-          style={{
-            top: '-22%',
-            right: '-32%',
-            width: '600px',
-            height: '600px',
-            backgroundColor: '#D946EF',
-            opacity: '0.15'
-          }}
-        />
-
-        <div
-          className="deco-shape"
-          style={{
-            top: '70%',
-            left: '-25%',
-            width: '600px',
-            height: '600px',
-
-            borderRadius: '70px', // Extra rounded
-            transform: 'rotate(45deg)' // Different rotation
-          }}
-        />
+      <div className='main-wrapper'>
+        <div className="deco-shape" style={{ top: '-10%', right: '-5%', width: '500px', height: '500px' }} />
+        <div className="deco-shape" style={{ bottom: '10%', left: '-10%', width: '400px', height: '400px', transform: 'rotate(45deg)' }} />
 
         <div className="header-section">
           <h1 className="main-title">Choose Your Perfect Plan</h1>
           <p className="sub-title">
-            Choose the plan that suits you best. No hidden fees.
+            Unlock premium features and scale your design workflow.
           </p>
         </div>
 
-        {/* --- UPDATED TOGGLE SECTION --- */}
+        {/* رجعنا زرار الـ Toggle وشغلناه */}
         <div className="toggle-area">
           <span className={`label-text ${!isAnnual ? 'active-text' : ''}`}>Monthly</span>
 
-          {/* The Switch Container */}
           <div
             className={`toggle-switch ${isAnnual ? 'active' : ''}`}
             onClick={() => setIsAnnual(!isAnnual)}
           >
-            {/* The Moving Circle (Knob) */}
             <div className="switch-knob"></div>
           </div>
 
           <span className={`label-text ${isAnnual ? 'active-text' : ''}`}>Annual</span>
-
-          {/* The Savings Badge */}
           <span className={`save-badge ${isAnnual ? 'active-save-badge' : ''}`}>Save 17%</span>
         </div>
 
         <div className='cards-container'>
-          {plans.map((plan, index) => (
-            <div
-              key={index}
-              className={`card ${plan.highlighted ? 'popular-card' : ''}`}
-            >
-              {plan.highlighted && <div className="popular-badge">Most Popular</div>}
+          {plans.map((plan) => {
+            const isCurrentPlan = currentPlanId === plan._id;
 
-              <h3 className='plan-name'>{plan.name}</h3>
-              <p className='description'>{plan.description}</p>
+            // معادلة السعر: لو سنوي بنضرب في 12 وناخد 83% (يعني خصم 17%)
+            const displayPrice = plan.price === 0 ? 0 :
+              (isAnnual ? Math.round(plan.price * 12 * 0.83) : plan.price);
 
-              <div className="price-tag">
-                ${isAnnual ? plan.annualPrice : plan.monthlyPrice}
-                <span className="period">/{isAnnual ? 'year' : 'month'}</span>
-              </div>
+            return (
+              <div key={plan._id} className={`card ${isCurrentPlan ? 'current-plan' : ''}`}>
 
-              <hr className="card-divider" />
+                <h3 className='plan-name'>
+                  {plan.name}
+                  {isCurrentPlan && <span className="current-badge">Current</span>}
+                </h3>
 
-              <ul className='features'>
-                {plan.features.map((feature, i) => (
-                  <li key={i}>
-                    <span className="checkmark">✓</span> {feature}
+                <p className='description'>{plan.description || 'Access to our core design tools.'}</p>
+
+                <div className="price-tag">
+                  <span className="price-currency">EGP</span>
+                  {displayPrice}
+                  <span className="period">/{isAnnual ? 'yr' : 'mo'}</span>
+                </div>
+
+                <hr className="card-divider" />
+
+                <ul className='features'>
+                  <li>
+                    <span className="checkmark">✓</span>
+                    Render Limit: {plan.renderLimit === -1 ? 'Unlimited' : plan.renderLimit}
                   </li>
-                ))}
-              </ul>
+                  <li>
+                    <span className="checkmark">✓</span>
+                    3D Model Limit: {plan.model3DLimit === -1 ? 'Unlimited' : plan.model3DLimit}
+                  </li>
+                  {plan.availableFeatures && plan.availableFeatures.map((feature, i) => (
+                    <li key={i}>
+                      <span className="checkmark">✓</span> {feature}
+                    </li>
+                  ))}
+                </ul>
 
-              <button className="cta-button" onClick={() => navigate("/checkout")} >Choose {plan.name}</button>
-            </div>
-          ))}
+                <button
+                  className="cta-button"
+                  onClick={() => handleSubscribe(plan._id)}
+                  disabled={loadingPlan === plan._id || isCurrentPlan}
+                >
+                  {isCurrentPlan
+                    ? 'Current Plan'
+                    : loadingPlan === plan._id
+                      ? 'Processing...'
+                      : `Choose ${plan.name}`}
+                </button>
+              </div>
+            );
+          })}
         </div>
       </div>
       <Footer />

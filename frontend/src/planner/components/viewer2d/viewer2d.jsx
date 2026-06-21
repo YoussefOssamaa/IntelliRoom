@@ -112,6 +112,13 @@ export default function Viewer2D({ state, width, height }) {
     return { x, y: -y + scene.height }
   };
 
+  React.useEffect(() => {
+    if (viewer2D.isEmpty()) {
+      hasInitializedRef.current = false;
+      lastInternalZoomRef.current = null;
+    }
+  }, [viewer2D]);
+
   let onMouseMove = viewerEvent => {
 
     //workaround that allow imageful component to work
@@ -363,10 +370,40 @@ export default function Viewer2D({ state, width, height }) {
     SVGWidth: sceneWidth,
     SVGHeight: sceneHeight,
     miniatureOpen: false
-  } : viewer2D.toJS();
+  } : {
+    ...viewer2D.toJS(),
+    viewerWidth: width,
+    viewerHeight: height,
+    SVGWidth: sceneWidth,
+    SVGHeight: sceneHeight
+  };
+
+  React.useEffect(() => {
+    if (viewer2D.isEmpty() || !width || !height) return;
+
+    const value = viewer2D.toJS();
+    if (
+      value.viewerWidth === width &&
+      value.viewerHeight === height &&
+      value.SVGWidth === sceneWidth &&
+      value.SVGHeight === sceneHeight
+    ) {
+      return;
+    }
+
+    viewer2DActions.updateCameraView({
+      ...value,
+      viewerWidth: width,
+      viewerHeight: height,
+      SVGWidth: sceneWidth,
+      SVGHeight: sceneHeight
+    });
+  }, [viewer2D, width, height, sceneWidth, sceneHeight]);
 
   // Auto-fit view to drawn elements on first load
   React.useEffect(() => {
+    if (!width || !height || width < 20 || height < 20) return;
+
     const layers = state.getIn(['scene', 'layers']);
     const needsInitialization = viewer2D.isEmpty() || 
                                 (!viewer2D.has('e') && !viewer2D.has('f')) ||

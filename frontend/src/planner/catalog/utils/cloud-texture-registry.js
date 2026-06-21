@@ -1,5 +1,32 @@
-const cloudTextureRegistry = new Map();
-let registeredCloudTextures = [];
+export const DEFAULT_FLOOR_TEXTURE_ID = "interior_tiles";
+
+export const DEFAULT_FLOOR_TEXTURE = {
+  id: DEFAULT_FLOOR_TEXTURE_ID,
+  textureKey: DEFAULT_FLOOR_TEXTURE_ID,
+  name: "Interior Tiles",
+  displayName: "Interior Tiles",
+  category: "tiles",
+  placement: "floor",
+  maps: {
+    Color:
+      "https://res.cloudinary.com/dhjnbp168/image/upload/v1778613607/texture/interior_tiles/Color.png",
+  },
+  uri:
+    "https://res.cloudinary.com/dhjnbp168/image/upload/v1778613607/texture/interior_tiles/Color.png",
+  thumbnailUrl:
+    "https://res.cloudinary.com/dhjnbp168/image/upload/v1778613607/texture/interior_tiles/Color.png",
+  rendering: {
+    lengthRepeatScale: 0.01,
+    heightRepeatScale: 0.01,
+    roughness: 1,
+    metalness: 0,
+  },
+  prototype: "texture",
+  isCloudTexture: true,
+};
+
+const cloudTextureRegistry = new Map([[DEFAULT_FLOOR_TEXTURE_ID, DEFAULT_FLOOR_TEXTURE]]);
+let registeredCloudTextures = [DEFAULT_FLOOR_TEXTURE];
 
 const TEXTURE_TARGETS = {
   wall: ["wall", "floor", "both"],
@@ -101,7 +128,10 @@ const updateCatalogElementTextureProperties = (
 export function registerCloudTextures(textures = []) {
   cloudTextureRegistry.clear();
 
-  registeredCloudTextures = dedupeTexturesBySourceId(textures)
+  registeredCloudTextures = dedupeTexturesBySourceId([
+    ...textures,
+    DEFAULT_FLOOR_TEXTURE,
+  ])
     .filter((texture) => texture?.id)
     .slice()
     .sort((leftTexture, rightTexture) =>

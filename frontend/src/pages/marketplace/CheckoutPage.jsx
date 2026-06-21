@@ -75,7 +75,6 @@ const CheckoutPage = () => {
     }
   };
 
-  // 🚀 THE FIX: Kick them out if the cart is empty OR contains a broken $0 item
   if (cart.length === 0 || hasInvalidItems) {
     return (
       <div className="min-h-screen flex flex-col justify-center items-center bg-[#f9fafb]">
@@ -106,7 +105,7 @@ const CheckoutPage = () => {
     <div className="min-h-screen bg-[#f9fafb] flex flex-col">
       <div className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         {/* Breadcrumbs */}
-        <nav className="flex text-sm text-gray-500 mb-8 font-medium">
+        {/* <nav className="flex text-sm text-gray-500 mb-8 font-medium">
           <Link
             to="/ecomm"
             className="hover:text-text-accent transition-colors"
@@ -122,7 +121,7 @@ const CheckoutPage = () => {
           </Link>
           <span className="mx-2">/</span>
           <span className="text-text-primary font-bold">Checkout</span>
-        </nav>
+        </nav> */}
 
         <h1 className="text-3xl sm:text-4xl font-extrabold text-text-primary tracking-tight mb-8">
           Checkout

@@ -343,17 +343,31 @@ export function snapToWalls(x, z, walls, snapDistance, wallOffset = 0, dragFootp
 
   for (const wall of walls) {
     const seg = distanceToLineSegment(x, z, wall.x1, wall.z1, wall.x2, wall.z2);
-    if (seg.distance < snapDistance && seg.distance < bestDist) {
-      bestDist = seg.distance;
-      bestSnap = buildWallSnapResult(
-        wall,
-        seg.closestX,
-        seg.closestZ,
-        x,
-        z,
-        dragFootprint,
-        wallOffset,
-      );
+    const snap = buildWallSnapResult(
+      wall,
+      seg.closestX,
+      seg.closestZ,
+      x,
+      z,
+      dragFootprint,
+      wallOffset,
+    );
+    const offsetDistance = pointsDistance(
+      snap.x,
+      snap.z,
+      snap.wallX,
+      snap.wallZ,
+    );
+    const snapDistanceToEdge = dragFootprint
+      ? Math.abs(seg.distance - offsetDistance)
+      : seg.distance;
+
+    if (snapDistanceToEdge < snapDistance && snapDistanceToEdge < bestDist) {
+      bestDist = snapDistanceToEdge;
+      bestSnap = {
+        ...snap,
+        distance: snapDistanceToEdge,
+      };
     }
   }
 
@@ -561,7 +575,7 @@ function _edgeSnap(x, z, dragFP, target, targetFP, snapDistance) {
 
 function _surfaceAllowsSnapType(surfaceHint, snapType) {
   if (!surfaceHint?.type) return true;
-  if (surfaceHint.type === 'floor') return snapType !== SNAP_3D_WALL;
+  if (surfaceHint.type === 'floor') return true;
   return surfaceHint.type === snapType;
 }
 
@@ -765,7 +779,7 @@ export function applySnapping(
   // ── 2. Collect candidates ────────────────────────────────────────────────
   const candidates = [];
 
-  if (config.snapTypes[SNAP_3D_WALL] && surfaceHint?.type !== 'floor') {
+  if (config.snapTypes[SNAP_3D_WALL]) {
     const walls = getWallsFromScene(scene);
     const candidateWalls = surfaceHint?.type === SNAP_3D_WALL && surfaceHint.wallLineID
       ? walls.filter((wall) => wall.lineID === surfaceHint.wallLineID)

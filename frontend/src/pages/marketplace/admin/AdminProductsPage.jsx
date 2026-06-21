@@ -22,7 +22,7 @@ const AdminProductsPage = () => {
   useEffect(() => {
     const fetchAllProducts = async () => {
       try {
-        const response = await axios.get("/products");
+        const response = await axios.get(`/products?q=${searchQuery}`);
         if (response.data.success) {
           setProducts(response.data.data);
         }
@@ -63,7 +63,6 @@ const AdminProductsPage = () => {
     }
   };
 
-  // 🚀 Smart In-Memory Filtering Logic
   const filteredProducts = products.filter((product) => {
     const query = searchQuery.toLowerCase();
 
@@ -71,7 +70,6 @@ const AdminProductsPage = () => {
     const productName = product.name || "";
     const productBrand = product.brand || "";
 
-    // 2. THE FIX: Safely extract the category name whether it's an object or a string
     const primaryCat = product.categorization?.primary;
     const categoryName =
       typeof primaryCat === "object"

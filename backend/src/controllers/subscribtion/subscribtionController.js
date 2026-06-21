@@ -1,416 +1,481 @@
-import Subscription from '../../models/billing system/Subscription.js'; 
-import Plan from '../../models/billing system/plan.js'; 
-import Payment from '../../models/billing system/payments.js'; 
-import Usage from '../../models/billing system/usage.js'; 
-import User from '../../models/user.js'; 
+import Subscription from "../../models/billing system/Subscription.js";
+import Plan from "../../models/billing system/plan.js";
+import Payment from "../../models/billing system/payments.js";
+import Usage from "../../models/billing system/usage.js";
+import User from "../../models/user.js";
 
 // الرابط الأساسي لفواتيرك (استخدم staging في التطوير، و app.fawaterk.com في الإنتاج)
-const FAWATERK_BASE_URL = 'https://staging.fawaterk.com/api/v2';
+const FAWATERK_BASE_URL =
+  process.env.FAWATERK_BASE_URL || "https://staging.fawaterk.com/api/v2";
 
-export const getMySubscription = async (req, res) => { 
-    try { 
-        const userId = req.user._id; 
+export const getMySubscription = async (req, res) => {
+  try {
+    const userId = req.userId || (req.user && req.user._id);
 
-        const subscription = await Subscription.findOne({ 
-            userId, 
-            status: { $in: ['active', 'trial'] } 
-        }).populate('planId'); 
+    const subscription = await Subscription.findOne({
+      userId,
+      status: { $in: ["active", "trial"] },
+    }).populate("planId");
 
-        if (!subscription) { 
-            return res.status(200).json({ 
-                success: true, 
-                message: "No active subscription found", 
-                data: null 
-            }); 
-        } 
+    if (!subscription) {
+      return res.status(200).json({
+        success: true,
+        message: "No active subscription found",
+        data: null,
+      });
+    }
 
-        const usage = await Usage.findOne({ 
-            subscriptionId: subscription._id, 
-            periodEnd: { $gte: new Date() } 
-        }); 
+    const usage = await Usage.findOne({
+      subscriptionId: subscription._id,
+      periodEnd: { $gte: new Date() },
+    });
 
-        res.status(200).json({ 
-            success: true, 
-            data: { 
-                subscription, 
-                usage 
-            } 
-        }); 
-    } catch (error) { 
-        console.error("Error in getMySubscription:", error); 
-        res.status(500).json({ success: false, message: "Server error" }); 
-    } 
-}; 
+    res.status(200).json({
+      success: true,
+      data: {
+        subscription,
+        usage,
+      },
+    });
+  } catch (error) {
+    console.error("Error in getMySubscription:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
 
-export const subscribePlan = async (req, res) => { 
-  try { 
-    const { planId, billingCycle } = req.body; 
-    const user = req.user; 
+export const subscribePlan = async (req, res) => {
+  try {
+    const { planId, billingCycle } = req.body;
+    const userId = req.userId || (req.user && req.user._id);
+    const userObj = req.user || (await User.findById(userId));
 
-    const plan = await Plan.findById(planId); 
-    if (!plan) { 
-      return res.status(404).json({ success: false, message: "Plan not found" }); 
-    } 
+    const plan = await Plan.findById(planId);
+    if (!plan) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Plan not found" });
+    }
 
-    const existingSub = await Subscription.findOne({ 
-      userId: user._id, 
-      status: 'active' 
-    }); 
-    
-    if (existingSub) { 
-      return res.status(400).json({ 
-        success: false, 
-        message: "You already have an active subscription. Please change/upgrade your plan instead." 
-      }); 
-    } 
+    const existingSub = await Subscription.findOne({
+      userId: userId,
+      status: "active",
+    });
 
-    if (plan.price === 0) { 
-      const startDate = new Date(); 
-      const endDate = new Date(); 
-      if (billingCycle === 'yearly') endDate.setFullYear(endDate.getFullYear() + 1); 
-      else endDate.setMonth(endDate.getMonth() + 1); 
+    if (existingSub) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "You already have an active subscription. Please change/upgrade your plan instead.",
+      });
+    }
 
-      const newSubscription = await Subscription.create({ 
-        userId: user._id, 
-        planId, 
-        status: 'active', 
-        billingCycle, 
-        startDate, 
-        endDate, 
-        renewalDate: endDate 
-      }); 
+    if (plan.price === 0) {
+      const startDate = new Date();
+      const endDate = new Date();
+      if (billingCycle === "yearly")
+        endDate.setFullYear(endDate.getFullYear() + 1);
+      else endDate.setMonth(endDate.getMonth() + 1);
 
-      await Usage.create({ 
-        userId: user._id, 
-        subscriptionId: newSubscription._id, 
-        remainingRenders: plan.renderLimit, 
-        periodStart: startDate, 
-        periodEnd: endDate 
-      }); 
+      const newSubscription = await Subscription.create({
+        userId: userId,
+        planId,
+        status: "active",
+        billingCycle,
+        startDate,
+        endDate,
+        renewalDate: endDate,
+      });
 
-      await User.findByIdAndUpdate(user._id, { plan: plan.name }); 
+      await Usage.create({
+        userId: userId,
+        subscriptionId: newSubscription._id,
+        remainingRenders: plan.renderLimit,
+        periodStart: startDate,
+        periodEnd: endDate,
+      });
 
-      return res.status(201).json({ 
-        success: true, 
-        message: "Successfully subscribed to free plan", 
-        data: newSubscription 
-      }); 
-    } 
+      await User.findByIdAndUpdate(userId, { plan: plan.name });
+
+      return res.status(201).json({
+        success: true,
+        message: "Successfully subscribed to free plan",
+        data: newSubscription,
+      });
+    }
 
     // معالجة الباقات المدفوعة عبر فواتيرك v2
     try {
-      const invoiceResponse = await fetch(`${FAWATERK_BASE_URL}/invoiceInitPay`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.FAWATERK_API_KEY}`
-        },
-        body: JSON.stringify({
-          cartTotal: plan.price.toString(),
-          currency: "EGP",
-          customer: {
-            first_name: user.firstName || "IntelliRoom",
-            last_name: user.lastName || "User",
-            email: user.email,
-            phone: user.phone || "01000000000"
+      // 1. احسب السعر النهائي بناءً على خطة الدفع
+      const finalPrice =
+        billingCycle === "yearly"
+          ? Math.round(plan.price * 12 * 0.83)
+          : plan.price;
+
+      // 2. استخدم السعر النهائي في الريكويست بتاع فواتيرك
+      const invoiceResponse = await fetch(
+        `${FAWATERK_BASE_URL}/invoiceInitPay`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.FAWATERAK_API_KEY}`,
           },
-          cartItems: [
-            {
-              name: `Plan: ${plan.name}`,
-              price: plan.price.toString(),
-              quantity: "1"
-            }
-          ]
-        })
-      });
+          body: JSON.stringify({
+            payment_method_id: 2,
+            cartTotal: finalPrice.toString(), // 👈 التعديل المهم هنا
+            currency: "EGP",
+            customer: {
+              first_name: userObj?.firstName || "IntelliRoom",
+              last_name: userObj?.lastName || "User",
+              email: userObj?.email,
+              phone: userObj?.phone || "01000000000",
+            },
+            cartItems: [
+              {
+                name: `Plan: ${plan.name} (${billingCycle})`,
+                price: finalPrice.toString(), // 👈 وهنا كمان
+                quantity: "1",
+              },
+            ],
+          }),
+        },
+      );
 
       const invoiceData = await invoiceResponse.json();
 
-      if (invoiceData.status === 'success') {
+      if (invoiceData.status === "success") {
         const invoiceId = invoiceData.data.invoice_id;
         const paymentLink = invoiceData.data.payment_data.redirectTo;
 
         // إنشاء سجل دفع معلق لحين وصول تأكيد الـ Webhook
         await Payment.create({
-            userId: user._id,
-            planId: planId, // نحتفظ بالخطة لمعرفتها وقت التفعيل
-            provider: 'fawaterak',
-            fawaterkOrderId: invoiceId,
-            status: 'pending',
-            amount: plan.price,
-            currency: 'EGP'
+          userId: userId,
+          planId: planId, // نحتفظ بالخطة لمعرفتها وقت التفعيل
+          provider: "fawaterak",
+          fawaterkOrderId: invoiceId,
+          status: "pending",
+          amount: plan.price,
+          currency: "EGP",
         });
 
-        res.status(200).json({ 
-          success: true, 
+        res.status(200).json({
+          success: true,
           message: "Payment required. Redirect to checkout.",
           checkoutUrl: paymentLink,
-          invoiceId: invoiceId
+          invoiceId: invoiceId,
         });
       } else {
         console.error("Fawaterak init error:", invoiceData);
-        res.status(400).json({ success: false, message: "Error initializing payment with provider" });
+        res
+          .status(400)
+          .json({
+            success: false,
+            message: "Error initializing payment with provider",
+          });
       }
-
     } catch (error) {
       console.error("Error creating Fawaterak checkout:", error);
-      res.status(500).json({ success: false, message: "Error initializing payment" });
+      res
+        .status(500)
+        .json({ success: false, message: "Error initializing payment" });
     }
+  } catch (error) {
+    console.error("Error in subscribePlan:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
 
-  } catch (error) { 
-    console.error("Error in subscribePlan:", error); 
-    res.status(500).json({ success: false, message: "Server error" }); 
-  } 
-}; 
+export const createFawaterkCheckout = async (req, res) => {
+  try {
+    const { planId } = req.body;
+    const userId = req.userId || (req.user && req.user._id);
+    const userObj = req.user || (await User.findById(userId));
 
-export const createFawaterkCheckout = async (req, res) => { 
-  try { 
-    const { planId } = req.body; 
-    const user = req.user; 
-
-    const plan = await Plan.findById(planId); 
-    if (!plan) { 
-      return res.status(404).json({ success: false, message: "Plan not found" }); 
-    } 
+    const plan = await Plan.findById(planId);
+    if (!plan) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Plan not found" });
+    }
 
     // استخدام نفس منطق الدفع للإصدار الثاني
     const invoiceResponse = await fetch(`${FAWATERK_BASE_URL}/invoiceInitPay`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.FAWATERK_API_KEY}`
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.FAWATERK_API_KEY}`,
       },
       body: JSON.stringify({
         cartTotal: plan.price.toString(),
         currency: "EGP",
         customer: {
-          first_name: user.firstName || "IntelliRoom",
-          last_name: user.lastName || "User",
-          email: user.email,
-          phone: user.phone || "01000000000"
+          first_name: userObj?.firstName || "IntelliRoom",
+          last_name: userObj?.lastName || "User",
+          email: userObj?.email,
+          phone: userObj?.phone || "01000000000",
         },
         cartItems: [
           {
             name: `Subscription: ${plan.name}`,
             price: plan.price.toString(),
-            quantity: "1"
-          }
-        ]
-      })
+            quantity: "1",
+          },
+        ],
+      }),
     });
 
     const invoiceData = await invoiceResponse.json();
 
-    if (invoiceData.status === 'success') {
+    if (invoiceData.status === "success") {
       const invoiceId = invoiceData.data.invoice_id;
-      
+
       // حفظ العملية كقيد الانتظار
       await Payment.create({
-          userId: user._id,
-          planId: planId,
-          provider: 'fawaterak',
-          fawaterkOrderId: invoiceId,
-          status: 'pending',
-          amount: plan.price,
-          currency: 'EGP'
+        userId: userId,
+        planId: planId,
+        provider: "fawaterak",
+        fawaterkOrderId: invoiceId,
+        status: "pending",
+        amount: plan.price,
+        currency: "EGP",
       });
 
-      res.status(200).json({ 
-        success: true, 
+      res.status(200).json({
+        success: true,
         message: "Checkout URL generated successfully",
         checkoutUrl: invoiceData.data.payment_data.redirectTo,
-        invoiceId: invoiceId
+        invoiceId: invoiceId,
       });
     } else {
-      res.status(400).json({ success: false, message: "Failed to generate checkout URL" });
+      res
+        .status(400)
+        .json({ success: false, message: "Failed to generate checkout URL" });
+    }
+  } catch (error) {
+    console.error("Error in createFawaterkCheckout:", error);
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Server error during payment initialization",
+      });
+  }
+};
+
+export const unsubscribePlan = async (req, res) => {
+  try {
+    const userId = req.userId || (req.user && req.user._id);
+
+    const subscription = await Subscription.findOne({
+      userId,
+      status: "active",
+    });
+
+    if (!subscription) {
+      return res.status(404).json({
+        success: false,
+        message: "No active subscription found to cancel",
+      });
     }
 
-  } catch (error) { 
-    console.error("Error in createFawaterkCheckout:", error); 
-    res.status(500).json({ success: false, message: "Server error during payment initialization" }); 
-  } 
-}; 
+    if (subscription.cancelAtPeriodEnd) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Subscription is already set to cancel at the end of the billing period",
+      });
+    }
 
-export const unsubscribePlan = async (req, res) => { 
-  try { 
-    const userId = req.user._id; 
+    subscription.cancelAtPeriodEnd = true;
+    subscription.fawaterkCardToken = undefined;
 
-    const subscription = await Subscription.findOne({ userId, status: 'active' }); 
+    await subscription.save();
 
-    if (!subscription) { 
-      return res.status(404).json({ 
-        success: false, 
-        message: "No active subscription found to cancel" 
-      }); 
-    } 
+    res.status(200).json({
+      success: true,
+      message:
+        "Subscription auto-renewal has been disabled. You can use your plan until the end of the current cycle.",
+    });
+  } catch (error) {
+    console.error("Error in unsubscribePlan:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
 
-    if (subscription.cancelAtPeriodEnd) { 
-      return res.status(400).json({ 
-        success: false, 
-        message: "Subscription is already set to cancel at the end of the billing period" 
-      }); 
-    } 
+export const changePlan = async (req, res) => {
+  try {
+    const { newPlanId } = req.body;
+    const userId = req.userId || (req.user && req.user._id);
+    const userObj = req.user || (await User.findById(userId));
 
-    subscription.cancelAtPeriodEnd = true; 
-    subscription.fawaterkCardToken = undefined; 
-    
-    await subscription.save(); 
+    const newPlan = await Plan.findById(newPlanId);
+    if (!newPlan) {
+      return res
+        .status(404)
+        .json({ success: false, message: "New plan not found" });
+    }
 
-    res.status(200).json({ 
-      success: true, 
-      message: "Subscription auto-renewal has been disabled. You can use your plan until the end of the current cycle." 
-    }); 
+    const currentSubscription = await Subscription.findOne({
+      userId: userId,
+      status: "active",
+    }).populate("planId");
 
-  } catch (error) { 
-    console.error("Error in unsubscribePlan:", error); 
-    res.status(500).json({ success: false, message: "Server error" }); 
-  } 
-}; 
+    if (!currentSubscription) {
+      return res
+        .status(404)
+        .json({ success: false, message: "No active subscription found" });
+    }
 
-export const changePlan = async (req, res) => { 
-  try { 
-    const { newPlanId } = req.body; 
-    const user = req.user; 
-    
-    const newPlan = await Plan.findById(newPlanId); 
-    if (!newPlan) { 
-      return res.status(404).json({ success: false, message: "New plan not found" }); 
-    } 
+    if (currentSubscription.planId._id.toString() === newPlanId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Already on this plan" });
+    }
 
-    const currentSubscription = await Subscription.findOne({ 
-      userId: user._id, 
-      status: 'active' 
-    }).populate('planId'); 
-    
-    if (!currentSubscription) { 
-      return res.status(404).json({ success: false, message: "No active subscription found" }); 
-    } 
+    const priceDifference = newPlan.price - currentSubscription.planId.price;
 
-    if (currentSubscription.planId._id.toString() === newPlanId) { 
-      return res.status(400).json({ success: false, message: "Already on this plan" }); 
-    } 
-   
-    const priceDifference = newPlan.price - currentSubscription.planId.price; 
+    if (priceDifference <= 0) {
+      currentSubscription.planId = newPlanId;
+      await currentSubscription.save();
 
-    if (priceDifference <= 0) { 
-      currentSubscription.planId = newPlanId; 
-      await currentSubscription.save(); 
+      const currentUsage = await Usage.findOne({
+        subscriptionId: currentSubscription._id,
+        periodEnd: { $gte: new Date() },
+      });
 
-      const currentUsage = await Usage.findOne({ 
-        subscriptionId: currentSubscription._id, 
-        periodEnd: { $gte: new Date() } 
-      }); 
+      if (currentUsage) {
+        currentUsage.remainingRenders = Math.max(
+          0,
+          currentUsage.remainingRenders + priceDifference,
+        );
+        await currentUsage.save();
+      }
 
-      if (currentUsage) { 
-        currentUsage.remainingRenders = Math.max( 
-          0, 
-          currentUsage.remainingRenders + priceDifference 
-        ); 
-        await currentUsage.save(); 
-      } 
+      await User.findByIdAndUpdate(userId, { plan: newPlan.name });
 
-      await User.findByIdAndUpdate(user._id, { plan: newPlan.name }); 
-
-      return res.status(200).json({ 
-        success: true, 
-        message: `Successfully downgraded to ${newPlan.name}`, 
-        data: currentSubscription 
-      }); 
-    } 
+      return res.status(200).json({
+        success: true,
+        message: `Successfully downgraded to ${newPlan.name}`,
+        data: currentSubscription,
+      });
+    }
 
     // Upgrade - دفع الفارق عبر فواتيرك v2
     try {
-      const invoiceResponse = await fetch(`${FAWATERK_BASE_URL}/invoiceInitPay`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.FAWATERK_API_KEY}`
-        },
-        body: JSON.stringify({
-          cartTotal: priceDifference.toString(),
-          currency: "EGP",
-          customer: {
-            first_name: user.firstName || "IntelliRoom",
-            last_name: user.lastName || "User",
-            email: user.email,
-            phone: user.phone || "01000000000"
+      const invoiceResponse = await fetch(
+        `${FAWATERK_BASE_URL}/invoiceInitPay`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.FAWATERK_API_KEY}`,
           },
-          cartItems: [
-            {
-              name: `Upgrade to ${newPlan.name}`,
-              price: priceDifference.toString(),
-              quantity: "1"
-            }
-          ]
-        })
-      });
+          body: JSON.stringify({
+            cartTotal: priceDifference.toString(),
+            currency: "EGP",
+            customer: {
+              first_name: userObj?.firstName || "IntelliRoom",
+              last_name: userObj?.lastName || "User",
+              email: userObj?.email,
+              phone: userObj?.phone || "01000000000",
+            },
+            cartItems: [
+              {
+                name: `Upgrade to ${newPlan.name}`,
+                price: priceDifference.toString(),
+                quantity: "1",
+              },
+            ],
+          }),
+        },
+      );
 
       const invoiceData = await invoiceResponse.json();
 
-      if (invoiceData.status === 'success') {
+      if (invoiceData.status === "success") {
         const invoiceId = invoiceData.data.invoice_id;
 
         await Payment.create({
-            userId: user._id,
-            planId: newPlanId, // الخطة الجديدة
-            provider: 'fawaterak',
-            fawaterkOrderId: invoiceId,
-            status: 'pending',
-            amount: priceDifference,
-            currency: 'EGP'
+          userId: userId,
+          planId: newPlanId, // الخطة الجديدة
+          provider: "fawaterak",
+          fawaterkOrderId: invoiceId,
+          status: "pending",
+          amount: priceDifference,
+          currency: "EGP",
         });
 
-        res.status(200).json({ 
-          success: true, 
+        res.status(200).json({
+          success: true,
           message: "Payment required for upgrade",
           checkoutUrl: invoiceData.data.payment_data.redirectTo,
-          invoiceId: invoiceId
+          invoiceId: invoiceId,
         });
       } else {
-        res.status(400).json({ success: false, message: "Error generating upgrade invoice" });
+        res
+          .status(400)
+          .json({
+            success: false,
+            message: "Error generating upgrade invoice",
+          });
       }
-
-    } catch (error) { 
-      console.error("Error creating upgrade payment:", error); 
-      res.status(500).json({ success: false, message: "Error initiating payment" }); 
-    } 
-
-  } catch (error) { 
-    console.error("Error in changePlan:", error); 
-    res.status(500).json({ success: false, message: "Server error" }); 
-  } 
-}; 
+    } catch (error) {
+      console.error("Error creating upgrade payment:", error);
+      res
+        .status(500)
+        .json({ success: false, message: "Error initiating payment" });
+    }
+  } catch (error) {
+    console.error("Error in changePlan:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
 
 export const fawaterkWebhook = async (req, res) => {
   try {
     const invoiceId = req.body.invoice_id;
 
     if (!invoiceId) {
-      return res.status(400).json({ success: false, message: "Missing invoice_id" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing invoice_id" });
     }
 
     // التحقق الآمن: سؤال سيرفرات فواتيرك عن حالة الفاتورة
-    const verifyResponse = await fetch(`${FAWATERK_BASE_URL}/getInvoiceData/${invoiceId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.FAWATERK_API_KEY}`
-      }
-    });
+    const verifyResponse = await fetch(
+      `${FAWATERK_BASE_URL}/getInvoiceData/${invoiceId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.FAWATERK_API_KEY}`,
+        },
+      },
+    );
 
     const verifyData = await verifyResponse.json();
 
-    if (verifyData.status !== 'success') {
-      return res.status(404).json({ success: false, message: "Invoice not found on Fawaterk" });
+    if (verifyData.status !== "success") {
+      return res
+        .status(404)
+        .json({ success: false, message: "Invoice not found on Fawaterk" });
     }
 
     const invoiceStatus = verifyData.data.is_paid;
-    
-    const pendingPayment = await Payment.findOne({ fawaterkOrderId: invoiceId, status: 'pending' });
+
+    const pendingPayment = await Payment.findOne({
+      fawaterkOrderId: invoiceId,
+      status: "pending",
+    });
 
     if (!pendingPayment) {
-        // نرد بـ 200 عشان فواتيرك متعملش إعادة إرسال إذا كانت العملية مش تبعنا
-        return res.status(200).json({ success: true, message: "Payment record not found or already processed" });
+      // نرد بـ 200 عشان فواتيرك متعملش إعادة إرسال إذا كانت العملية مش تبعنا
+      return res
+        .status(200)
+        .json({
+          success: true,
+          message: "Payment record not found or already processed",
+        });
     }
 
     if (invoiceStatus === true) {
@@ -418,39 +483,34 @@ export const fawaterkWebhook = async (req, res) => {
       const planId = pendingPayment.planId;
 
       const subscription = await Subscription.findOneAndUpdate(
-        { userId, status: { $ne: 'canceled' } },
+        { userId, status: { $ne: "canceled" } },
         {
           planId,
-          status: 'active',
+          status: "active",
         },
-        { new: true, upsert: true }
+        { new: true, upsert: true },
       );
 
-      pendingPayment.status = 'paid';
+      pendingPayment.status = "paid";
       pendingPayment.subscriptionId = subscription._id;
       pendingPayment.paidAt = new Date();
       await pendingPayment.save();
 
       const plan = await Plan.findById(planId);
       await User.findByIdAndUpdate(userId, { plan: plan.name });
-
     } else {
-      pendingPayment.status = 'failed';
+      pendingPayment.status = "failed";
       await pendingPayment.save();
     }
 
-    res.status(200).json({ success: true, message: "Webhook processed securely" });
-
+    res
+      .status(200)
+      .json({ success: true, message: "Webhook processed securely" });
   } catch (error) {
     console.error("Error processing Fawaterak Webhook:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
-
-
-export const createPaymobCheckout = async (req, res) => {
-}
-export const paymobWebhook = async (req, res) => {
-}
- 
+export const createPaymobCheckout = async (req, res) => {};
+export const paymobWebhook = async (req, res) => {};

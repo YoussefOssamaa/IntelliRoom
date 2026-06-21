@@ -19,7 +19,9 @@ import WorkspaceCanvas from "./components/WorkspaceCanvas";
 import PropertiesPanel from "./components/PropertiesPanel";
 import BottomRightControls from "./components/BottomRightControls";
 import RenderTopModeSelector from "./components/RenderTopModeSelector";
-import RenderLeftSidebar from "./components/RenderLeftSidebar";
+import RenderLeftSidebar, {
+  ROOM_TYPE_OPTIONS,
+} from "./components/RenderLeftSidebar";
 import RenderRightSidebar from "./components/RenderRightSidebar";
 import BottomRenderActionBar from "./components/BottomRenderActionBar";
 
@@ -58,6 +60,7 @@ import {
 } from "../../../../services/cloudTextureService";
 import {
   getProjectById,
+  getProjects,
   getPlannerUserProfile,
   savePlannerProject,
 } from "../../../../services/plannerProjectService";
@@ -82,6 +85,7 @@ const CAPTURE_STATUS_READY = "ready";
 const CAPTURE_STATUS_FAILED = "failed";
 const CLOUD_MODEL_PAGE_SIZE = 24;
 const CLOUD_TEXTURE_PAGE_SIZE = 48;
+const SHARED_CAMERA_TRANSITION_STATE_KEY = "__plannerSharedViewerCameraPose";
 
 const dedupeTexturesBySourceId = (textures = []) => {
   const seenTextureIds = new Set();
@@ -172,6 +176,28 @@ const buildCaptureFrameSummary = ({
   return summaryParts.join(". ");
 };
 
+const buildEditableRenderPrompt = ({
+  roomType = "",
+  frameSummary = "",
+  detectedItems = [],
+} = {}) => {
+  const detectedItemSummary = Array.isArray(detectedItems)
+    ? detectedItems
+        .map((item) => {
+          if (!item) return "";
+          if (typeof item === "string") return item;
+          return item.label || item.name || "";
+        })
+        .filter(Boolean)
+        .join(", ")
+    : "";
+
+  return buildCaptureFrameSummary({
+    roomType,
+    frameSummary: detectedItemSummary || frameSummary,
+  });
+};
+
 const extractBackendFrameSummary = (response) => {
   const summaryCandidate =
     response?.frameSummary ||
@@ -188,10 +214,14 @@ const extractBackendDetectedItems = (response) => {
     response?.detectedItems || response?.frameItems || response?.items;
 
   if (!Array.isArray(rawItems)) {
+    logCaptureDetection("render-response:no-detected-items-array", {
+      hasResponse: Boolean(response),
+      keys: response ? Object.keys(response) : [],
+    });
     return [];
   }
 
-  return rawItems
+  const detectedItems = rawItems
     .map((item) => {
       if (typeof item === "string") return item.trim();
       if (item && typeof item === "object") {
@@ -200,6 +230,14 @@ const extractBackendDetectedItems = (response) => {
       return "";
     })
     .filter(Boolean);
+
+  logCaptureDetection("render-response:detected-items", {
+    rawCount: rawItems.length,
+    detectedCount: detectedItems.length,
+    detectedItems,
+  });
+
+  return detectedItems;
 };
 
 const extractProjectJson = (project) =>
@@ -207,6 +245,24 @@ const extractProjectJson = (project) =>
 
 const getProjectDocumentId = (project) =>
   project?.projectId || project?._id || project?.id || null;
+
+const getProjectDisplayTitle = (project) => {
+  const title = String(project?.title || "").trim();
+  return title || "Untitled Project";
+};
+
+const formatProjectSavedDate = (project) => {
+  const rawDate = project?.lastSavedAt || project?.updatedAt || project?.createdAt;
+  if (!rawDate) return "";
+
+  const date = new Date(rawDate);
+  if (Number.isNaN(date.getTime())) return "";
+
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+};
 
 const buildFrameItemsFromNames = (rawNames = []) => {
   const counts = new Map();
@@ -223,6 +279,66 @@ const buildFrameItemsFromNames = (rawNames = []) => {
     count,
     label: count > 1 ? `${name} x${count}` : name,
   }));
+};
+
+const buildRenderPreviewStateFromViewer2D = (plannerState) => {
+  if (!plannerState?.get) return null;
+
+  const viewer2D = plannerState.get("viewer2D");
+  const scene = plannerState.get("scene");
+  const viewerValue =
+    viewer2D && typeof viewer2D.toJS === "function"
+      ? viewer2D.toJS()
+      : viewer2D || {};
+  const sceneHeight = Number(
+    scene?.get?.("height") ||
+      scene?.height ||
+      viewerValue.SVGHeight ||
+      0,
+  );
+  const scale = Number(viewerValue.a || viewerValue.d || 1);
+  const viewerWidth = Number(viewerValue.viewerWidth || 0);
+  const viewerHeight = Number(viewerValue.viewerHeight || 0);
+  const translateX = Number(viewerValue.e || 0);
+  const translateY = Number(viewerValue.f || 0);
+
+  if (
+    !Number.isFinite(scale) ||
+    Math.abs(scale) < 1e-6 ||
+    !Number.isFinite(viewerWidth) ||
+    !Number.isFinite(viewerHeight) ||
+    !Number.isFinite(sceneHeight)
+  ) {
+    return null;
+  }
+
+  const svgCenterX = (viewerWidth / 2 - translateX) / scale;
+  const svgCenterY = (viewerHeight / 2 - translateY) / scale;
+  const planCenterY = sceneHeight - svgCenterY;
+
+  if (!Number.isFinite(svgCenterX) || !Number.isFinite(planCenterY)) {
+    return null;
+  }
+
+  const eyeY = convertMmToViewerUnits(1700);
+  return {
+    position: {
+      x: svgCenterX,
+      y: eyeY,
+      z: -planCenterY,
+    },
+    target: {
+      x: svgCenterX,
+      y: eyeY,
+      z: -planCenterY - 220,
+    },
+    source: "first-person",
+  };
+};
+
+const logCaptureDetection = (stage, details = {}) => {
+  if (typeof console === "undefined" || !console.log) return;
+  console.log("[RenderCapture:item-detection]", stage, details);
 };
 
 const getSelectedLayerWallHeightMm = (
@@ -403,10 +519,18 @@ const MainDesignWorkspaceInner = ({
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [hasResolvedAuth, setHasResolvedAuth] = useState(false);
   const [currentProjectId, setCurrentProjectId] = useState(null);
+  const [currentProjectTitle, setCurrentProjectTitle] = useState("");
   const [isProjectLoading, setIsProjectLoading] = useState(false);
   const [projectLoadError, setProjectLoadError] = useState("");
+  const [projectPickerOpen, setProjectPickerOpen] = useState(false);
+  const [projectPickerProjects, setProjectPickerProjects] = useState([]);
+  const [projectPickerLoading, setProjectPickerLoading] = useState(false);
+  const [projectPickerError, setProjectPickerError] = useState("");
   const [saveStatus, setSaveStatus] = useState("idle");
   const [saveErrorMessage, setSaveErrorMessage] = useState("");
+  const [saveNameDialogOpen, setSaveNameDialogOpen] = useState(false);
+  const [saveProjectTitleDraft, setSaveProjectTitleDraft] = useState("");
+  const [saveNameError, setSaveNameError] = useState("");
   const [renderSubMode, setRenderSubMode] = useState("walkthrough");
   const [renderControlType, setRenderControlType] = useState("drag-pan");
   const [cameraHeightMm, setCameraHeightMm] = useState(1700);
@@ -423,6 +547,7 @@ const MainDesignWorkspaceInner = ({
   const [newestCaptureId, setNewestCaptureId] = useState(null);
   const [renderErrorMessage, setRenderErrorMessage] = useState("");
   const [renderSuccessMessage, setRenderSuccessMessage] = useState("");
+  const [renderPromptDialog, setRenderPromptDialog] = useState(null);
   const [cloudModelsByCategory, setCloudModelsByCategory] = useState({});
   const [cloudModelCategoryTree, setCloudModelCategoryTree] = useState([]);
   const [cloudModelPaginationByCategory, setCloudModelPaginationByCategory] =
@@ -458,13 +583,18 @@ const MainDesignWorkspaceInner = ({
   const latestProjectHashRef = useRef("");
   const initialProjectHashRef = useRef("");
   const lastSavedProjectHashRef = useRef("");
+  const lastSavedProjectTitleRef = useRef("");
   const saveRequestInFlightRef = useRef(false);
   const currentProjectIdRef = useRef(null);
+  const currentProjectTitleRef = useRef("");
+  const hasUserAdjustedRenderCameraHeightRef = useRef(false);
+  const hasUserAdjustedRenderCameraVerticalRotationRef = useRef(false);
   const isAuthenticatedRef = useRef(false);
   const cloudModelCategoryRequestSeqRef = useRef(new Map());
   const cloudModelCategoryInFlightRef = useRef(new Set());
   const plannerTexturesRequestSeqRef = useRef(0);
   const activeTabRef = useRef(null);
+  const hasOpenedOrbit3DRef = useRef(false);
 
   const plannerState = state ? state.get("react-planner") : null;
   const isRenderTabActive = activeTab === "render";
@@ -472,6 +602,10 @@ const MainDesignWorkspaceInner = ({
   useEffect(() => {
     currentProjectIdRef.current = currentProjectId;
   }, [currentProjectId]);
+
+  useEffect(() => {
+    currentProjectTitleRef.current = currentProjectTitle;
+  }, [currentProjectTitle]);
 
   useEffect(() => {
     isAuthenticatedRef.current = isAuthenticated;
@@ -492,7 +626,7 @@ const MainDesignWorkspaceInner = ({
     if (!initialProjectHashRef.current) {
       initialProjectHashRef.current = projectHash;
     }
-  }, [plannerState]);
+  }, []);
 
   const previewCapture = useMemo(() =>
       capturedImages.find((capture) => capture.id === previewCaptureId) || null,
@@ -557,6 +691,20 @@ const MainDesignWorkspaceInner = ({
     () => getSelectedLayerWallHeightMm(plannerState),
     [plannerState],
   );
+
+  const seedRenderCameraFromCurrent2DView = useCallback(() => {
+    const previewState = buildRenderPreviewStateFromViewer2D(plannerState);
+    if (!previewState) return;
+
+    const viewer = typeof window !== "undefined" ? window.__viewer3D : null;
+    if (viewer && typeof viewer.setRenderPreviewState === "function") {
+      viewer.setRenderPreviewState(previewState);
+    }
+
+    if (typeof window !== "undefined") {
+      window[SHARED_CAMERA_TRANSITION_STATE_KEY] = previewState;
+    }
+  }, [plannerState]);
 
   const handleExitRenderView = useCallback(() => {
     setActiveTab(null);
@@ -1049,7 +1197,70 @@ const MainDesignWorkspaceInner = ({
   }, [plannerScene, rehydrateCloudModelsForScene]);
 
   useEffect(() => {
+    if (!plannerScene) return;
+
+    rehydratePlannerTexturesForScene(plannerScene).catch(() => {});
+  }, [plannerScene, rehydratePlannerTexturesForScene]);
+
+  const loadProjectDocument = useCallback(
+    async (project, { fallbackProjectId = null, navigateToProject = false } = {}) => {
+      if (!projectActions) return null;
+
+      const projectJson = extractProjectJson(project);
+      if (!projectJson) {
+        throw new Error("Project data is missing.");
+      }
+
+      await Promise.all([
+        rehydrateCloudModelsForScene(projectJson, { force: true }).catch(() => {}),
+        rehydratePlannerTexturesForScene(projectJson).catch(() => {}),
+      ]);
+
+      projectActions.loadProject(projectJson);
+
+      const resolvedProjectId =
+        getProjectDocumentId(project) || fallbackProjectId || null;
+      if (resolvedProjectId) {
+        setCurrentProjectId(resolvedProjectId);
+        currentProjectIdRef.current = resolvedProjectId;
+        if (navigateToProject && resolvedProjectId !== routeProjectId) {
+          navigate(`/planner/${resolvedProjectId}`, { replace: true });
+        }
+      }
+
+      const resolvedProjectTitle = getProjectDisplayTitle(project);
+      setCurrentProjectTitle(resolvedProjectTitle);
+      currentProjectTitleRef.current = resolvedProjectTitle;
+      const loadedHash = JSON.stringify(projectJson);
+      initialProjectHashRef.current = loadedHash;
+      lastSavedProjectHashRef.current = loadedHash;
+      lastSavedProjectTitleRef.current = resolvedProjectTitle;
+      latestProjectJsonRef.current = projectJson;
+      latestProjectHashRef.current = loadedHash;
+      setSaveStatus("idle");
+      setSaveErrorMessage("");
+      setSaveNameDialogOpen(false);
+      setSaveNameError("");
+      return resolvedProjectId;
+    },
+    [
+      navigate,
+      projectActions,
+      rehydrateCloudModelsForScene,
+      rehydratePlannerTexturesForScene,
+      routeProjectId,
+    ],
+  );
+
+  useEffect(() => {
     if (!hasResolvedAuth || !routeProjectId || !projectActions) return undefined;
+
+    if (
+      routeProjectId === currentProjectIdRef.current &&
+      latestProjectJsonRef.current
+    ) {
+      return undefined;
+    }
 
     let cancelled = false;
 
@@ -1066,28 +1277,9 @@ const MainDesignWorkspaceInner = ({
         const project = await getProjectById(routeProjectId);
         if (cancelled) return;
 
-        const projectJson = extractProjectJson(project);
-        if (!projectJson) {
-          throw new Error("Project data is missing.");
-        }
-
-        await Promise.all([
-          rehydrateCloudModelsForScene(projectJson, { force: true }).catch(
-            () => {},
-          ),
-          rehydratePlannerTexturesForScene(projectJson).catch(() => {}),
-        ]);
-        if (cancelled) return;
-
-        projectActions.loadProject(projectJson);
-        const resolvedProjectId = getProjectDocumentId(project) || routeProjectId;
-        setCurrentProjectId(resolvedProjectId);
-        currentProjectIdRef.current = resolvedProjectId;
-
-        const loadedHash = JSON.stringify(projectJson);
-        lastSavedProjectHashRef.current = loadedHash;
-        latestProjectJsonRef.current = projectJson;
-        latestProjectHashRef.current = loadedHash;
+        await loadProjectDocument(project, {
+          fallbackProjectId: routeProjectId,
+        });
       } catch (error) {
         if (!cancelled) {
           setProjectLoadError(error?.message || "Failed to load project.");
@@ -1107,9 +1299,8 @@ const MainDesignWorkspaceInner = ({
   }, [
     hasResolvedAuth,
     isAuthenticated,
+    loadProjectDocument,
     projectActions,
-    rehydrateCloudModelsForScene,
-    rehydratePlannerTexturesForScene,
     routeProjectId,
   ]);
 
@@ -1171,6 +1362,7 @@ const MainDesignWorkspaceInner = ({
       reduxMode === MODE_APPLYING_TEXTURE ||
       reduxMode === "MODE_3D_MEASURE"
     ) {
+      hasOpenedOrbit3DRef.current = true;
       setWorkspaceMode("3d");
     } else if (reduxMode === MODE_3D_FIRST_PERSON) {
       setWorkspaceMode("3d-firstperson");
@@ -1201,6 +1393,9 @@ const MainDesignWorkspaceInner = ({
         return;
       }
 
+      if (!hasOpenedOrbit3DRef.current) {
+        seedRenderCameraFromCurrent2DView();
+      }
       viewer3DActions.selectTool3DFirstPerson();
       setWorkspaceMode("3d-firstperson");
       setRenderSubMode("walkthrough");
@@ -1339,17 +1534,22 @@ const MainDesignWorkspaceInner = ({
           );
         }
 
-        if (becameActive || syncState.cameraHeightMm !== cameraHeightMm) {
+        if (
+          hasUserAdjustedRenderCameraHeightRef.current &&
+          (becameActive || syncState.cameraHeightMm !== cameraHeightMm)
+        ) {
           viewer.setRenderCameraHeight?.(
             convertMmToViewerUnits(cameraHeightMm),
           );
         }
 
         if (
-          becameActive ||
+          hasUserAdjustedRenderCameraVerticalRotationRef.current &&
+          (becameActive ||
           Math.abs(
             (syncState.cameraVerticalRotation ?? 0) - cameraVerticalRotation,
           ) > 0.0001
+          )
         ) {
           viewer.setRenderCameraVerticalRotation?.(cameraVerticalRotation);
         }
@@ -1415,12 +1615,14 @@ const MainDesignWorkspaceInner = ({
   }, [maxCameraHeightMm]);
 
   const handleCameraHeightChange = (value) => {
+    hasUserAdjustedRenderCameraHeightRef.current = true;
     setCameraHeightMm(
       clampNumber(value, RENDER_CAMERA_HEIGHT_MM_MIN, maxCameraHeightMm),
     );
   };
 
   const handleCameraVerticalRotationChange = (value) => {
+    hasUserAdjustedRenderCameraVerticalRotationRef.current = true;
     const nextValue = clampNumber(
       value,
       RENDER_VERTICAL_ROTATION_MIN,
@@ -1435,156 +1637,20 @@ const MainDesignWorkspaceInner = ({
         ? names.map((name) => String(name || "").trim()).filter(Boolean)
         : [];
 
-    const readValue = (source, key) => {
-      if (!source) return undefined;
-      if (typeof source.get === "function") {
-        return source.get(key);
-      }
-      return source[key];
-    };
-
-    const getItemName = (item) => {
-      const directName =
-        readValue(item, "name") ||
-        readValue(item, "label") ||
-        readValue(item, "title");
-
-      if (directName) {
-        return String(directName).trim();
-      }
-
-      const rawType = readValue(item, "type") || readValue(item, "prototype");
-      if (!rawType) {
-        return "";
-      }
-
-      const normalizedType = String(rawType).split("/").pop();
-      return String(normalizedType || rawType).trim();
-    };
-
-    const collectItemNames = (itemsCollection, shouldInclude) => {
-      if (!itemsCollection) {
-        return [];
-      }
-
-      const names = [];
-
-      if (typeof itemsCollection.forEach === "function") {
-        itemsCollection.forEach((item, itemId) => {
-          if (typeof shouldInclude === "function" && !shouldInclude(item, itemId)) {
-            return;
-          }
-
-          const itemName = getItemName(item);
-          if (itemName) {
-            names.push(itemName);
-          }
-        });
-
-        return names;
-      }
-
-      if (Array.isArray(itemsCollection)) {
-        itemsCollection.forEach((item, itemIndex) => {
-          if (typeof shouldInclude === "function" && !shouldInclude(item, itemIndex)) {
-            return;
-          }
-
-          const itemName = getItemName(item);
-          if (itemName) {
-            names.push(itemName);
-          }
-        });
-
-        return names;
-      }
-
-      if (typeof itemsCollection === "object") {
-        Object.entries(itemsCollection).forEach(([itemId, item]) => {
-          if (typeof shouldInclude === "function" && !shouldInclude(item, itemId)) {
-            return;
-          }
-
-          const itemName = getItemName(item);
-          if (itemName) {
-            names.push(itemName);
-          }
-        });
-      }
-
-      return names;
-    };
-
-    const getPlannerStateItemNames = () => {
-      const scene = plannerState?.get?.("scene");
-      if (!scene?.get) {
-        return [];
-      }
-
-      const selectedLayerId = scene.get("selectedLayer");
-      const selectedLayer = selectedLayerId
-        ? scene.getIn(["layers", selectedLayerId])
-        : null;
-
-      if (selectedLayer) {
-        return normalizeItemNames(collectItemNames(readValue(selectedLayer, "items")));
-      }
-
-      const layers = scene.get("layers");
-      if (!layers || typeof layers.forEach !== "function") {
-        return [];
-      }
-
-      const allNames = [];
-      layers.forEach((layer) => {
-        allNames.push(...collectItemNames(readValue(layer, "items")));
-      });
-
-      return normalizeItemNames(allNames);
-    };
-
-    const getSceneGraphVisibleItemNames = (viewer) => {
-      const scene = plannerState?.get?.("scene");
-      const selectedLayerId = scene?.get?.("selectedLayer");
-      if (!selectedLayerId) {
-        return [];
-      }
-
-      const selectedLayer = scene.getIn?.(["layers", selectedLayerId]);
-      const selectedLayerItems = readValue(selectedLayer, "items");
-      const sceneLayerItems = viewer?.planData?.sceneGraph?.layers?.[selectedLayerId]?.items;
-
-      if (!selectedLayerItems || !sceneLayerItems) {
-        return [];
-      }
-
-      return normalizeItemNames(
-        collectItemNames(selectedLayerItems, (_, itemId) => {
-          const mesh = sceneLayerItems?.[itemId];
-          return mesh?.visible !== false;
-        }),
-      );
-    };
-
     const getVisibleItemNames = (viewer) => {
-      if (!viewer) {
-        return getPlannerStateItemNames();
-      }
+      if (!viewer) return [];
 
       if (typeof viewer.getVisibleFrameItemNames === "function") {
-        return normalizeItemNames(viewer.getVisibleFrameItemNames());
+        const names = normalizeItemNames(viewer.getVisibleFrameItemNames());
+        logCaptureDetection("frame-scan:visible-items", {
+          count: names.length,
+          names,
+        });
+        return names;
       }
 
-      if (typeof viewer.getVisibleItemNames === "function") {
-        return normalizeItemNames(viewer.getVisibleItemNames());
-      }
-
-      const sceneGraphVisibleNames = getSceneGraphVisibleItemNames(viewer);
-      if (sceneGraphVisibleNames.length > 0) {
-        return sceneGraphVisibleNames;
-      }
-
-      return getPlannerStateItemNames();
+      logCaptureDetection("frame-scan:no-viewer-visible-item-api", {});
+      return [];
     };
 
     let capturePayload = {
@@ -1602,20 +1668,37 @@ const MainDesignWorkspaceInner = ({
       const viewer = window.__viewer3D;
       const renderer = viewer?.renderer || window.__threeRenderer;
 
+      logCaptureDetection("frame-capture:attempt", {
+        attempt: attempt + 1,
+        hasViewer: Boolean(viewer),
+        hasRenderer: Boolean(renderer),
+      });
+
       try {
         const visibleItemNames = getVisibleItemNames(viewer);
        // const selectedItemNames = normalizeItemNames(viewer.getSelectedFrameItemNames());
         const imageDataUrl = renderer?.domElement?.toDataURL?.("image/png");
+        logCaptureDetection("frame-capture:canvas-read", {
+          attempt: attempt + 1,
+          hasImage: Boolean(imageDataUrl),
+          visibleCount: visibleItemNames.length,
+        });
         capturePayload = {
           imageDataUrl,
           //selectedItemNames,
           visibleItemNames,
           captureScope: visibleItemNames.length ? "visible" : "full",
         };
+        logCaptureDetection("frame-capture:payload", capturePayload);
       } catch (captureError) {
+        logCaptureDetection("frame-capture:error", {
+          attempt: attempt + 1,
+          error: captureError?.message || String(captureError),
+        });
       }
 
       if (!capturePayload.imageDataUrl) {
+        logCaptureDetection("frame-capture:retry", { attempt: attempt + 1 });
         await new Promise((resolve) =>
           window.requestAnimationFrame(() => resolve()),
         );
@@ -1666,6 +1749,10 @@ const MainDesignWorkspaceInner = ({
     const visibleFrameItems = buildFrameItemsFromNames(
       capturePayload?.visibleItemNames || [],
     );
+    logCaptureDetection("frame-items:built", {
+      rawNames: capturePayload?.visibleItemNames || [],
+      builtItems: visibleFrameItems,
+    });
     // const selectedFrameItems = buildFrameItemsFromNames(
     //   capturePayload?.selectedItemNames || [],
     // );
@@ -1679,12 +1766,19 @@ const MainDesignWorkspaceInner = ({
       frameSummary: plannerFrameSummary,
     });
 
+    logCaptureDetection("capture:summary", {
+      plannerFrameSummary,
+      captureFrameSummary,
+      selectedRoomType,
+      captureScope: capturePayload?.captureScope || "full",
+    });
+
     setCapturedImages((currentCaptures) => [
       {
         id: captureId,
         status: CAPTURE_STATUS_CAPTURED,
         imageDataUrl: captureSource,
-        // sourceImageDataUrl: captureSource,
+        sourceImageDataUrl: captureSource,
         thumbnailUrl,
         detectedItems: visibleFrameItems,
         frameSummary: captureFrameSummary,
@@ -1718,34 +1812,35 @@ const MainDesignWorkspaceInner = ({
     setRenderSuccessMessage("");
   }, []);
 
-  const handleRender = useCallback(async () => {
-    const captureToRender = previewCapture || selectedCapture;
+  const executeRenderCapture = useCallback(async ({
+    captureToRender,
+    roomType,
+    inputPrompt,
+  }) => {
     if (!captureToRender) return;
-    if (
-      captureToRender.status !== CAPTURE_STATUS_CAPTURED &&
-      captureToRender.status !== CAPTURE_STATUS_FAILED
-    ) {
+
+    const captureId = captureToRender.id;
+    const finalRoomType = String(roomType || "").trim();
+    const finalInputPrompt =
+      String(inputPrompt || "").trim() ||
+      buildEditableRenderPrompt({
+        roomType: finalRoomType,
+        frameSummary: captureToRender.frameSummary,
+        detectedItems: captureToRender.detectedItems,
+      });
+
+    if (!finalRoomType) {
+      setRenderPromptDialog({
+        captureId,
+        roomType: "",
+        prompt: finalInputPrompt,
+        error: t("Choose the room type"),
+      });
       return;
     }
 
-    const captureId = captureToRender.id;
-    const detectedItemSummary = Array.isArray(captureToRender.detectedItems)
-      ? captureToRender.detectedItems
-          .map((item) => {
-            if (!item) return "";
-            if (typeof item === "string") return item;
-            return item.label || item.name || "";
-          })
-          .filter(Boolean)
-          .join(", ")
-      : "";
-    const inputPrompt =
-      captureToRender.frameSummary ||
-      buildCaptureFrameSummary({
-        roomType: captureToRender.roomType,
-        frameSummary: detectedItemSummary,
-      });
-    const sourceImage = captureToRender.imageDataUrl;
+    const sourceImage =
+      captureToRender.sourceImageDataUrl || captureToRender.imageDataUrl;
     // const renderQuality =
     //   captureToRender.renderQuality || selectedRenderQuality;
 
@@ -1764,29 +1859,49 @@ const MainDesignWorkspaceInner = ({
     try {
       const response = await submitRenderCapture({
         imageDataUrl: sourceImage,
-        inputPrompt,
+        inputPrompt: finalInputPrompt,
         // quality: renderQuality,
+      });
+
+      logCaptureDetection("render-request:response", {
+        hasResponse: Boolean(response),
+        responseKeys: response ? Object.keys(response) : [],
       });
 
       const resolvedImageUrl = resolveRenderCaptureImageUrl(
         response?.result?.renderedImageUrl ||
-          response?.renderedImageUrl ||
-          sourceImage,
+          response?.enhancedImageUrl ||
+          response?.generatedImageUrl ||
+          response?.renderedImageUrl,
       );
+      if (!resolvedImageUrl) {
+        throw new Error(t("Render completed, but no image URL was returned."));
+      }
+
       const backendFrameSummary =
-        extractBackendFrameSummary(response) || inputPrompt;
+        extractBackendFrameSummary(response) || finalInputPrompt;
       const backendDetectedItems = extractBackendDetectedItems(response);
+
+      logCaptureDetection("render-request:parsed-items", {
+        backendFrameSummary,
+        backendDetectedItems,
+        backendDetectedCount: backendDetectedItems.length,
+      });
 
       
 
       updateCaptureById(captureId, (capture) => ({
         status: CAPTURE_STATUS_READY,
         imageDataUrl: resolvedImageUrl || capture.imageDataUrl,
+        sourceImageDataUrl: capture.sourceImageDataUrl || sourceImage,
         thumbnailUrl: capture.thumbnailUrl || resolvedImageUrl,
         completedAt: Date.now(),
         errorMessage: "",
         backendFrameSummary,
         frameSummary: backendFrameSummary || capture.frameSummary,
+        roomType: finalRoomType || capture.roomType,
+        matchedProducts: response?.matchedProducts || [],
+        renderResponse: response,
         detectedItems: backendDetectedItems.length
           ? backendDetectedItems
           : capture.detectedItems,
@@ -1807,12 +1922,107 @@ const MainDesignWorkspaceInner = ({
       setRenderErrorMessage(captureErrorMessage);
     }
   }, [
-    previewCapture,
-    selectedCapture,
-    // selectedRenderQuality,
     t,
     updateCaptureById,
   ]);
+
+  const handleRender = useCallback(async () => {
+    const captureToRender = previewCapture || selectedCapture;
+    if (!captureToRender) return;
+    if (
+      captureToRender.status !== CAPTURE_STATUS_CAPTURED &&
+      captureToRender.status !== CAPTURE_STATUS_FAILED
+    ) {
+      return;
+    }
+
+    const roomType = String(captureToRender.roomType || selectedRoomType || "").trim();
+    const inputPrompt = buildEditableRenderPrompt({
+      roomType,
+      frameSummary: captureToRender.frameSummary,
+      detectedItems: captureToRender.detectedItems,
+    });
+
+    if (!roomType) {
+      setRenderPromptDialog({
+        captureId: captureToRender.id,
+        roomType: "",
+        prompt: inputPrompt,
+        error: "",
+      });
+      setRenderErrorMessage("");
+      setRenderSuccessMessage("");
+      return;
+    }
+
+    await executeRenderCapture({
+      captureToRender,
+      roomType,
+      inputPrompt,
+    });
+  }, [
+    executeRenderCapture,
+    previewCapture,
+    selectedCapture,
+    selectedRoomType,
+  ]);
+
+  const handleRenderPromptDialogSubmit = useCallback(
+    async (event) => {
+      event.preventDefault();
+
+      const captureToRender = capturedImages.find(
+        (capture) => capture.id === renderPromptDialog?.captureId,
+      );
+      const roomType = String(renderPromptDialog?.roomType || "").trim();
+      const inputPrompt = String(renderPromptDialog?.prompt || "").trim();
+
+      if (!captureToRender) {
+        setRenderPromptDialog(null);
+        setRenderErrorMessage(t("Capture not found. Please capture again."));
+        return;
+      }
+
+      if (!roomType) {
+        setRenderPromptDialog((currentDialog) => ({
+          ...currentDialog,
+          error: t("Choose the room type"),
+        }));
+        return;
+      }
+
+      if (!inputPrompt) {
+        setRenderPromptDialog((currentDialog) => ({
+          ...currentDialog,
+          error: t("Please enter a prompt."),
+        }));
+        return;
+      }
+
+      setSelectedRoomType(roomType);
+      updateCaptureById(captureToRender.id, {
+        roomType,
+        frameSummary: inputPrompt,
+      });
+      setRenderPromptDialog(null);
+      await executeRenderCapture({
+        captureToRender: {
+          ...captureToRender,
+          roomType,
+          frameSummary: inputPrompt,
+        },
+        roomType,
+        inputPrompt,
+      });
+    },
+    [
+      capturedImages,
+      executeRenderCapture,
+      renderPromptDialog,
+      t,
+      updateCaptureById,
+    ],
+  );
 
   const handleSelectCapture = useCallback(
     (captureId) => {
@@ -1861,7 +2071,7 @@ const MainDesignWorkspaceInner = ({
   };
 
   const persistLatestProject = useCallback(
-    async ({ silent = false, coverImageUrl, thumbnailUrl } = {}) => {
+    async ({ silent = false, title, coverImageUrl, thumbnailUrl } = {}) => {
       const projectJson = latestProjectJsonRef.current;
       const projectHash = latestProjectHashRef.current;
       if (!projectJson || !projectHash) return null;
@@ -1874,6 +2084,10 @@ const MainDesignWorkspaceInner = ({
         return null;
       }
 
+      if (silent && !currentProjectIdRef.current) {
+        return null;
+      }
+
       if (
         silent &&
         !currentProjectIdRef.current &&
@@ -1882,9 +2096,14 @@ const MainDesignWorkspaceInner = ({
         return null;
       }
 
+      const resolvedTitle =
+        String(title || currentProjectTitleRef.current || "").trim() ||
+        "Planner Project";
+
       if (
         currentProjectIdRef.current &&
-        projectHash === lastSavedProjectHashRef.current
+        projectHash === lastSavedProjectHashRef.current &&
+        resolvedTitle === lastSavedProjectTitleRef.current
       ) {
         if (!silent) {
           setSaveStatus("saved");
@@ -1907,7 +2126,7 @@ const MainDesignWorkspaceInner = ({
         const savedProject = await savePlannerProject({
           projectId: currentProjectIdRef.current,
           projectJson,
-          title: "Planner Project",
+          title: resolvedTitle,
           coverImageUrl,
           thumbnailUrl,
         });
@@ -1921,7 +2140,10 @@ const MainDesignWorkspaceInner = ({
           }
         }
 
+        currentProjectTitleRef.current = resolvedTitle;
+        setCurrentProjectTitle(resolvedTitle);
         lastSavedProjectHashRef.current = projectHash;
+        lastSavedProjectTitleRef.current = resolvedTitle;
         if (!silent) {
           setSaveStatus("saved");
         }
@@ -1949,7 +2171,7 @@ const MainDesignWorkspaceInner = ({
     return () => window.clearInterval(intervalId);
   }, [hasResolvedAuth, isAuthenticated, persistLatestProject]);
 
-  const handleSave = async () => {
+  const saveCurrentProject = async (projectTitle) => {
     if (!projectActions || !plannerState) return;
 
     try {
@@ -1986,6 +2208,7 @@ const MainDesignWorkspaceInner = ({
 
       await persistLatestProject({
         silent: false,
+        title: projectTitle,
         coverImageUrl: coverUrl,
         thumbnailUrl,
       });
@@ -1995,42 +2218,80 @@ const MainDesignWorkspaceInner = ({
     }
   };
 
+  const handleSave = async () => {
+    if (!projectActions || !plannerState) return;
+
+    setSaveProjectTitleDraft(currentProjectTitleRef.current.trim());
+    setSaveNameError("");
+    setSaveNameDialogOpen(true);
+  };
+
+  const handleSaveNameSubmit = async (event) => {
+    event.preventDefault();
+    const projectTitle = saveProjectTitleDraft.trim();
+
+    if (!projectTitle) {
+      setSaveNameError("Please enter a project name.");
+      return;
+    }
+
+    setSaveNameDialogOpen(false);
+    setSaveNameError("");
+    setCurrentProjectTitle(projectTitle);
+    currentProjectTitleRef.current = projectTitle;
+    await saveCurrentProject(projectTitle);
+  };
+
   const handleLoad = async () => {
     if (!projectActions) return;
 
-    if (!currentProjectId) {
-      navigate("/dashboard");
+    if (!isAuthenticatedRef.current) {
+      setProjectLoadError("Please sign in to load your projects.");
+      return;
+    }
+
+    setProjectPickerOpen(true);
+    setProjectPickerLoading(true);
+    setProjectPickerError("");
+    setProjectLoadError("");
+
+    try {
+      const projects = await getProjects();
+      setProjectPickerProjects(projects);
+      if (!projects.length) {
+        setProjectPickerError("No saved projects found for this account.");
+      }
+    } catch (error) {
+      const message = error?.message || "Failed to fetch your projects.";
+      setProjectPickerError(message);
+      setProjectLoadError(message);
+    } finally {
+      setProjectPickerLoading(false);
+    }
+  };
+
+  const handleLoadProjectFromPicker = async (projectSummary) => {
+    const projectId = getProjectDocumentId(projectSummary);
+    if (!projectId) {
+      setProjectPickerError("This project is missing an ID.");
       return;
     }
 
     setIsProjectLoading(true);
+    setProjectPickerError("");
     setProjectLoadError("");
 
     try {
-      const project = await getProjectById(currentProjectId);
-      const projectJson = extractProjectJson(project);
-
-      if (!projectJson) {
-        throw new Error("Project data is missing.");
-      }
-
-      await Promise.all([
-        rehydrateCloudModelsForScene(projectJson, { force: true }).catch(() => {}),
-        rehydratePlannerTexturesForScene(projectJson).catch(() => {}),
-      ]);
-      projectActions.loadProject(projectJson);
-      const resolvedProjectId = getProjectDocumentId(project);
-      if (resolvedProjectId) {
-        setCurrentProjectId(resolvedProjectId);
-        currentProjectIdRef.current = resolvedProjectId;
-      }
-
-      const loadedHash = JSON.stringify(projectJson);
-      lastSavedProjectHashRef.current = loadedHash;
-      latestProjectJsonRef.current = projectJson;
-      latestProjectHashRef.current = loadedHash;
+      const project = await getProjectById(projectId);
+      await loadProjectDocument(project, {
+        fallbackProjectId: projectId,
+        navigateToProject: true,
+      });
+      setProjectPickerOpen(false);
     } catch (error) {
-      setProjectLoadError(error?.message || "Failed to load project.");
+      const message = error?.message || "Failed to load project.";
+      setProjectPickerError(message);
+      setProjectLoadError(message);
     } finally {
       setIsProjectLoading(false);
     }
@@ -2107,6 +2368,233 @@ const MainDesignWorkspaceInner = ({
       {projectLoadError && !isProjectLoading && (
         <div className="project-load-error" role="alert">
           {projectLoadError}
+        </div>
+      )}
+
+      {projectPickerOpen && (
+        <div className="project-picker-backdrop" role="presentation">
+          <div
+            className="project-picker-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="project-picker-title"
+          >
+            <div className="project-picker-header">
+              <div>
+                <h2 id="project-picker-title">{t("Load Project")}</h2>
+                <p>{t("Choose one of your saved projects.")}</p>
+              </div>
+              <button
+                className="project-picker-close"
+                type="button"
+                aria-label={t("Close")}
+                onClick={() => setProjectPickerOpen(false)}
+              >
+                x
+              </button>
+            </div>
+
+            {projectPickerLoading ? (
+              <div className="project-picker-empty">{t("Fetching projects...")}</div>
+            ) : projectPickerError ? (
+              <div className="project-picker-error" role="alert">
+                {projectPickerError}
+              </div>
+            ) : projectPickerProjects.length ? (
+              <div className="project-picker-list">
+                {projectPickerProjects.map((project) => {
+                  const projectId = getProjectDocumentId(project);
+                  const savedDate = formatProjectSavedDate(project);
+                  return (
+                    <button
+                      className={`project-picker-item ${
+                        projectId && projectId === currentProjectId
+                          ? "active"
+                          : ""
+                      }`}
+                      key={projectId || getProjectDisplayTitle(project)}
+                      type="button"
+                      onClick={() => handleLoadProjectFromPicker(project)}
+                    >
+                      <span className="project-picker-thumb">
+                        {project.thumbnailUrl || project.coverImageUrl ? (
+                          <img
+                            src={project.thumbnailUrl || project.coverImageUrl}
+                            alt=""
+                          />
+                        ) : (
+                          <span>{getProjectDisplayTitle(project).charAt(0)}</span>
+                        )}
+                      </span>
+                      <span className="project-picker-copy">
+                        <strong>{getProjectDisplayTitle(project)}</strong>
+                        {savedDate && <small>{savedDate}</small>}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="project-picker-empty">
+                {t("No saved projects found for this account.")}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {saveNameDialogOpen && (
+        <div className="project-picker-backdrop" role="presentation">
+          <form
+            className="project-name-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="project-name-title"
+            onSubmit={handleSaveNameSubmit}
+          >
+            <div className="project-picker-header">
+              <div>
+                <h2 id="project-name-title">
+                  {t(currentProjectId ? "Rename Project" : "Name Project")}
+                </h2>
+                <p>{t("Choose the project name to save.")}</p>
+              </div>
+              <button
+                className="project-picker-close"
+                type="button"
+                aria-label={t("Close")}
+                onClick={() => setSaveNameDialogOpen(false)}
+              >
+                x
+              </button>
+            </div>
+            <div className="project-name-body">
+              <label className="project-name-label" htmlFor="project-name-input">
+                {t("Project Name")}
+              </label>
+              <input
+                id="project-name-input"
+                className="project-name-input"
+                value={saveProjectTitleDraft}
+                onChange={(event) => {
+                  setSaveProjectTitleDraft(event.target.value);
+                  setSaveNameError("");
+                }}
+                placeholder={t("My interior design project")}
+                autoFocus
+              />
+              {saveNameError && (
+                <p className="project-name-error" role="alert">
+                  {saveNameError}
+                </p>
+              )}
+            </div>
+            <div className="project-dialog-actions">
+              <button
+                className="project-dialog-btn secondary"
+                type="button"
+                onClick={() => setSaveNameDialogOpen(false)}
+              >
+                {t("Cancel")}
+              </button>
+              <button className="project-dialog-btn primary" type="submit">
+                {saveStatus === "saving" ? t("Saving") : t("Save")}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {renderPromptDialog && (
+        <div className="project-picker-backdrop" role="presentation">
+          <form
+            className="render-prompt-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="render-prompt-title"
+            onSubmit={handleRenderPromptDialogSubmit}
+          >
+            <div className="project-picker-header">
+              <div>
+                <h2 id="render-prompt-title">{t("Choose the room type")}</h2>
+                <p>{t("Select a room type and edit the prompt before sending it to Comfy.")}</p>
+              </div>
+              <button
+                className="project-picker-close"
+                type="button"
+                aria-label={t("Close")}
+                onClick={() => setRenderPromptDialog(null)}
+              >
+                x
+              </button>
+            </div>
+            <div className="render-prompt-body">
+              <div className="render-prompt-room-grid">
+                {ROOM_TYPE_OPTIONS.map((option) => {
+                  const isSelected = renderPromptDialog.roomType === option.id;
+                  return (
+                    <button
+                      key={option.id}
+                      className={`render-prompt-room-option ${isSelected ? "selected" : ""}`}
+                      type="button"
+                      onClick={() =>
+                        setRenderPromptDialog((currentDialog) => ({
+                          ...currentDialog,
+                          roomType: option.id,
+                          error: "",
+                          prompt: (() => {
+                            const promptWithoutRoom = String(
+                              currentDialog.prompt || "",
+                            )
+                              .replace(/^Room type:\s*[^.]+\.?\s*/i, "")
+                              .trim();
+                            return promptWithoutRoom
+                              ? `Room type: ${humanizeElementName(option.id)}. ${promptWithoutRoom}`
+                              : buildEditableRenderPrompt({ roomType: option.id });
+                          })(),
+                        }))
+                      }
+                    >
+                      {t(option.label)}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <label className="project-name-label" htmlFor="render-prompt-input">
+                {t("Render Prompt")}
+              </label>
+              <textarea
+                id="render-prompt-input"
+                className="render-prompt-input"
+                value={renderPromptDialog.prompt}
+                onChange={(event) =>
+                  setRenderPromptDialog((currentDialog) => ({
+                    ...currentDialog,
+                    prompt: event.target.value,
+                    error: "",
+                  }))
+                }
+              />
+              {renderPromptDialog.error && (
+                <p className="project-name-error" role="alert">
+                  {renderPromptDialog.error}
+                </p>
+              )}
+            </div>
+            <div className="project-dialog-actions">
+              <button
+                className="project-dialog-btn secondary"
+                type="button"
+                onClick={() => setRenderPromptDialog(null)}
+              >
+                {t("Cancel")}
+              </button>
+              <button className="project-dialog-btn primary" type="submit">
+                {t("Send to Comfy")}
+              </button>
+            </div>
+          </form>
         </div>
       )}
 

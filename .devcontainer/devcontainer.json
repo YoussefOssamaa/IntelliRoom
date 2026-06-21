@@ -1,47 +1,31 @@
-
-  {
+{
 	"name": "Fullstack Dev Environment",
-	"runArgs" : [
-		"--dns=8.8.8.8" , 
+	"runArgs": [
+		"--dns=8.8.8.8",
 		"--dns=1.1.1.1"
-	], 
-	"dockerComposeFile": ["../docker-compose.yml"],
+	],
+	"dockerComposeFile": [
+		"../docker-compose.yml"
+	],
 	"service": "dev",
 	"workspaceFolder": "/workspace",
-
-	"containerEnv": {
-		"MONGO_URI": "mongodb://devuser:devpass@mongo:27017/intelliroomdb?authSource=admin"	 
-		 },
-
 	"mounts": [
-        "source=${localWorkspaceFolder}/.devcontainer/scripts,target=/usr/local/bin/scripts,type=bind,consistency=cached"
-    ],
-
+		"source=${localWorkspaceFolder}/.devcontainer/scripts,target=/usr/local/bin/scripts,type=bind,consistency=cached"
+	],
 	"postStartCommand": "sudo sed -i 's/\\r$//' /usr/local/bin/scripts/* && sudo chmod +x /usr/local/bin/scripts/*",
 	"postCreateCommand": "echo 'export PATH=\"/usr/local/bin/scripts:$PATH\"' >> ~/.bashrc && cd backend && pnpm install && cd ../frontend && pnpm install && cd .. && pnpm install",
- 
-
 	"updateContentCommand": "cd backend && pnpm install --prefer-offline --strict-peer-dependencies && cd ../frontend && pnpm install --prefer-offline --strict-peer-dependencies",
-
-
 	"customizations": {
-	  "vscode": {
-		"extensions": [
-		  "ms-azuretools.vscode-docker",
-		  "dbaeumer.vscode-eslint",
-		  "esbenp.prettier-vscode",
-		  "mhutchie.git-graph",
-		  "ms-python.python",
-		  "ms-toolsai.jupyter"
-		]
-	  }
+		"vscode": {
+			"extensions": [
+				"ms-azuretools.vscode-docker",
+				"dbaeumer.vscode-eslint",
+				"esbenp.prettier-vscode",
+				"mhutchie.git-graph",
+				"ms-python.python",
+				"ms-toolsai.jupyter"
+			]
+		}
 	},
 	"remoteUser": "node"
-  }
-  
-
-
-
-
-
-  
+}

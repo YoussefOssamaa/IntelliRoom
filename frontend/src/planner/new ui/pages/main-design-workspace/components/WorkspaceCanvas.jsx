@@ -8,6 +8,7 @@ const WorkspaceCanvas = ({ mode, onObjectSelect, plannerState, isRenderMode = fa
   const { t } = useTranslator();
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
+  const lastMeasuredSizeRef = useRef({ width: 800, height: 600 });
   const [canvasSize, setCanvasSize] = useState({ width: 800, height: 600 });
 
   // Use a ref for wheel zoom to avoid triggering re-renders.
@@ -38,22 +39,34 @@ const WorkspaceCanvas = ({ mode, onObjectSelect, plannerState, isRenderMode = fa
     if (!container) return;
 
     const updateSize = () => {
-      setCanvasSize({
-        width: container.clientWidth,
-        height: container.clientHeight
-      });
+      const width = Math.floor(container.clientWidth);
+      const height = Math.floor(container.clientHeight);
+      if (width < 20 || height < 20) return;
+
+      const previous = lastMeasuredSizeRef.current;
+      if (previous.width === width && previous.height === height) return;
+
+      const nextSize = { width, height };
+      lastMeasuredSizeRef.current = nextSize;
+      setCanvasSize(nextSize);
     };
 
-    updateSize();
+    const frameId = window.requestAnimationFrame(updateSize);
 
     if (typeof ResizeObserver !== 'undefined') {
       const observer = new ResizeObserver(updateSize);
       observer.observe(container);
-      return () => observer.disconnect();
+      return () => {
+        window.cancelAnimationFrame(frameId);
+        observer.disconnect();
+      };
     } else {
       // Fallback for environments without ResizeObserver
       window.addEventListener('resize', updateSize);
-      return () => window.removeEventListener('resize', updateSize);
+      return () => {
+        window.cancelAnimationFrame(frameId);
+        window.removeEventListener('resize', updateSize);
+      };
     }
   }, []);
 

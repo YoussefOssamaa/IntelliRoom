@@ -24,6 +24,11 @@ import healthcontroller from './controllers/healthcontroller.js'
 import adminRoutes from './routes/adminRoutes/adminIndex.js';
 import adminDashboardRoutes from './routes/adminRoutes/dashboardIndex.js';
 import subscribtionRoutes from './routes/subscribtionRoutes/subscribtionIndex.js';
+import pricingPlansRoutes from './routes/pricingPlansRoutes/pricingPlansRoutes.js';
+import planRoutes from './routes/planRoutes.js';
+/*import ecommDashboardRoutes from './routes/ecommerceRoutes/dashboardRoute.js';
+import ecommTrafficRoutes from './routes/ecommerceRoutes/trafficRoutes.js';
+import ecommReviewRoutes from './routes/ecommerceRoutes/reviewRoutes.js';*/
 
 import render3DIndex from './routes/render3DRoutes/render3DIndex.js'
 import categoryRoutes from './routes/ecommerceRoutes/categoryRoutes.js';
@@ -56,6 +61,7 @@ export const comfyUIServiceInstance = new ComfyUIService(COMFYUI_HOST);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin/dashboard', adminDashboardRoutes);
 app.use('/api/subscription', subscribtionRoutes);
+app.use('/api/plans', planRoutes);
 
 app.use('/api/ecommerce', ecommerceIndex);
 app.use('/api/design2D3D', design2D3Dndex);
@@ -73,6 +79,9 @@ app.use('/api/cart', cartRouter);
 app.use('/api/shopper', shopperRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/dashboard', dashboardIndex);
+/*app.use('/api/ecomm/admin/dashboard', ecommDashboardRoutes); 
+app.use('/api/ecomm/traffic', ecommTrafficRoutes);
+app.use('/api/ecomm/reviews', ecommReviewRoutes);*/
 app.use('/api/updateProfile', updateProfileIndex)
 app.use('/api/community', communityIndex)
 app.use('/api/generatedImage', generatedImageIndex)
@@ -84,7 +93,7 @@ app.use('/api/generatedImage', generatedImageIndex)
 app.use('/api/categories', categoryRoutes);
 app.use('/api/rooms', roomRoutes);
 app.use('/api/order', orderRoutes);
-
+app.use('/api/pricingPlans', pricingPlansRoutes);
 
 
 app.use('/health', healthcontroller)

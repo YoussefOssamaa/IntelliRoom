@@ -463,6 +463,258 @@ export default class Viewer3DFirstPerson extends React.Component {
     return true;
   }
 
+  _getItemFrameDisplayName(layerID, itemID, object) {
+    const objectName = String(object?.userData?.displayName || "").trim();
+    if (objectName) return objectName;
+
+    const item = this.props.state?.getIn?.([
+      "scene",
+      "layers",
+      layerID,
+      "items",
+      itemID,
+    ]);
+    if (!item) return "";
+
+    const read = (key) => {
+      if (typeof item.get === "function") return item.get(key);
+      return item[key];
+    };
+
+    const asset = read("asset");
+    const assetName =
+      asset && typeof asset.get === "function" ? asset.get("name") : asset?.name;
+    const itemType = String(read("type") || "").trim();
+    let catalogTitle = "";
+    if (itemType) {
+      try {
+        catalogTitle = this.context.catalog?.getElement?.(itemType)?.info?.title || "";
+      } catch (_) {
+        catalogTitle = "";
+      }
+    }
+
+    return String(
+      read("displayName") ||
+        assetName ||
+        read("name") ||
+        catalogTitle ||
+        itemType,
+    ).trim();
+  }
+
+  _logFrameDetection(step, details = {}) {
+    if (typeof window === "undefined" || window.__VIEWER3D_FRAME_DEBUG__ !== true) {
+      return;
+    }
+
+    console.log("[Viewer3DFirstPerson][FrameDetection]", step, details);
+  }
+
+  _isObjectVisibleInHierarchy(object) {
+    let current = object;
+    while (current) {
+      if (current.visible === false || current.userData?.isPreview) {
+        return false;
+      }
+      current = current.parent;
+    }
+    return true;
+  }
+
+  _isDescendantOfObject(child, parent) {
+    let current = child;
+    while (current) {
+      if (current === parent) return true;
+      current = current.parent;
+    }
+    return false;
+  }
+
+  _getBoxFrameSamplePoints(box) {
+    const center = box.getCenter(new Three.Vector3());
+    return [
+      center,
+      new Three.Vector3(box.min.x, box.min.y, box.min.z),
+      new Three.Vector3(box.min.x, box.min.y, box.max.z),
+      new Three.Vector3(box.min.x, box.max.y, box.min.z),
+      new Three.Vector3(box.min.x, box.max.y, box.max.z),
+      new Three.Vector3(box.max.x, box.min.y, box.min.z),
+      new Three.Vector3(box.max.x, box.min.y, box.max.z),
+      new Three.Vector3(box.max.x, box.max.y, box.min.z),
+      new Three.Vector3(box.max.x, box.max.y, box.max.z),
+      new Three.Vector3(center.x, box.min.y, center.z),
+      new Three.Vector3(center.x, box.max.y, center.z),
+      new Three.Vector3(box.min.x, center.y, center.z),
+      new Three.Vector3(box.max.x, center.y, center.z),
+      new Three.Vector3(center.x, center.y, box.min.z),
+      new Three.Vector3(center.x, center.y, box.max.z),
+    ];
+  }
+
+  _doesProjectedBoxOverlapViewport(samplePoints) {
+    if (!this.camera || !Array.isArray(samplePoints) || samplePoints.length === 0) {
+      return false;
+    }
+
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    let hasPointInDepthRange = false;
+
+    samplePoints.forEach((point) => {
+      const projected = point.clone().project(this.camera);
+      if (
+        !Number.isFinite(projected.x) ||
+        !Number.isFinite(projected.y) ||
+        !Number.isFinite(projected.z)
+      ) {
+        return;
+      }
+
+      if (projected.z >= -1 && projected.z <= 1) {
+        hasPointInDepthRange = true;
+      }
+
+      minX = Math.min(minX, projected.x);
+      minY = Math.min(minY, projected.y);
+      maxX = Math.max(maxX, projected.x);
+      maxY = Math.max(maxY, projected.y);
+    });
+
+    if (!hasPointInDepthRange || !Number.isFinite(minX)) return false;
+
+    return maxX >= -1 && minX <= 1 && maxY >= -1 && minY <= 1;
+  }
+
+  _isItemSampleVisibleFromCamera(itemObject, samplePoint) {
+    if (!this.camera || !this.planData?.plan || !samplePoint) return true;
+
+    const direction = new Three.Vector3().subVectors(
+      samplePoint,
+      this.camera.getWorldPosition(new Three.Vector3()),
+    );
+    const targetDistance = direction.length();
+    if (!Number.isFinite(targetDistance) || targetDistance <= 0.0001) {
+      return true;
+    }
+
+    direction.normalize();
+    const raycaster = new Three.Raycaster();
+    raycaster.set(this.camera.getWorldPosition(new Three.Vector3()), direction);
+    raycaster.far = targetDistance + 1;
+
+    const intersections = raycaster
+      .intersectObjects(this.planData.plan.children, true)
+      .filter((hit) => {
+        const hitObject = hit.object;
+        return (
+          hitObject &&
+          this._isObjectVisibleInHierarchy(hitObject) &&
+          !hitObject.userData?.isPreview &&
+          hitObject.name !== "snapIndicator"
+        );
+      });
+
+    if (intersections.length === 0) return true;
+
+    const firstHit = intersections[0];
+    if (this._isDescendantOfObject(firstHit.object, itemObject)) return true;
+
+    return firstHit.distance >= targetDistance - 2;
+  }
+
+  _isItemObjectInCurrentFrame(itemObject, frustum) {
+    if (!itemObject || !this._isObjectVisibleInHierarchy(itemObject)) {
+      return false;
+    }
+
+    itemObject.updateMatrixWorld(true);
+    const box = new Three.Box3().setFromObject(itemObject);
+    if (
+      !Number.isFinite(box.min.x) ||
+      !Number.isFinite(box.min.y) ||
+      !Number.isFinite(box.min.z)
+    ) {
+      return false;
+    }
+
+    if (!frustum.intersectsBox(box)) {
+      return false;
+    }
+
+    const samplePoints = this._getBoxFrameSamplePoints(box);
+    if (!this._doesProjectedBoxOverlapViewport(samplePoints)) {
+      return false;
+    }
+
+    const visibleSamplePoints = samplePoints.filter((point) =>
+      frustum.containsPoint(point),
+    );
+    if (visibleSamplePoints.length === 0) {
+      return true;
+    }
+
+    return visibleSamplePoints.some((point) =>
+      this._isItemSampleVisibleFromCamera(itemObject, point),
+    );
+  }
+
+  getVisibleFrameItemNames() {
+    if (!this.camera || !this.planData?.sceneGraph?.layers) {
+      this._logFrameDetection("frame-scan:missing-camera-or-layers", {
+        hasCamera: !!this.camera,
+        hasSceneGraph: !!this.planData?.sceneGraph,
+        hasLayers: !!this.planData?.sceneGraph?.layers,
+      });
+      return [];
+    }
+
+    this.camera.updateMatrixWorld(true);
+    this.camera.updateProjectionMatrix();
+
+    const projectionScreenMatrix = new Three.Matrix4().multiplyMatrices(
+      this.camera.projectionMatrix,
+      this.camera.matrixWorldInverse,
+    );
+    const frustum = new Three.Frustum().setFromProjectionMatrix(
+      projectionScreenMatrix,
+    );
+    const visibleNames = [];
+
+    Object.entries(this.planData.sceneGraph.layers).forEach(
+      ([layerID, layerGraph]) => {
+        if (!layerGraph?.items) return;
+
+        Object.entries(layerGraph.items).forEach(([itemID, itemObject]) => {
+          const isVisible = this._isItemObjectInCurrentFrame(itemObject, frustum);
+          this._logFrameDetection("frame-item:checked", {
+            layerID,
+            itemID,
+            itemName: this._getItemFrameDisplayName(layerID, itemID, itemObject),
+            visible: isVisible,
+          });
+          if (!isVisible) return;
+
+          const displayName = this._getItemFrameDisplayName(
+            layerID,
+            itemID,
+            itemObject,
+          );
+          if (displayName) visibleNames.push(displayName);
+        });
+      },
+    );
+
+    this._logFrameDetection("frame-scan:complete", {
+      visibleCount: visibleNames.length,
+      visibleNames,
+    });
+
+    return visibleNames;
+  }
+
   componentDidMount() {
     this.stopRendering = false; // Reset in case this instance was previously unmounted and remounted
 

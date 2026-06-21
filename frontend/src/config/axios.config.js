@@ -31,7 +31,7 @@ api.interceptors.response.use(
     },
     async (error) => {
         const originalRequest = error.config;
-        const refreshTokenUrl = '/auth/refresh'; // Adjust if your refresh endpoint is different
+        const refreshTokenUrl = '/auth/refreshToken'; // تأكد إن ده نفس الراوت بتاع الباك إند
 
         // We only want to handle 401 errors that are not for the refresh token endpoint itself, and not a retry.
         if (error.response?.status === 401 && originalRequest.url !== refreshTokenUrl && !originalRequest._retry) {
@@ -54,10 +54,17 @@ api.interceptors.response.use(
                 axios.post(`${import.meta.env.VITE_API_URL || ''}${refreshTokenUrl}`, {}, { withCredentials: true })
                     .then(() => {
                         processQueue(null);
-                        resolve(api(originalRequest));
+                        resolve(api(originalRequest)); // هنا بيعمل Retry للطلب الأصلي اللي كان راجع بـ 401
                     })
                     .catch((err) => {
                         processQueue(err);
+                        
+                        // 🔴 التعديل: لو محاولة الـ Refresh فشلت، بنمسح الجلسة ونرميه للوجين
+                        console.error("Session expired. Redirecting to login...");
+                        localStorage.removeItem("isLoggedIn");
+                        localStorage.removeItem("user");
+                        window.location.href = '/login'; 
+                        
                         reject(err);
                     })
                     .finally(() => { isRefreshing = false; });

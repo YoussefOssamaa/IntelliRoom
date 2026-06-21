@@ -1,16 +1,46 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
+import axios from "../../config/axios.config";
 import { useShop } from "../../context/ShopContext";
 import logoImage from "../../../public/assets/site-logo-white.png";
+import SearchInput from "../../components/common/SearchInput";
 
 const MarketHeader = () => {
+  const navigate = useNavigate();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const location = useLocation();
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [fetchedProductsArray, setFetchedProductsArray] = useState([]);
+
+  const fetchProductsFromBackend = async (query) => {
+    setSearchQuery(query); // Update the input text
+
+    if (!query.trim()) {
+      setFetchedProductsArray([]); 
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Assuming your backend has a search endpoint like this:
+      const response = await axios.get(
+        `/products?search=${query}&limit=10&fields=name,slug`,
+      );
+      setFetchedProductsArray(response.data.data || []);
+    } catch (error) {
+      console.error("Search failed:", error);
+      setFetchedProductsArray([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Pulled user directly from the global brain
   const { user, cart, favorites } = useShop();
 
-  // 🚀 NEW: Calculate the true total of all items in the cart
   const totalCartItems = cart.reduce(
     (total, item) => total + (item.cartQuantity || 1),
     0,
@@ -57,7 +87,28 @@ const MarketHeader = () => {
             </nav>
           </div>
 
-          <div className="w-full flex-grow max-w-3xl lg:px-8 mt-4 lg:mt-0">
+          <div className="w-full max-w-md mx-auto">
+            <SearchInput
+              value={searchQuery}
+              onChange={(e) => fetchProductsFromBackend(e.target.value)}
+              isSearching={isLoading}
+              searchResults={fetchedProductsArray}
+              onResultClick={(product) => {
+                navigate(`ecomm/product/${product.slug}`);
+                setSearchQuery("");
+                setFetchedProductsArray([]);
+              }}
+              onSearchSubmit={(query) => {
+                navigate(`/ecomm/products/search?search=${encodeURIComponent(query)}`);
+
+                // Clear the dropdown
+                setSearchQuery("");
+                setFetchedProductsArray([]);
+              }}
+            />
+          </div>
+
+          {/* <div className="w-full flex-grow max-w-3xl lg:px-8 mt-4 lg:mt-0">
             <div className="relative w-full">
               <input
                 type="text"
@@ -78,7 +129,7 @@ const MarketHeader = () => {
                 />
               </svg>
             </div>
-          </div>
+          </div> */}
 
           <div className="flex items-center justify-end gap-5 shrink-0 mt-4 lg:mt-0">
             {/* 1. Favorites Icon */}

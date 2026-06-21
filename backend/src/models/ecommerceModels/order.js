@@ -61,4 +61,4 @@ orderSchema.pre("save", async function () {
 orderSchema.index({ status: 1, createdAt: -1 });
 orderSchema.index({ user: 1 });
 
-export default mongoose.model("Order", orderSchema);
+export default mongoose.models.Order || mongoose.model("Order", orderSchema);

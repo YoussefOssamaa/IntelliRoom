@@ -20,9 +20,8 @@ const productSchema = new mongoose.Schema({
         costPerItem: { type: Number, required: true, select: false }
     },
 
-    // 3. Categorization & Discovery (🚀 THE MAJOR UPDATES ARE HERE)
+    // 3. Categorization & Discovery 
     categorization: {
-        // Now references the Category model directly
         primary: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Category',
@@ -90,7 +89,8 @@ productSchema.pre('save', function () {
     }
 });
 
-productSchema.index({ name: 'text', description: 'text', brand: 'text' });
+
+productSchema.index({ name: 'text', brand: 'text', description: 'text' });
 
 const Product = mongoose.model('Product', productSchema);
 export default Product;

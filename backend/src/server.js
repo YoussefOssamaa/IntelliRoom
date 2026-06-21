@@ -26,6 +26,9 @@ import adminDashboardRoutes from './routes/adminRoutes/dashboardIndex.js';
 import subscribtionRoutes from './routes/subscribtionRoutes/subscribtionIndex.js';
 import pricingPlansRoutes from './routes/pricingPlansRoutes/pricingPlansRoutes.js';
 import planRoutes from './routes/planRoutes.js';
+import ecommDashboardRoutes from './routes/ecommerceRoutes/dashboardRoute.js';
+import ecommTrafficRoutes from './routes/ecommerceRoutes/trafficRoutes.js';
+import ecommReviewRoutes from './routes/ecommerceRoutes/reviewRoutes.js';
 
 import render3DIndex from './routes/render3DRoutes/render3DIndex.js'
 import categoryRoutes from './routes/ecommerceRoutes/categoryRoutes.js';
@@ -76,6 +79,9 @@ app.use('/api/cart', cartRouter);
 app.use('/api/shopper', shopperRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/dashboard', dashboardIndex);
+app.use('/api/ecomm/admin/dashboard', ecommDashboardRoutes); 
+app.use('/api/ecomm/traffic', ecommTrafficRoutes);
+app.use('/api/ecomm/reviews', ecommReviewRoutes);
 app.use('/api/updateProfile', updateProfileIndex)
 app.use('/api/community', communityIndex)
 app.use('/api/generatedImage', generatedImageIndex)

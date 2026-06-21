@@ -72,12 +72,12 @@ export function PricingPlansPage() {
         <div
           className="deco-shape"
           style={{
-            top: '-22%',
-            right: '-32%',
-            width: '600px',
-            height: '600px',
-            backgroundColor: '#D946EF',
-            opacity: '0.15'
+            top: "-22%",
+            right: "-32%",
+            width: "600px",
+            height: "600px",
+            backgroundColor: "#D946EF",
+            opacity: "0.15",
           }}
         />
         <div

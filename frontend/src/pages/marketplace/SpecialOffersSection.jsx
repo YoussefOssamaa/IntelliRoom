@@ -56,8 +56,8 @@ const SpecialOffersSection = () => {
       {isLoading ? (
         // Loading Skeletons
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {[...Array(8)].map((skeleton) => (
-            <div key={skeleton} className="w-full aspect-[4/5] bg-gray-200 animate-pulse rounded-2xl"></div>
+          {[...Array(8)].map((_, index) => (
+            <div key={index} className="w-full aspect-[4/5] bg-gray-200 animate-pulse rounded-2xl"></div>
           ))}
         </div>
       ) : saleItems.length === 0 ? (

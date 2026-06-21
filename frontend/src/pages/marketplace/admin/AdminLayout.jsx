@@ -85,12 +85,12 @@ const AdminLayout = () => {
                   Add New Product
                 </Link>
 
-                <Link
+                {/* <Link
                   to="/ecomm/admin/products/edit"
                   className={`block px-4 py-2 text-sm font-bold rounded-lg transition-all ${location.pathname.includes("/ecomm/admin/products/edit") ? "bg-green-50 text-text-accent" : "text-gray-500 hover:bg-gray-50"}`}
                 >
                   Edit Product
-                </Link>
+                </Link> */}
               </div>
             )}
           </div>
@@ -154,13 +154,12 @@ const AdminLayout = () => {
                 >
                   Create Category
                 </Link>
-                {/* 🚀 Routing to /edit without an ID will perfectly trigger our new Search Hub! */}
-                <Link
+                {/* <Link
                   to="/ecomm/admin/categories/edit"
                   className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-text-accent hover:bg-gray-50 rounded-lg transition-colors"
                 >
                   Edit Category
-                </Link>
+                </Link> */}
               </div>
             )}
           </div>

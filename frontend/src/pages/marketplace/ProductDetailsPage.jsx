@@ -139,7 +139,6 @@ const ProductDetailsPage = () => {
             Marketplace
           </Link>
           <span className="mx-2">/</span>
-          {/* 🚀 THE FIX 1: Safely extracting the slug and name with fallbacks */}
           <Link
             to={`/ecomm/category/${product.categorization?.primary?.slug || (typeof product.categorization?.primary === 'string' ? product.categorization.primary.toLowerCase().replace(/\s+/g, '-') : '')}`}
             className="hover:text-text-accent transition-colors capitalize"
@@ -302,15 +301,14 @@ const ProductDetailsPage = () => {
                   </span>
                 </div>
                 <div>
-                  <span className="block text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">
+                  {/* <span className="block text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">
                     Perfect For
                   </span>
-                  {/* 🚀 THE FIX 2: Safely map through room objects to get the name before joining */}
                   <span className="text-sm font-medium text-text-primary capitalize">
                     {product.categorization?.rooms?.length > 0
                       ? product.categorization.rooms.map(room => room.name || room).join(", ").replace(/-/g, " ")
                       : "Any Room"}
-                  </span>
+                  </span> */}
                 </div>
                 <div>
                   <span className="block text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">
@@ -349,12 +347,12 @@ const ProductDetailsPage = () => {
                   </span>
                 </div>
                 <div>
-                  <span className="block text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">
+                  {/* <span className="block text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">
                     SKU
                   </span>
                   <span className="text-sm font-medium text-text-primary">
                     {product.sku}
-                  </span>
+                  </span> */}
                 </div>
               </div>
 

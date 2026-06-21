@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import ProductCard from "./ProductCard";
 import ProductFilter from "./ProductFilter";
-import axios from "../../config/axios.config"; // Ensure this path is correct!
+import axios from "../../config/axios.config"; 
 
 const RoomPage = () => {
   const { roomName } = useParams();
@@ -87,13 +87,13 @@ const RoomPage = () => {
       {/* HERO SECTION */}
       <div className="bg-white border-b border-[#e0e0e0] pt-8 pb-12 w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex text-sm text-gray-500 mb-6">
+          {/* <nav className="flex text-sm text-gray-500 mb-6">
             <Link to="/ecomm" className="hover:text-text-accent transition-colors">Marketplace</Link>
             <span className="mx-2">/</span>
             <span className="text-gray-400 capitalize">Rooms</span>
             <span className="mx-2">/</span>
             <span className="font-medium text-text-primary">{displayTitle}</span>
-          </nav>
+          </nav> */}
           <h1 className="text-4xl md:text-5xl font-extrabold text-text-primary tracking-tight mb-4">
             The {displayTitle} Collection
           </h1>

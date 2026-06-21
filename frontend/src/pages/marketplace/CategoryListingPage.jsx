@@ -114,7 +114,7 @@ const CategoryListingPage = () => {
       {/* Main Content Wrapper */}
       <div className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumbs */}
-        <nav className="flex text-sm text-gray-500 mb-6 font-medium">
+        {/* <nav className="flex text-sm text-gray-500 mb-6 font-medium">
           <Link to="/" className="hover:text-text-accent transition-colors">
             Home
           </Link>
@@ -127,7 +127,7 @@ const CategoryListingPage = () => {
           </Link>
           <span className="mx-2">/</span>
           <span className="text-text-primary font-bold">{pageTitle}</span>
-        </nav>
+        </nav> */}
 
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Left Column: Filter Sidebar */}

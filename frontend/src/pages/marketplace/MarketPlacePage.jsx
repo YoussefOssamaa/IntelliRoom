@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "../../config/axios.config";
-import MarketHeader from "./MarketHeader";
+// import MarketHeader from "./MarketHeader";
 import Footer from "../../components/common/Footer";
 import ShopByRoom from "./ShopByRoom";
-import Header from "../dashboard/Header";
+// import Header from "../dashboard/Header";
 import ShopByCategory from "./ShopByCategory";
 import SpecialOffersSection from "./SpecialOffersSection";
 import NewAndFeatured from "./NewAndFeatured";

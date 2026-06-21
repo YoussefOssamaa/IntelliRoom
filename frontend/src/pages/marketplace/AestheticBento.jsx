@@ -6,7 +6,7 @@ const AestheticBento = () => {
   const navigate = useNavigate();
 
   const handleNavigation = (tag) => {
-    navigate(`/ecomm?tags=${tag}`);
+    navigate(`/ecomm/aesthetic/${tag}`);
   };
 
   return (

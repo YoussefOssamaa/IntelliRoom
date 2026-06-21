@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import './PricingPlansPage.css';
 import Footer from '../../components/common/Footer';
-import { useNavigate } from 'react-router-dom';
 import Navigation from '../../components/common/Navigation';
-
+import { useNavigate } from 'react-router-dom';
 import { subscribeToPlan, getPublicPlans, getMySubscription } from '../../services/subscriptionService';
 
 export function PricingPlansPage() {
   const [plans, setPlans] = useState([]);
-  const [isAnnual, setIsAnnual] = useState(false);
+  const [isAnnual, setIsAnnual] = useState(false); // رجعنا الـ State
   const [loadingPlan, setLoadingPlan] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -26,14 +25,12 @@ export function PricingPlansPage() {
       }
 
       try {
-        // Attempt to fetch current user's subscription
         const subResponse = await getMySubscription();
-        setIsLoggedIn(true); // If this succeeds, the user is logged in
+        setIsLoggedIn(true);
         if (subResponse?.data?.subscription?.planId) {
           setCurrentPlanId(subResponse.data.subscription.planId._id || subResponse.data.subscription.planId);
         }
       } catch (err) {
-        // Request fails (e.g., 401 Unauthorized), meaning user is not logged in
         setIsLoggedIn(false);
       } finally {
         setLoading(false);
@@ -50,7 +47,8 @@ export function PricingPlansPage() {
 
     setLoadingPlan(planId);
     try {
-      const billingCycle = isAnnual ? 'annual' : 'monthly';
+      // هنا بنحدد هنبعت للباك إند شهري ولا سنوي
+      const billingCycle = isAnnual ? 'yearly' : 'monthly';
       const response = await subscribeToPlan(planId, billingCycle);
       if (response.success && response.checkoutUrl) {
         window.location.href = response.checkoutUrl;
@@ -62,89 +60,72 @@ export function PricingPlansPage() {
     setLoadingPlan(null);
   };
 
-  if (loading) return <div className="flex justify-center p-10"><p>Loading plans...</p></div>;
+  if (loading) return <div className="flex h-screen w-screen items-center justify-center bg-[#f0fdf4] font-body text-[#333333]">Loading plans...</div>;
   if (error) return <div className="flex justify-center p-10"><p className="text-red-500">{error}</p></div>;
 
   return (
     <>
       <Navigation />
       <div className='main-wrapper'>
-        <div
-          className="deco-shape"
-          style={{
-            top: "-22%",
-            right: "-32%",
-            width: "600px",
-            height: "600px",
-            backgroundColor: "#D946EF",
-            opacity: "0.15",
-          }}
-        />
-        <div
-          className="deco-shape"
-          style={{
-            top: '70%',
-            left: '-25%',
-            width: '600px',
-            height: '600px',
-            borderRadius: '70px',
-            transform: 'rotate(45deg)'
-          }}
-        />
+        <div className="deco-shape" style={{ top: '-10%', right: '-5%', width: '500px', height: '500px' }} />
+        <div className="deco-shape" style={{ bottom: '10%', left: '-10%', width: '400px', height: '400px', transform: 'rotate(45deg)' }} />
+
         <div className="header-section">
           <h1 className="main-title">Choose Your Perfect Plan</h1>
           <p className="sub-title">
-            Choose the plan that suits you best. No hidden fees.
+            Unlock premium features and scale your design workflow.
           </p>
         </div>
 
+        {/* رجعنا زرار الـ Toggle وشغلناه */}
         <div className="toggle-area">
-          <span className={`label-text EGP {!isAnnual ? 'active-text' : ''}`}>Monthly</span>
+          <span className={`label-text ${!isAnnual ? 'active-text' : ''}`}>Monthly</span>
 
           <div
-            className={`toggle-switch EGP {isAnnual ? 'active' : ''}`}
+            className={`toggle-switch ${isAnnual ? 'active' : ''}`}
             onClick={() => setIsAnnual(!isAnnual)}
           >
             <div className="switch-knob"></div>
           </div>
 
-          <span className={`label-text EGP {isAnnual ? 'active-text' : ''}`}>Annual</span>
-
-          <span className={`save-badge EGP {isAnnual ? 'active-save-badge' : ''}`}>Save 17%</span>
+          <span className={`label-text ${isAnnual ? 'active-text' : ''}`}>Annual</span>
+          <span className={`save-badge ${isAnnual ? 'active-save-badge' : ''}`}>Save 17%</span>
         </div>
 
         <div className='cards-container'>
           {plans.map((plan) => {
             const isCurrentPlan = currentPlanId === plan._id;
 
+            // معادلة السعر: لو سنوي بنضرب في 12 وناخد 83% (يعني خصم 17%)
+            const displayPrice = plan.price === 0 ? 0 :
+              (isAnnual ? Math.round(plan.price * 12 * 0.83) : plan.price);
+
             return (
-              <div
-                key={plan._id}
-                className={`card EGP {isCurrentPlan ? 'border-2 border-indigo-500' : ''}`}
-              >
+              <div key={plan._id} className={`card ${isCurrentPlan ? 'current-plan' : ''}`}>
+
                 <h3 className='plan-name'>
                   {plan.name}
-                  {isCurrentPlan && (
-                    <span className="ml-2 text-xs font-bold bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full align-middle">
-                      Current
-                    </span>
-                  )}
+                  {isCurrentPlan && <span className="current-badge">Current</span>}
                 </h3>
-                <p className='description'>{plan.description || ''}</p>
+
+                <p className='description'>{plan.description || 'Access to our core design tools.'}</p>
 
                 <div className="price-tag">
-                  EGP {plan.price}
-                  <span className="period">/{isAnnual ? 'year' : 'month'}</span>
+                  <span className="price-currency">EGP</span>
+                  {displayPrice}
+                  <span className="period">/{isAnnual ? 'yr' : 'mo'}</span>
                 </div>
 
                 <hr className="card-divider" />
 
                 <ul className='features'>
                   <li>
-                    <span className="checkmark">✓</span> Render Limit: {plan.renderLimit === -1 ? 'Unlimited' : plan.renderLimit}
+                    <span className="checkmark">✓</span>
+                    Render Limit: {plan.renderLimit === -1 ? 'Unlimited' : plan.renderLimit}
                   </li>
                   <li>
-                    <span className="checkmark">✓</span> 3D Model Limit: {plan.model3DLimit === -1 ? 'Unlimited' : plan.model3DLimit}
+                    <span className="checkmark">✓</span>
+                    3D Model Limit: {plan.model3DLimit === -1 ? 'Unlimited' : plan.model3DLimit}
                   </li>
                   {plan.availableFeatures && plan.availableFeatures.map((feature, i) => (
                     <li key={i}>
@@ -157,16 +138,19 @@ export function PricingPlansPage() {
                   className="cta-button"
                   onClick={() => handleSubscribe(plan._id)}
                   disabled={loadingPlan === plan._id || isCurrentPlan}
-                  style={isCurrentPlan ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
                 >
-                  {isCurrentPlan ? 'Current Plan' : loadingPlan === plan._id ? 'Processing...' : `Choose EGP {plan.name}`}
+                  {isCurrentPlan
+                    ? 'Current Plan'
+                    : loadingPlan === plan._id
+                      ? 'Processing...'
+                      : `Choose ${plan.name}`}
                 </button>
               </div>
             );
           })}
         </div>
-        <Footer />
       </div>
+      <Footer />
     </>
   );
 }

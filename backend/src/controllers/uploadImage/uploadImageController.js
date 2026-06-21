@@ -105,7 +105,7 @@ export const postImageController = async (req, res) => {
             }
 
             const recommendedImagesArray = recommendations.map(item => item.filename);
-            //console.log("THIS IS THE RECOMMENDED IMAGE URLS", recommendedImagesArray)
+            console.log("THIS IS THE RECOMMENDED IMAGE array", recommendedImagesArray)
 
             /*
                 the array looks like this: 
@@ -131,7 +131,7 @@ export const postImageController = async (req, res) => {
             */
 
             matchedProducts = await getMatchedProductsFromDB(recommendedImagesArray);
-            //console.log("THIS IS THE MATCHED PRODUCTS", matchedProducts)
+            console.log("THIS IS THE MATCHED PRODUCTS", matchedProducts)
 
 
         } catch (error) {

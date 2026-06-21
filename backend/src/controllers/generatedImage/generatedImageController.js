@@ -51,7 +51,6 @@ export const getGeneratedImagesController = async (req, res) => {
         }
 
         const generatedImages = await GeneratedImage.find({ user: user_id });
-        console.log(generatedImages);
         res.status(200).json(generatedImages);
 
 
@@ -103,7 +102,6 @@ export const deleteGeneratedImageController = async (req, res) => {
         if (!deletedGeneratedImage) {
             return res.status(404).json({ message: "Image not found" });
         }
-        console.log(deletedGeneratedImage);
         return res.status(200).json({ message: "Image deleted successfully" });
 
 

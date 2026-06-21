@@ -25,7 +25,7 @@ import LandingPage from "./pages/landingPage/landingPage";
 import Ecomm from "./pages/marketplace/MarketPlacePage";
 import CategoryListingPage from "./pages/marketplace/CategoryListingPage";
 import CategoryPage from "./pages/marketplace/CategoryPage";
-import AestheticsPage from "./pages/marketplace/AestheticsPage";
+//import AestheticsPage from "./pages/marketplace/AestheticsPage";
 import ProductDetailsPage from "./pages/marketplace/ProductDetailsPage";
 import SpecialOffersPage from "./pages/marketplace/SpecialOffersPage";
 import AboutPage from "./pages/about/AboutPage";
@@ -38,9 +38,9 @@ import MarketHeader from "./pages/marketplace/MarketHeader";
 import FavoritesPage from "./pages/marketplace/FavoritesPage";
 import RoomPage from "./pages/marketplace/RoomPage";
 import CheckoutPage from "./pages/marketplace/CheckoutPage";
-import ProductsListPage from "./pages/marketplace/ProductsListPage";
+//import ProductsListPage from "./pages/marketplace/ProductsListPage";
 import AdminLayout from "./pages/marketplace/admin/AdminLayout";
-import AdminDashboardOverview from "./pages/marketplace/admin/AdminDashboardOverview";
+//import AdminDashboardOverview from "./pages/marketplace/admin/AdminDashboardOverview";
 import AdminProductsPage from "./pages/marketplace/admin/AdminProductsPage";
 import AdminProductGridPage from "./pages/marketplace/admin/AdminProductGridPage";
 import AdminProductCreatePage from "./pages/marketplace/admin/AdminProductCreatePage";
@@ -107,106 +107,106 @@ const AppRoutes = () => {
       <Router>
         <Routes>
           <Route path="/login" element={<LoginModal />} />
-        <Route path="/signUp" element={<SignUpModal />} />
-        <Route
-          path="/test"
-          element={
-            <ProtectedRoute>
-              <h1>Protected Route</h1>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/marketplace" element={<MarketplacePage />} />
-        <Route path="/pricingPlans" element={<PricingPlansPage />} />
-        <Route path="/payment-success" element={<PaymentSuccess />} />
-        <Route path="/payment-failed" element={<PaymentFailed />} />
-        <Route path="/pluginReview/:id" element={<PluginReviewPage />} />
-
-        <Route element={<MarketplaceLayout />}>
-          <Route path="/ecomm" element={<Ecomm />} />
-          <Route path="/ecomm/products/search" element={<ProductsListPage />} />
-          <Route path="/ecomm/product/:slug" element={<ProductDetailsPage />} />
+          <Route path="/signUp" element={<SignUpModal />} />
           <Route
-            path="/ecomm/category/:categoryId"
-            element={<CategoryPage />}
+            path="/test"
+            element={
+              <ProtectedRoute>
+                <h1>Protected Route</h1>
+              </ProtectedRoute>
+            }
           />
-          <Route path="/ecomm/aesthetic/:aestheticId" element={<AestheticsPage />} />
-          <Route path="/ecomm/offers" element={<SpecialOffersPage />} />
-          <Route path="/ecomm/cart" element={<CartPage />} />
-          <Route
-            path="/ecomm/wishlist"
-            element={<FavoritesPage user={null} />}
-          />
-          <Route path="/ecomm/room/:roomName" element={<RoomPage />} />
-          <Route path="/ecomm/checkout" element={<CheckoutPage />} />
-        </Route>
 
-        <Route path="/ecomm/admin" element={<AdminLayout />}>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/marketplace" element={<MarketplacePage />} />
+          <Route path="/pricingPlans" element={<PricingPlansPage />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/payment-failed" element={<PaymentFailed />} />
+          <Route path="/pluginReview/:id" element={<PluginReviewPage />} />
 
-          <Route index element={<AdminDashboardOverview />} />
-          <Route path="products/list" element={<AdminProductsPage />} />
-          <Route path="products/grid" element={<AdminProductGridPage />} />
-          <Route path="products/create" element={<AdminProductCreatePage />} />
-          <Route
-            path="products/edit/:slug"
-            element={<AdminProductEditPage />}
-          />
-          <Route path="categories/list" element={<AdminCategoriesPage />} />
-          <Route
-            path="categories/create"
-            element={<AdminCategoryCreatePage />}
-          />
-          <Route
-            path="categories/edit/:id?"
-            element={<AdminCategoryEditPage />}
-          />
-          <Route path="rooms" element={<AdminRoomsPage />} />
-          <Route path="rooms/create" element={<AdminRoomFormPage />} />
-          <Route path="rooms/edit/:id" element={<AdminRoomFormPage />} />
-          <Route path="orders" element={<AdminOrdersPage />} />
-          {/* <Route path="search" element={<SearchInput />} /> */}
-        </Route>
+          <Route element={<MarketplaceLayout />}>
+            <Route path="/ecomm" element={<Ecomm />} />
+            {/* <Route path="/ecomm/products/search" element={<ProductsListPage />} />  */}
+            <Route path="/ecomm/product/:slug" element={<ProductDetailsPage />} />
+            <Route
+              path="/ecomm/category/:categoryId"
+              element={<CategoryPage />}
+            />
+            {/* <Route path="/ecomm/aesthetic/:aestheticId" element={<AestheticsPage />} /> */}
+            <Route path="/ecomm/offers" element={<SpecialOffersPage />} />
+            <Route path="/ecomm/cart" element={<CartPage />} />
+            <Route
+              path="/ecomm/wishlist"
+              element={<FavoritesPage user={null} />}
+            />
+            <Route path="/ecomm/room/:roomName" element={<RoomPage />} />
+            <Route path="/ecomm/checkout" element={<CheckoutPage />} />
+          </Route>
 
-        <Route path="/upload" element={<UploadImagePage />} />
+          <Route path="/ecomm/admin" element={<AdminLayout />}>
 
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <DashboardPage />
-            </ProtectedRoute>
-          }
-        >
-          {/* The 'index' route. 
+            {/* <Route index element={<AdminDashboardOverview />} /> */}
+            <Route path="products/list" element={<AdminProductsPage />} />
+            <Route path="products/grid" element={<AdminProductGridPage />} />
+            <Route path="products/create" element={<AdminProductCreatePage />} />
+            <Route
+              path="products/edit/:slug"
+              element={<AdminProductEditPage />}
+            />
+            <Route path="categories/list" element={<AdminCategoriesPage />} />
+            <Route
+              path="categories/create"
+              element={<AdminCategoryCreatePage />}
+            />
+            <Route
+              path="categories/edit/:id?"
+              element={<AdminCategoryEditPage />}
+            />
+            <Route path="rooms" element={<AdminRoomsPage />} />
+            <Route path="rooms/create" element={<AdminRoomFormPage />} />
+            <Route path="rooms/edit/:id" element={<AdminRoomFormPage />} />
+            <Route path="orders" element={<AdminOrdersPage />} />
+            {/* <Route path="search" element={<SearchInput />} /> */}
+          </Route>
+
+          <Route path="/upload" element={<UploadImagePage />} />
+
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardPage />
+              </ProtectedRoute>
+            }
+          >
+            {/* The 'index' route. 
             This means when the URL is exactly "/dashboard", 
             the Outlet will display the DashboardPage (Overview).
           */}
-          <Route index element={<DashboardPage />} />
+            <Route index element={<DashboardPage />} />
 
-          {/* The nested 'projects' route. 
+            {/* The nested 'projects' route. 
             When the URL is "/dashboard/projects", 
             the Outlet will swap to the MyProjectsPage. 
             Notice there is no "/" in front of "projects"!
           */}
-          {/* <Route path="projects" element={<MyProjectsPage />} />
+            {/* <Route path="projects" element={<MyProjectsPage />} />
 
           {/* <Route path="settings" element={<SettingsPage />} /> */}
-          {/* <Route path="community" element={<CommunityPage />} /> */}
-        </Route>
+            {/* <Route path="community" element={<CommunityPage />} /> */}
+          </Route>
 
-        <Route
-          path="/marketplace/pluginReview/:id"
-          element={<PluginReviewPage />}
-        />
-        <Route path="/upload" element={<UploadImagePage />} />
-        <Route path="/updateProfile" element={<UpdateProfile />} />
-        <Route path="/planner" element={<PlannerPage />} />
-        <Route path="/planner/:projectId" element={<PlannerPage />} />
-        <Route path="/community" element={<Community />} />
-      </Routes>
+          <Route
+            path="/marketplace/pluginReview/:id"
+            element={<PluginReviewPage />}
+          />
+          <Route path="/upload" element={<UploadImagePage />} />
+          <Route path="/updateProfile" element={<UpdateProfile />} />
+          <Route path="/planner" element={<PlannerPage />} />
+          <Route path="/planner/:projectId" element={<PlannerPage />} />
+          <Route path="/community" element={<Community />} />
+        </Routes>
       </Router>
     </ShopProvider>
   );

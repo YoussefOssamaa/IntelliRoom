@@ -200,7 +200,7 @@ const MarketHeader = () => {
                   Log In
                 </Link>
                 <Link
-                  to="/signup"
+                  to="/signUp"
                   className="btn-primary"
                   style={{ padding: "10px 24px" }}
                 >

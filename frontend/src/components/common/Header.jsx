@@ -215,7 +215,7 @@ const Header = () => {
                 Sign In
               </button>
               <button 
-              onClick={()=> navigate("/signup")}
+              onClick={()=> navigate("/signUp")}
               className="btn-primary" style={{ padding: '10px 24px' }}>
                 Sign Up Free
               </button>

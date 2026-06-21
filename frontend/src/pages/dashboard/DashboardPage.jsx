@@ -410,7 +410,7 @@ export default function DashboardPage() {
                     <div
                       key={project._id}
                       className="project-card group"
-                      onClick={() => navigate(`/2D3DProjects/${project._id}`)}
+                     onClick={() => navigate(`/planner/${project._id}`)}
                     >
                       <div className="project-image-wrapper">
                         <img

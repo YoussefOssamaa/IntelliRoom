@@ -60,10 +60,10 @@ import PaymentFailed from './pages/payment/PaymentFailed';
 
 const MarketplaceLayout = () => {
   return (
-    <ShopProvider>
+    <>
       <MarketHeader />
       <Outlet />
-    </ShopProvider>
+    </>
   );
 };
 
@@ -99,9 +99,10 @@ const AppRoutes = () => {
   }
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={<LoginModal />} />
+    <ShopProvider>
+      <Router>
+        <Routes>
+          <Route path="/login" element={<LoginModal />} />
         <Route path="/signUp" element={<SignUpModal />} />
         <Route
           path="/test"
@@ -211,7 +212,8 @@ const AppRoutes = () => {
         <Route path="/planner/:projectId" element={<PlannerPage />} />
         <Route path="/community" element={<Community />} />
       </Routes>
-    </Router>
+      </Router>
+    </ShopProvider>
   );
 };
 

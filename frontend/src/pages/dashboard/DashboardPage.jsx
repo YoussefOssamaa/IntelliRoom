@@ -8,9 +8,6 @@ import { useAuth } from "../../utils/authContext";
 export default function DashboardPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  /*
-    const [isProjectsLoading, setIsProjectsLoading] = useState(true);
-    const [projects, setProjects] = useState([]);*/
 
   const [isGeneratedImagesLoading, setIsGeneratedImagesLoading] = useState(true);
   const [generatedImages, setGeneratedImages] = useState([]);
@@ -335,7 +332,16 @@ export default function DashboardPage() {
                     <div
                       key={project._id}
                       className="project-card group"
-                      onClick={() => navigate(`/generatedImages/${project._id}`)}
+                      onClick={() =>
+                        navigate("/upload", {
+                          state: {
+                            inputPrompt: project.inputPrompt,
+                            originalImageUrl: project.originalImageUrl,
+                            referenceImageUrl: project.referenceImageUrl,
+                            generatedImageUrl: project.generatedImageUrl,
+                          },
+                        })
+                      }
                     >
                       <div className="project-image-wrapper">
                         <img
@@ -414,7 +420,7 @@ export default function DashboardPage() {
                     <div
                       key={project._id}
                       className="project-card group"
-                     onClick={() => navigate(`/planner/${project._id}`)}
+                      onClick={() => navigate(`/planner/${project._id}`)}
                     >
                       <div className="project-image-wrapper">
                         <img

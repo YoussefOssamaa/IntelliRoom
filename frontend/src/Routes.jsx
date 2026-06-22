@@ -14,9 +14,9 @@ import UploadImagePage from "./pages/uploadImage/uploadImagePage";
 //import DashboardLayout from "./layouts/DashboardLayout";
 import DashboardPage from "./pages/dashboard/DashboardPage";
 //import MyProjectsPage from "./pages/dashboard/MyProjectsPage";
-import PlannerPage from './pages/planner/PlannerPage';
-import { UpdateProfile } from './pages/updateProfile/updateProfile';
-import { Community } from './pages/community/community';
+import PlannerPage from "./pages/planner/PlannerPage";
+import { UpdateProfile } from "./pages/updateProfile/updateProfile";
+import { Community } from "./pages/community/community";
 
 import LoginModal from "./pages/auth/login";
 import SignUpModal from "./pages/auth/signUp";
@@ -59,8 +59,9 @@ import ManageAdmins from "./pages/admin/ManageAdmins";
 import AdminLogs from "./pages/admin/AdminLogs";
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
 import AdminPlansPage from "./pages/admin/AdminPlansPage";
-import PaymentSuccess from './pages/payment/PaymentSuccess';
-import PaymentFailed from './pages/payment/PaymentFailed';
+import PaymentSuccess from "./pages/payment/PaymentSuccess";
+import PaymentFailed from "./pages/payment/PaymentFailed";
+import MyProjectsPage from "./pages/dashboard/MyProjectsPage";
 
 const MarketplaceLayout = () => {
   return (
@@ -127,13 +128,22 @@ const AppRoutes = () => {
 
           <Route element={<MarketplaceLayout />}>
             <Route path="/ecomm" element={<Ecomm />} />
-            <Route path="/ecomm/products/search" element={<ProductsListPage />} /> 
-            <Route path="/ecomm/product/:slug" element={<ProductDetailsPage />} />
+            <Route
+              path="/ecomm/products/search"
+              element={<ProductsListPage />}
+            />
+            <Route
+              path="/ecomm/product/:slug"
+              element={<ProductDetailsPage />}
+            />
             <Route
               path="/ecomm/category/:categoryId"
               element={<CategoryPage />}
             />
-            <Route path="/ecomm/aesthetic/:aestheticId" element={<AestheticsPage />} />
+            <Route
+              path="/ecomm/aesthetic/:aestheticId"
+              element={<AestheticsPage />}
+            />
             <Route path="/ecomm/offers" element={<SpecialOffersPage />} />
             <Route path="/ecomm/cart" element={<CartPage />} />
             <Route
@@ -145,11 +155,13 @@ const AppRoutes = () => {
           </Route>
 
           <Route path="/ecomm/admin" element={<AdminLayout />}>
-
             <Route index element={<AdminDashboardOverview />} />
             <Route path="products/list" element={<AdminProductsPage />} />
             <Route path="products/grid" element={<AdminProductGridPage />} />
-            <Route path="products/create" element={<AdminProductCreatePage />} />
+            <Route
+              path="products/create"
+              element={<AdminProductCreatePage />}
+            />
             <Route
               path="products/edit/:slug"
               element={<AdminProductEditPage />}
@@ -180,22 +192,23 @@ const AppRoutes = () => {
               </ProtectedRoute>
             }
           >
-            {/* The 'index' route. 
-            This means when the URL is exactly "/dashboard", 
-            the Outlet will display the DashboardPage (Overview).
-          */}
-            <Route index element={<DashboardPage />} />
+            {/* <Route index element={<DashboardPage />} /> */}
 
-            {/* The nested 'projects' route. 
-            When the URL is "/dashboard/projects", 
-            the Outlet will swap to the MyProjectsPage. 
-            Notice there is no "/" in front of "projects"!
-          */}
             {/* <Route path="projects" element={<MyProjectsPage />} />
+
 
           {/* <Route path="settings" element={<SettingsPage />} /> */}
             {/* <Route path="community" element={<CommunityPage />} /> */}
           </Route>
+
+          <Route
+            path="/projects"
+            element={
+              <ProtectedRoute>
+                <MyProjectsPage />
+              </ProtectedRoute>
+            }
+          />
 
           <Route
             path="/marketplace/pluginReview/:id"

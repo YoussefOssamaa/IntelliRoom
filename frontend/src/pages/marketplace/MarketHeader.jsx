@@ -1,13 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import axios from "../../config/axios.config";
 import { useShop } from "../../context/ShopContext";
 import logoImage from "../../../public/assets/site-logo-white.png";
 import SearchInput from "../../components/common/SearchInput";
+import { useAuth } from "@/utils/authContext";
 
 const MarketHeader = () => {
   const navigate = useNavigate();
+  const dropDownRef = useRef(null);
+
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const location = useLocation();
 
@@ -39,12 +42,13 @@ const MarketHeader = () => {
   };
 
   // Pulled user directly from the global brain
-  const { user, cart, favorites } = useShop();
-
+  const { cart, favorites } = useShop();
+  const { isLoggedIn, user, logout } = useAuth();
   const totalCartItems = cart.reduce(
     (total, item) => total + (item.cartQuantity || 1),
     0,
   );
+
 
   const getLinkClass = (path) => {
     return location.pathname === path
@@ -52,10 +56,41 @@ const MarketHeader = () => {
       : "text-sm font-medium text-text-primary hover:text-text-accent transition-colors whitespace-nowrap";
   };
 
-  const handleLogout = () => {
-    console.log("Logout clicked");
-    setShowProfileMenu(false);
-  };
+
+  const handleToggleMenu = () => {
+    setShowProfileMenu(!showProfileMenu);
+  }
+  const handleLogout = async () => {
+    try {
+      const result = await axios.post('/auth/logout');
+      logout();
+      setShowProfileMenu(false);
+      handleToggleMenu();
+      if (result?.data?.success) {
+        console.log("logged out");
+      }
+    } catch (e) {
+      console.error(e);
+      logout();
+    }
+  }
+
+
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropDownRef.current && !dropDownRef.current.contains(event.target)) {
+        setShowProfileMenu(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, []);
+
+
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white shadow-sm border-b border-[#e0e0e0]">
@@ -186,7 +221,7 @@ const MarketHeader = () => {
 
             {/* 3. User Profile  */}
             {user ? (
-              <div className="relative pl-2 border-l border-gray-200">
+              <div ref={dropDownRef} className="relative pl-2 border-l border-gray-200">
                 <button
                   className="flex items-center gap-2 focus:outline-none bg-transparent border-0 cursor-pointer"
                   onClick={() => setShowProfileMenu(!showProfileMenu)}
@@ -206,7 +241,7 @@ const MarketHeader = () => {
                   </div>
                 </button>
 
-                {showProfileMenu && (
+                {showProfileMenu && isLoggedIn && (
                   <div className="absolute right-0 mt-2 w-56 bg-white border border-[#e0e0e0] rounded-xl shadow-lg z-50 overflow-hidden">
                     <div className="px-4 py-3 border-b border-[#e0e0e0] bg-gray-50">
                       <p className="text-sm font-semibold text-[#333333]">

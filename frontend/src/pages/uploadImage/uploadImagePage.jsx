@@ -1,5 +1,6 @@
 import axios from '../../config/axios.config';
 import React, { useState, useRef, useCallback, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { BACKEND_URL } from "../../services/uploadImageService";
 import styles from "./uploadImagePage.module.css";
 import Header from "../../pages/dashboard/Header";
@@ -323,11 +324,25 @@ function ShareDropdown({ url, onClose }) {
     </div>
   );
 }
+const fetchFileFromUrl = async (url, defaultName) => {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const blob = await response.blob();
+    const filename = url.split('/').pop() || defaultName;
+    return new File([blob], filename, { type: blob.type });
+  } catch (error) {
+    console.error("Failed to fetch file from URL:", error);
+    return null;
+  }
+};
 
 /* ══════════════════════════════════════════════════════════════
    MAIN PAGE
    ══════════════════════════════════════════════════════════════ */
 function UploadImagePage() {
+  const location = useLocation();
+
   const [imageFile, setImageFile] = useState(null);
   const [referenceImageFile, setReferenceImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -345,9 +360,67 @@ function UploadImagePage() {
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [matchedProducts, setMatchedProducts] = useState([]);
 
-
   const mainRef = useRef(null);
   const referenceRef = useRef(null);
+
+  useEffect(() => {
+    if (location.state) {
+      const { inputPrompt, originalImageUrl, referenceImageUrl, generatedImageUrl } = location.state;
+
+      if (inputPrompt) {
+        setInputPrompt(inputPrompt);
+      }
+
+      const baseUrl = import.meta.env.VITE_API_URL.replace(/\/api$/, '');
+
+      if (originalImageUrl) {
+        const fullOriginalUrl = originalImageUrl.startsWith('http') ? originalImageUrl : `${baseUrl}${originalImageUrl}`;
+        setImagePreview(fullOriginalUrl);
+        setImageName(originalImageUrl.split('/').pop() || "room-image.jpg");
+
+        fetchFileFromUrl(fullOriginalUrl, "room-image.jpg").then(file => {
+          if (file) setImageFile(file);
+        });
+      } else {
+        setImageFile(null);
+        setImagePreview(null);
+        setImageName("");
+      }
+
+      if (referenceImageUrl) {
+        const fullReferenceUrl = referenceImageUrl.startsWith('http') ? referenceImageUrl : `${baseUrl}${referenceImageUrl}`;
+        setReferencePreview(fullReferenceUrl);
+        setReferenceName(referenceImageUrl.split('/').pop() || "reference-image.jpg");
+
+        fetchFileFromUrl(fullReferenceUrl, "reference-image.jpg").then(file => {
+          if (file) setReferenceImageFile(file);
+        });
+      } else {
+        setReferenceImageFile(null);
+        setReferencePreview(null);
+        setReferenceName("");
+      }
+
+      if (generatedImageUrl) {
+        const fullGeneratedUrl = generatedImageUrl.startsWith('http') ? generatedImageUrl : `${baseUrl}${generatedImageUrl}`;
+        setResultPreview(fullGeneratedUrl);
+        setIsSuccess(true);
+      } else {
+        setResultPreview(null);
+        setIsSuccess(false);
+      }
+    } else {
+      setInputPrompt("");
+      setImageFile(null);
+      setImagePreview(null);
+      setImageName("");
+      setReferenceImageFile(null);
+      setReferencePreview(null);
+      setReferenceName("");
+      setResultPreview(null);
+      setIsSuccess(false);
+    }
+  }, [location.state]);
 
   /* ── file processor ────────────────────────────────────── */
   const processFile = (file, setFile, setPreview, setName, resetResult = false) => {

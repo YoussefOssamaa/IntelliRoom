@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 import axios from "../../config/axios.config";
 import { useShop } from "../../context/ShopContext";
 import logoImage from "../../../public/assets/site-logo-white.png";
@@ -19,7 +19,7 @@ const MarketHeader = () => {
     setSearchQuery(query); // Update the input text
 
     if (!query.trim()) {
-      setFetchedProductsArray([]); 
+      setFetchedProductsArray([]);
       return;
     }
 
@@ -99,7 +99,9 @@ const MarketHeader = () => {
                 setFetchedProductsArray([]);
               }}
               onSearchSubmit={(query) => {
-                navigate(`/ecomm/products/search?search=${encodeURIComponent(query)}`);
+                navigate(
+                  `/ecomm/products/search?search=${encodeURIComponent(query)}`,
+                );
 
                 // Clear the dropdown
                 setSearchQuery("");
@@ -175,7 +177,6 @@ const MarketHeader = () => {
                   d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
                 />
               </svg>
-              {/* 🚀 Using the new totalCartItems variable! */}
               {totalCartItems > 0 && (
                 <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-blue-500 rounded-full border-2 border-white group-hover:scale-110 transition-transform">
                   {totalCartItems}
@@ -225,9 +226,12 @@ const MarketHeader = () => {
                         </Link>
                       </li>
                       <li>
-                        <button className="w-full text-left px-4 py-2 text-sm text-[#333333] hover:bg-gray-50 transition-colors">
+                        <Link
+                          to="/updateProfile"
+                          className="w-full text-left px-4 py-2 text-sm text-[#333333] hover:bg-gray-50 transition-colors"
+                        >
                           Settings
-                        </button>
+                        </Link>
                       </li>
                       <li className="border-t border-[#e0e0e0] mt-2 pt-2">
                         <button

@@ -1,5 +1,5 @@
 import Review from '../../models/ecommerceModels/ReviewModel.js';
-import Order from '../../models/ecommerceModels/Order.js';
+import Order from '../../models/ecommerceModels/order.js';
 
 export const createReview = async (req, res) => {
   try {
@@ -35,7 +35,7 @@ export const createReview = async (req, res) => {
 export const getProductReviews = async (req, res) => {
   try {
     const { productId } = req.params;
-    
+
     // Simple pagination
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;

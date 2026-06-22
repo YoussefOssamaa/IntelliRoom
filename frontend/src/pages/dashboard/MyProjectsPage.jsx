@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "../../config/axios.config";
 import ProjectCard from "./ProjectCard";
 // --- DUMMY DATA ---
-const initialProjects = [
+/*const initialProjects = [
   {
     _id: "1",
     name: "Modern Living Room Revamp",
@@ -53,16 +54,26 @@ const initialProjects = [
       "https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=600&q=80",
     isFavorite: false,
   },
-];
+];*/
+
+
+
+
+
 
 const MyProjectsPage = () => {
   const navigate = useNavigate();
 
   // --- STATE ---
-  const [projects, setProjects] = useState(initialProjects);
+  const [projects, setProjects] = useState([]);
   const [filterType, setFilterType] = useState("All");
   const [filterStatus, setFilterStatus] = useState("All");
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+  const [isGeneratedImagesLoading, setIsGeneratedImagesLoading] = useState(true);
+  const [generatedImages, setGeneratedImages] = useState([]);
+  const [isArchitectProjectLoading, setIsArchitectProjectLoading] = useState(true);
+  const [architectProjects, setArchitectProjects] = useState([]);
+
 
   // --- FILTERING LOGIC ---
   const filteredProjects = projects.filter((project) => {
@@ -73,16 +84,86 @@ const MyProjectsPage = () => {
   });
 
   // --- HANDLERS ---
-  const handleToggleFavorite = (e, targetProject) => {
+  const handleToggleFavorite = async (e, targetProject) => {
     e.stopPropagation();
-    // Optimistically update the UI for the dummy data
-    setProjects((prevProjects) =>
-      prevProjects.map((p) =>
-        p._id === targetProject._id ? { ...p, isFavorite: !p.isFavorite } : p,
-      ),
+    const newFav = !targetProject.isFavorite;
+
+    // Optimistically update UI
+    setProjects((prev) =>
+      prev.map((p) => (p._id === targetProject._id ? { ...p, isFavorite: newFav } : p))
     );
-    // When connected to backend, you would make your axios.put() call here!
+
+    const endpoint = targetProject.type === "2D"
+      ? `/generatedImage/${targetProject._id}`
+      : `/design2D3D/${targetProject._id}`;
+
+    try {
+      await axios.put(
+        endpoint,
+        { ...targetProject, isFavorite: newFav },
+        { withCredentials: true }
+      );
+    } catch (err) {
+      console.error("Error toggling favorite:", err);
+      // Revert UI on failure
+      setProjects((prev) =>
+        prev.map((p) => (p._id === targetProject._id ? { ...p, isFavorite: targetProject.isFavorite } : p))
+      );
+    }
   };
+
+
+
+
+  useEffect(() => {
+    const fetchProjectsData = async () => {
+      setIsGeneratedImagesLoading(true);
+      setIsArchitectProjectLoading(true);
+      try {
+        const [genResponse, archResponse] = await Promise.all([
+          axios.get("/generatedImage", { withCredentials: true }),
+          axios.get("/design2D3D", { withCredentials: true })
+        ]);
+
+        const genData = genResponse.data || [];
+        const archData = archResponse.data || [];
+
+        setGeneratedImages(genData);
+        setArchitectProjects(archData);
+
+        // Normalize data to fit ProjectCard schema
+        const normalizedGen = genData.map(p => ({
+          ...p,
+          type: "2D",
+          status: "Finished",
+          name: p.inputPrompt || "Custom Design",
+          thumbnail: p.generatedImageUrl,
+        }));
+
+        const normalizedArch = archData.map(p => ({
+          ...p,
+          type: "3D",
+          status: p.status || "Finished",
+          name: p.title || "Architect Project",
+          thumbnail: p.thumbnailUrl,
+        }));
+
+        setProjects([...normalizedGen, ...normalizedArch]);
+      } catch (error) {
+        console.error("Error fetching projects data:", error);
+      } finally {
+        setIsGeneratedImagesLoading(false);
+        setIsArchitectProjectLoading(false);
+      }
+    };
+
+    fetchProjectsData();
+  }, []);
+
+
+
+
+
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] pb-20">
@@ -136,11 +217,10 @@ const MyProjectsPage = () => {
                 <button
                   key={type}
                   onClick={() => setFilterType(type)}
-                  className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors border ${
-                    filterType === type
-                      ? "bg-gray-900 text-white border-gray-900"
-                      : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
-                  }`}
+                  className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors border ${filterType === type
+                    ? "bg-gray-900 text-white border-gray-900"
+                    : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                    }`}
                 >
                   {type}
                 </button>
@@ -159,11 +239,10 @@ const MyProjectsPage = () => {
                 <button
                   key={status}
                   onClick={() => setFilterStatus(status)}
-                  className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors border ${
-                    filterStatus === status
-                      ? "bg-gray-900 text-white border-gray-900"
-                      : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
-                  }`}
+                  className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors border ${filterStatus === status
+                    ? "bg-gray-900 text-white border-gray-900"
+                    : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                    }`}
                 >
                   {status}
                 </button>
@@ -212,7 +291,20 @@ const MyProjectsPage = () => {
               <ProjectCard
                 key={project._id}
                 project={project}
-                onCardClick={() => navigate(`/projects/${project._id}`)}
+                onCardClick={() => {
+                  if (project.type === "2D") {
+                    navigate("/upload", {
+                      state: {
+                        inputPrompt: project.inputPrompt,
+                        originalImageUrl: project.originalImageUrl,
+                        referenceImageUrl: project.referenceImageUrl,
+                        generatedImageUrl: project.generatedImageUrl,
+                      },
+                    });
+                  } else {
+                    navigate(`/planner/${project._id}`);
+                  }
+                }}
                 onToggleFavorite={handleToggleFavorite}
               />
             ))}

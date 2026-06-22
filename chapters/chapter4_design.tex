@@ -1382,44 +1382,82 @@ The dashboard implements:
 
 \subsection{Design Workspace}
 
-The Design Workspace (Figure~\ref{fig:ui_workspace}) is the core functional interface where users interact with AI generation tools. It features a streamlined upload-and-generate flow that guides users from image input to styled output.
+The Design Workspace (Figure~\ref{fig:ui_workspace}), referred to as the AI Studio or Room Enhancer, is the core functional interface where users interact with the generative AI pipeline. It implements a split-pane layout to guide users from spatial upload to generation.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=1.0\textwidth]{figures/ui/design_workspace.png}
-    \caption{Design Workspace: Primary interface for image upload, style configuration, and AI-powered design generation.}
+    \caption{Design Workspace (AI Studio): Room Enhancer split-screen interface featuring dual-image upload inputs, enhancement prompt field, and dynamic visualization output canvas.}
     \label{fig:ui_workspace}
 \end{figure}
 
-Key workspace features include:
+Key workspace components and controls include:
 \begin{itemize}
-    \item File upload with image preview and prompt input
-    \item Optional object replacement prompt for targeted modifications
-    \item Workflow selection dropdown (Empty Room, Universal, etc.)
-    \item Large preview area displaying uploaded images
-    \item Single-action generation button to trigger ComfyUI processing
+    \item \textbf{Room Image Input:} An upload dropzone for the user's current spatial photograph (source image).
+    \item \textbf{Reference Style Input (Optional):} An optional upload dropzone for inspiration images (style reference images) to guide the visual output.
+    \item \textbf{Enhancement Prompt:} A text area for entering descriptive natural language prompts (e.g., detailing textures, lighting preferences, or specific layout styles).
+    \item \textbf{Generation Action:} A prominent ``Generate Image'' button that packages the inputs and triggers the asynchronous ComfyUI backend workflow via the zrok tunnel.
+    \item \textbf{Output Canvas:} A dedicated right-hand visualization panel that displays an interactive loading state (``Awaiting your creation'') and renders the finalized high-fidelity room redesign upon completion.
 \end{itemize}
 
-The workspace implements the requirements outlined in FR-01 (upload interface), FR-02 (style selection), and FR-03 (generation trigger).
+This interface satisfies the user capabilities outlined in FR-06 (upload interface), FR-12 (style selection), and FR-14 (generation trigger).
 
-\subsection{Community Marketplace}
+\subsection{E-Commerce Marketplace}
 
-The Marketplace (Figure~\ref{fig:ui_marketplace}) enables users to browse and acquire community-created assets including style presets, custom configurations, plugins, and collections. This interface supports the platform's ecosystem model by facilitating asset sharing and monetization.
+The E-Commerce Marketplace (Figure~\ref{fig:ui_marketplace}) enables users to search, filter, and purchase furniture products that match their AI-generated room designs. By integrating spatial redesign with local retail discovery, the marketplace closes the loop between design visualization and product acquisition.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/ui/marketplace_home.png}
+        \caption{Special Offers Section}
+        \label{fig:ui_marketplace_offers}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/ui/marketplace_featured.png}
+        \caption{Featured Products}
+        \label{fig:ui_marketplace_feat}
+    \end{subfigure}
+    \caption{E-Commerce Marketplace Home: Curated promotional landing sections showcasing special offers and featured items from Egyptian furniture retail partners.}
+    \label{fig:ui_marketplace_home}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/ui/marketplace_aesthetics.png}
+        \caption{Shop by Aesthetic}
+        \label{fig:ui_marketplace_aest_sub}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/ui/marketplace_categories.png}
+        \caption{Shop by Category}
+        \label{fig:ui_marketplace_cat_sub}
+    \end{subfigure}
+    \caption{Marketplace Navigation and Browsing: Layouts allowing users to discover furniture grouped by design aesthetic themes or product categories.}
+    \label{fig:ui_marketplace_discovery}
+\end{figure}
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=1.0\textwidth]{figures/ui/marketplace_view.png}
-    \caption{Community Marketplace: Browse interface for style presets, plugins, and collections with credit-based transactions.}
+    \caption{Marketplace Search and Filter Results: Product search results view with a sidebar control panel for sorting, category drill-down, color, material, pricing, and stock availability.}
     \label{fig:ui_marketplace}
 \end{figure}
 
-Marketplace features:
+Key marketplace features include:
 \begin{itemize}
-    \item Category-based browsing (Style Presets, Custom Configs, Plugins, Collections)
-    \item Featured section highlighting high-quality assets
-    \item Credit-based pricing display for each item
-    \item Creator attribution with engagement metrics (likes, downloads)
-    \item ``Become a Creator'' call-to-action promoting content contribution
+    \item \textbf{Curated Banners:} Promotes the platform's core workflow: ``Design first. Shop second.''
+    \item \textbf{Aesthetic Navigation:} Clusters furniture under design themes (Modern, Minimalist, Handcrafted, Elegant, Contemporary, and Cozy) matching the AI Studio's generation outputs.
+    \item \textbf{Category Drilldown:} Enables browsing by product types (Beds \& Bedroom, Seating, Storage \& Cabinetry, Lighting, Tables).
+    \item \textbf{Advanced Filtering Sidebar:} Provides precise refinement tools based on category, sort order, color, material, price bounds, and stock status.
+    \item \textbf{Product Cards:} Displays pricing (denominated in local currencies or USD), ratings, discounts, and visual thumbnails.
 \end{itemize}
 
 This interface satisfies requirements FR-20 (marketplace browsing) and NFR-05 (community engagement).

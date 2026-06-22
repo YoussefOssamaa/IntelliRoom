@@ -15,8 +15,8 @@ RegUser --|> Consumer
 
 rectangle "IntelliRoom Marketplace" {
   usecase "Browse Furniture Catalog\n(Egyptian retailers)" as UC1
-  usecase "Shop This Look\n(AI-identified items)" as UC2
-  usecase "Filter by Style/Culture" as UC3
+  usecase "Shop This Look\n(RF-DETR identified items)" as UC2
+  usecase "Filter by Category/Style" as UC3
   usecase "Compare Prices\n(multiple retailers)" as UC4
   usecase "View Retailer Ratings" as UC5
   usecase "Add to Cart" as UC6

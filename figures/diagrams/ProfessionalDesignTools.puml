@@ -18,7 +18,7 @@ Architect --|> Pro
 rectangle "IntelliRoom Professional" {
   usecase "Create Client Project" as UC1
   usecase "Batch Upload Multiple Rooms" as UC2
-  usecase "Apply Cultural Styles\n(Full Egyptian/Islamic library)" as UC3
+  usecase "Apply Style Presets\n(Full preset library)" as UC3
   usecase "Generate with Priority Queue" as UC4
   usecase "Create Unlimited Variations" as UC5
   usecase "Save Design Revisions" as UC6

@@ -104,7 +104,7 @@ Use Case ID & UC-C06 \\
 \midrule
 Name & Generate AI Design \\
 \midrule
-Actors & Consumer/Professional User, AI Generation System (ComfyUI, ControlNet, LoRA Models) \\
+Actors & Consumer/Professional User, AI Generation System (ComfyUI, Flux2Klein, ControlNet) \\
 \midrule
 Preconditions & User authenticated, room analyzed (UC-C04), style selected (UC-C05), generation quota available, ComfyUI operational \\
 \midrule
@@ -114,9 +114,8 @@ Basic Flow &
     \item ComfyUI pipeline executes 4 stages:
     \begin{itemize}[noitemsep,topsep=0pt]
         \item \textbf{ControlNet:} Preserves structure using SAM2 masks
-        \item \textbf{LoRA:} Applies Egyptian/Islamic/Modern styles
-        \item \textbf{Stable Diffusion:} Refines textures and lighting
-        \item \textbf{Post-processing:} Validates cultural authenticity
+        \item \textbf{Flux2Klein:} Applies photorealistic style transformation with structure conditioning
+        \item \textbf{Post-processing:} Composes result images and generates furniture recommendations
     \end{itemize}
     \item During processing, user votes on design pairs, earns credits
     \item System stores design with metadata, presents before/after comparison
@@ -225,7 +224,7 @@ UC-C03: Manage Profile & User updates personal information, design preferences, 
 
 \multicolumn{2}{c}{\textbf{Consumer Design Workflow}} \\
 \midrule
-UC-C05: Choose Style/Theme & User selects cultural design style (Egyptian, Islamic, Modern, Mediterranean) before generation. \\
+UC-C05: Choose Style/Theme & User selects a design style preset (Modern, Minimalist, Traditional, Mediterranean) before generation. \\
 UC-C07: View Design Variations & User reviews multiple design options with before/after comparison slider. \\
 UC-C08: Save/Favorite Design & User saves generated designs to personal gallery for later access. \\
 UC-C09: Download Design Image & User downloads design in available resolution (1080p free, 4K premium). Watermark on free tier. \\
@@ -242,7 +241,7 @@ UC-C13: Share to Social Media & User shares designs to Facebook, Instagram, What
 \multicolumn{2}{c}{\textbf{Marketplace Shopping}} \\
 \midrule
 UC-M01: Browse Furniture Catalog & User explores curated Egyptian furniture catalog organized by category and style. \\
-UC-M03: Filter by Style/Culture & User filters products by Egyptian, Islamic, Modern themes matching design generation styles. \\
+UC-M03: Filter by Category/Style & User filters furniture products by category, room type, or style tag. \\
 UC-M05: Compare Prices & User compares pricing for similar items across multiple Egyptian retailers side-by-side. \\
 UC-M08: Add to Cart & User adds products to shopping cart. Cart persists across sessions. \\
 UC-M09: Select Payment Method & User selects credit card, Fawry, or InstaPay mobile payment. \\

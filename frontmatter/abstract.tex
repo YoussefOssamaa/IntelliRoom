@@ -6,20 +6,21 @@
 
 \vspace{1cm}
 
-Interior design platforms lack cultural awareness for MENA markets. Local aesthetics, traditional furniture styles, and regional preferences remain underserved by Western-focused AI solutions. This gap represents a substantial market opportunity as the industry grows from \$18.32B (2024) toward projected valuations above \$184B.
+Online furniture retail in Egypt suffers from a critical visualization gap: shoppers cannot see how products will look in their own spaces, leading to cart abandonment rates exceeding 90\%. Meanwhile, professional interior design services cost 500--2,000 EGP per room---prohibitive for most households. IntelliRoom bridges this gap with an AI-powered interior design platform built specifically for the Egyptian e-commerce market.
 
 \vspace{0.5cm}
 
-\textbf{IntelliRoom} addresses this challenge by leveraging state-of-the-art AI models---including SAM2 for precision image segmentation, ControlNet for structural preservation during style transformations, and Florence-2 for intelligent object detection---to provide culturally-aware room redesign specifically tailored to Egyptian and MENA market aesthetics. The platform enables users to upload photographs of their rooms and receive design suggestions that respect Islamic geometric patterns, traditional Arabic furniture arrangements, and local material preferences.
+\textbf{IntelliRoom} leverages a production-ready generative AI engine built on \textbf{Flux2Klein 4B}---a state-of-the-art Diffusion Transformer---combined with SAM2 for precision image segmentation, ControlNet for structural preservation, and Florence-2 for intelligent object detection, all orchestrated through ComfyUI workflows. Users upload a room photograph and receive high-fidelity redesign results while the system simultaneously identifies and retrieves visually matching furniture from Egyptian retailers.
 
 \vspace{0.5cm}
 
-The proposed system architecture combines advanced computer vision techniques with a ComfyUI-based generative AI engine, implementing multi-stage pipelines that integrate detection, segmentation, style transfer, and inpainting workflows. A novel Egyptian furniture retrieval framework connects users with local manufacturers and craftsmen, differentiating IntelliRoom from competitors such as COOHOM, Interior AI, and RoomGPT through deep cultural specialization.
+The furniture retrieval engine implements a novel two-plane architecture: a local FastAPI orchestrator (ChromaDB vector database, semantic taxonomy snapper) connected via zrok tunneling to a remote GPU inference server running \textbf{RF-DETR} for furniture detection, \textbf{SigLIP2 so400m} for 1152-dimensional visual embeddings, and \textbf{Qwen3-VL 4B}---selected through an empirical ablation study over 2B/4B/8B variants---for taxonomy tagging. This pipeline enables accurate, semantically-constrained product retrieval from the Egyptian furniture catalog at commercial scale.
 
 \vspace{0.5cm}
 
-This graduation project demonstrates how artificial intelligence can be localized to serve regional design preferences, bridging the gap between cutting-edge AI capabilities and the cultural intelligence required for meaningful adoption in Egyptian and MENA markets. The platform represents a significant contribution to democratizing interior design through technology while preserving cultural authenticity.
+The platform delivers a complete full-stack solution: a React.js frontend, a Node.js/Express REST API with asymmetric JWT (RS256) authentication, MongoDB with 14+ schemas, a Fawaterk-integrated subscription system, a community gallery, and a plugin marketplace. The result is a commercially viable platform that democratizes interior design visualization for Egyptian homeowners and directly converts design inspiration into purchasable local furniture.
 
 \vspace{1cm}
 
-\textbf{Keywords:} Artificial Intelligence, Interior Design, Computer Vision, Cultural Intelligence, MENA Markets, Image Segmentation, Style Transfer, Egyptian Furniture, ComfyUI, SAM2, ControlNet
+\textbf{Keywords:} Artificial Intelligence, Interior Design, Flux2Klein, Computer Vision, Image Segmentation, Generative AI, Egyptian E-Commerce, Furniture Retrieval, RF-DETR, SigLIP2, Qwen3-VL, ComfyUI, Vector Database, SAM2, ControlNet
+

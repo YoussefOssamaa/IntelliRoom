@@ -17,7 +17,7 @@ Support --|> Admin
 
 rectangle "IntelliRoom Admin" {
   usecase "Manage User Accounts\n(suspend, delete)" as UC1
-  usecase "Process Subscription Payments\n(Stripe/PayMob)" as UC2
+  usecase "Process Subscription Payments\n(Fawaterk)" as UC2
   usecase "Monitor Free Tier Limits\n(3 gen/month)" as UC3
   usecase "Handle Support Tickets" as UC4
   usecase "Monitor System Performance\n(API latency, uptime)" as UC5

@@ -11,7 +11,7 @@ This chapter summarizes the achievements of the IntelliRoom project and document
 \section{Project Summary}
 \label{sec:summary}
 
-The IntelliRoom graduation project has made significant progress toward an AI-powered interior design platform tailored to Egyptian and MENA markets. The project has completed its design phase and achieved substantial implementation milestones.
+The IntelliRoom graduation project has made significant progress toward an AI-powered interior design platform tailored to the Egyptian e-commerce market. The project has completed its design phase and achieved substantial implementation milestones.
 
 \subsection{Problem Identification and Market Analysis}
 
@@ -21,7 +21,7 @@ Key market findings:
 \begin{itemize}
     \item Egyptian interior design market: USD 940M growing to USD 1.51B at 6\% CAGR
     \item 113.5 million population with 75\% internet penetration
-    \item No existing platforms offering Arabic/Egyptian cultural design styles
+    \item No existing platforms offering direct AI-to-e-commerce integration with Egyptian local furniture retailers
     \item Professional interior design costs prohibitive for most Egyptian homeowners
 \end{itemize}
 
@@ -153,10 +153,6 @@ Table~\ref{tab:impl_summary} summarizes the current implementation status by com
         \hline
         Flux2Klein 4B & 100\% & Apache 2.0 licensed generation workflows \\
         \hline
-        Cultural LoRA Models & 0\% & Planned \\
-        \hline
-        Payment Integration & 100\% & Complete (Fawaterk gateway integration) \\
-        \hline
         \textbf{Overall Progress} & \textbf{86\%} & Based on requirements completion \\
         \hline
     \end{tabularx}
@@ -183,10 +179,10 @@ Upon successful completion of the remaining implementation and testing phases, I
 
 \subsection{Functional Platform}
 
-A fully operational web-based interior design platform enabling Egyptian and MENA users to:
+A fully operational web-based interior design platform enabling Egyptian users to:
 \begin{enumerate}
     \item Upload room photographs and receive AI-powered analysis
-    \item Generate culturally-appropriate redesign variations with Arabic and Egyptian aesthetic options
+    \item Generate high-fidelity redesign variations using Flux2Klein with style preset prompting
     \item Discover and link to Egyptian furniture retailers matching generated designs
     \item Share designs with a community of users for inspiration and feedback
     \item Save and manage multiple design projects
@@ -201,19 +197,18 @@ The project demonstrates:
     \item Real-time AI workflow execution via ComfyUI REST API integration
     \item A novel two-plane architecture for GPU inference via zrok tunneling to a dedicated GPU server
     \item Vector database-powered furniture recommendation using visual similarity and taxonomy-constrained metadata filtering
-    \item Custom LoRA model training for cultural style adaptation (in progress)
     \item Empirical model selection via ablation study (Qwen3-VL 2B/4B/8B comparison)
     \item Novel Egyptian furniture retrieval framework connecting AI-generated designs to local marketplace
 \end{itemize}
 
 \subsection{Academic Contribution}
 
-The project contributes to the emerging field of cultural computing by:
+The project makes a technical contribution through:
 \begin{itemize}
-    \item Documenting practical implementation of culturally-intelligent AI systems
-    \item Providing insights into adapting global AI technologies for regional markets
-    \item Establishing best practices for AI interior design pipeline development
-    \item Demonstrating ComfyUI integration patterns for web applications
+    \item A novel two-plane GPU inference architecture using zrok tunneling, applicable beyond interior design
+    \item A documented ablation study methodology for selecting VLMs (Qwen3-VL 2B/4B/8B) in taxonomy generation tasks
+    \item An end-to-end reference implementation of ComfyUI API integration within a production Node.js/React stack
+    \item Demonstration of zero-shot visual retrieval (RF-DETR + SigLIP2) for e-commerce product matching
 \end{itemize}
 
 % ============================================================================
@@ -233,12 +228,11 @@ The remaining project phases will follow a structured implementation plan, build
     \item Integrate recommendation engine results into the frontend product display
 \end{itemize}
 
-\subsection{Phase 3: Cultural Customization and Marketplace}
+\subsection{Phase 3: Marketplace Integration and Scale}
 
 \textbf{Tasks:}
 \begin{itemize}
-    \item Train custom LoRA models for Egyptian/Arabic styles
-    \item Connect furniture recommendations to marketplace
+    \item Connect furniture recommendations to live marketplace
     \item Refine billing system, subscription lifecycle management, and invoice tracking
     \item Scale out recommendation engine instances to support higher concurrency
     \item Complete plugin marketplace integration
@@ -287,8 +281,6 @@ Beyond the graduation project scope, IntelliRoom has potential for significant f
 \subsection{Medium-Term Enhancements (6-12 months)}
 
 \begin{enumerate}
-    \item \textbf{Expanded Cultural Library:} Additional regional styles including Gulf Arabian, Moroccan, Turkish, and Levantine aesthetics
-    
     \item \textbf{Retailer Partnership Program:} Direct integration with Egyptian furniture manufacturers and retailers for real-time inventory and pricing
     
     \item \textbf{AI Design Consultation:} Chat-based AI assistant providing personalized design recommendations and answering user questions
@@ -299,7 +291,7 @@ Beyond the graduation project scope, IntelliRoom has potential for significant f
 \subsection{Long-Term Vision (1-3 years)}
 
 \begin{enumerate}
-    \item \textbf{Regional Expansion:} Localized versions for Saudi Arabia, UAE, Morocco, and other MENA markets with country-specific retailers
+    \item \textbf{Regional Expansion:} Localized versions for other regional markets with country-specific furniture retailers
     
     \item \textbf{B2B Platform:} Enterprise features for real estate developers, hospitality companies, and furniture manufacturers
     
@@ -312,19 +304,17 @@ Beyond the graduation project scope, IntelliRoom has potential for significant f
 \section{Concluding Remarks}
 \label{sec:concluding}
 
-The IntelliRoom project represents a significant step toward democratizing interior design through AI technology while respecting cultural identity. The completed backend infrastructure, authentication system, ComfyUI integration, and AI vector recommendation engine provide a comprehensive foundation for the platform's core value proposition.
+The IntelliRoom project represents a significant step toward democratizing interior design through AI technology, directly connecting spatial redesign to the Egyptian furniture marketplace. The completed backend infrastructure, authentication system, ComfyUI integration, and AI vector recommendation engine provide a comprehensive foundation for the platform's core value proposition.
 
 Key accomplishments:
 \begin{itemize}
-    \item Comprehensive market analysis validating the business opportunity
+    \item Comprehensive market analysis validating the Egyptian e-commerce business opportunity
     \item Complete backend API with 35+ endpoints including secure JWT authentication
     \item Full e-commerce functionality ready for marketplace integration
     \item Operational AI recommendation engine with vector similarity search and taxonomy-constrained metadata filtering
-    \item ComfyUI integration enabling AI workflow execution with multiple specialized workflows
+    \item ComfyUI integration enabling AI workflow execution with multiple Flux2Klein specialized workflows
     \item Flux2Klein 4B integration under Apache 2.0 license for commercial deployment
     \item Docker-based development environment for team collaboration
 \end{itemize}
 
-The project is on track to deliver a functional prototype demonstrating the core value proposition: AI-powered interior design with Egyptian and Arabic cultural awareness. The remaining work focuses on frontend development and cultural LoRA fine-tuning, building upon the solid AI and backend infrastructure already in place.
-
-By addressing the specific needs of Egyptian and MENA users, including cultural aesthetics, local furniture sourcing, and Egyptian Pound pricing, IntelliRoom aims to establish a new category of culturally-intelligent design tools that respect and celebrate regional identity while leveraging cutting-edge AI technology.
+The project is on track to deliver a functional prototype demonstrating the core value proposition: AI-powered interior design with seamless Egyptian furniture marketplace integration. By addressing the specific needs of Egyptian users---including local furniture sourcing, Egyptian Pound pricing, and Fawaterk payment integration---IntelliRoom establishes a practical bridge between AI-powered spatial redesign and e-commerce purchase conversion.

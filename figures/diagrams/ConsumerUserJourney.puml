@@ -21,7 +21,7 @@ rectangle "IntelliRoom AI" {
   usecase "Browse Templates" as UC1
   usecase "Register Account" as UC2
   usecase "Upload Room Photo" as UC3
-  usecase "Select Cultural Style\n(Egyptian/Islamic/Modern)" as UC4
+  usecase "Select Style Preset\n(Modern/Minimalist/Traditional)" as UC4
   usecase "Generate AI Design\n(Free: 3/month)" as UC5
   usecase "View Design Variations" as UC6
   usecase "Save Design" as UC7

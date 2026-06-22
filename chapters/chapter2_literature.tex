@@ -22,7 +22,7 @@ Diffusion models represent the current state-of-the-art in image generation, ope
     
     \item \textbf{ControlNet:} Architecture for adding spatial conditioning to diffusion models, enabling structure-preserving transformations essential for interior design \cite{zhang2023adding}
     
-    \item \textbf{LoRA (Low-Rank Adaptation):} Efficient fine-tuning technique allowing model customization for specific styles, furniture types, or cultural aesthetics without full retraining \cite{hu2021lora}
+    \item \textbf{Flux2Klein 4B:} A state-of-the-art Diffusion Transformer (DiT) architecture for high-fidelity image generation and inpainting, used as IntelliRoom's primary generative engine under an Apache 2.0 license \cite{flux2klein2026}
 \end{itemize}
 
 \subsection{Computer Vision for Interior Design}
@@ -56,15 +56,7 @@ Several academic contributions inform the IntelliRoom approach to AI-powered int
 
 \subsection{Furniture Set Retrieval}
 
-The work ``Furnishing Your Room by What You See: An End-to-End Furniture Set Retrieval Framework with Rich Annotated Benchmark Dataset'' \cite{chen2023furnishing} presents a comprehensive approach to furniture retrieval from room photographs. Key contributions include:
-
-\begin{itemize}
-    \item End-to-end framework for detecting existing furniture and retrieving visually similar items
-    \item Annotated dataset for training furniture recognition models
-    \item Evaluation metrics for retrieval quality assessment
-\end{itemize}
-
-IntelliRoom adapts this framework specifically for Egyptian and MENA furniture styles, training custom models on regional furniture datasets to enable local marketplace integration.
+IntelliRoom implements a zero-shot furniture retrieval pipeline: RF-DETR detects and crops furniture from room images, SigLIP2 so400m generates 1152-dimensional visual embeddings, and ChromaDB performs cosine similarity search with metadata filtering against the Egyptian furniture catalog \cite{rfdetr2025, siglip22025}.
 
 \subsection{Style Transfer in Interior Design}
 
@@ -76,9 +68,7 @@ Research in neural style transfer has evolved from artistic applications to prac
     \item Semantic-guided transfer that distinguishes furniture, walls, and decorative elements
 \end{itemize}
 
-\subsection{Cultural Computing and Design}
 
-Emerging research in cultural computing addresses the need for AI systems that respect and incorporate cultural contexts \cite{rauterberg2006culture}. IntelliRoom contributes to this field by demonstrating practical implementation of cultural intelligence in design AI.
 
 % ============================================================================
 \section{Research Gap and Contribution}
@@ -87,13 +77,13 @@ Emerging research in cultural computing addresses the need for AI systems that r
 The literature review reveals a clear research and market gap: while AI interior design technology has achieved remarkable capabilities, the application of these technologies to culturally-specific contexts remains largely unexplored. IntelliRoom addresses this gap through:
 
 \begin{enumerate}
-    \item \textbf{Cultural AI Training:} LoRA models fine-tuned on Egyptian and Arabic interior design datasets
+    \item \textbf{Flux2Klein Integration:} Leveraging a state-of-the-art DiT-based generative model for high-fidelity spatial redesign, orchestrated via ComfyUI workflows
     
-    \item \textbf{Local Furniture Retrieval:} Adapted furniture detection and retrieval specifically for regional manufacturers
+    \item \textbf{Two-Plane Inference Architecture:} A novel local FastAPI orchestrator connected via zrok tunneling to a remote GPU inference server, enabling commercial-scale AI generation without cloud lock-in
     
-    \item \textbf{Context-Aware Generation:} AI systems that recognize and respect regional design conventions
+    \item \textbf{VDB Furniture Retrieval:} A zero-shot visual retrieval pipeline (RF-DETR + SigLIP2 + Qwen3-VL + ChromaDB) that connects AI-generated room designs to purchasable Egyptian furniture catalog items
     
-    \item \textbf{Integrated Marketplace:} Direct connections between AI-generated designs and purchasable local products
+    \item \textbf{Integrated Egyptian E-Commerce:} Direct connections between AI-generated designs and purchasable local products with EGP pricing and Fawaterk payment integration
 \end{enumerate}
 
 % ============================================================================
@@ -110,7 +100,7 @@ The Egyptian interior design market provides a compelling context for IntelliRoo
     \item 90.75\% cart abandonment rate indicating unmet visualization needs
 \end{itemize}
 
-Analysis of competitors including COOHOM, Interior AI, RoomGPT, and Spacely AI revealed universal absence of Middle Eastern aesthetic support, presenting a clear market opportunity for IntelliRoom.
+Analysis of competitors including COOHOM, Interior AI, RoomGPT, and Spacely AI revealed universal absence of direct e-commerce integration with local Egyptian furniture retailers, presenting a clear market opportunity for IntelliRoom.
 
 \vspace{0.5cm}
 \noindent\textit{Note: For the comprehensive market research including detailed competitive analysis with feature comparisons, Egyptian market size and growth projections with visualizations, user segmentation and demographic profiles, business strategy and revenue model, and risk assessment with mitigation strategies, see Appendix~\ref{app:market_analysis}.}

@@ -5,37 +5,39 @@
 \chapter{Introduction}
 \label{chap:introduction}
 
-The interior design industry stands at a pivotal transformation point, driven by advances in artificial intelligence and computer vision technologies. While AI-powered design tools have proliferated globally, a significant gap exists in serving the Middle Eastern and North African (MENA) markets, where cultural aesthetics, traditional furniture preferences, and regional design sensibilities remain largely overlooked by mainstream solutions. This chapter introduces IntelliRoom, an AI-powered interior design platform specifically developed to address this underserved market through culturally-aware design intelligence.
+The interior design industry stands at a pivotal transformation point, driven by advances in artificial intelligence and computer vision technologies. While AI-powered design tools have proliferated globally, a critical gap remains: online furniture shoppers cannot visualize products in their own spaces before purchase. This chapter introduces IntelliRoom, an AI-powered interior design platform specifically developed to address this visualization gap in the Egyptian e-commerce market through spatial intelligence and direct furniture marketplace integration.
 
 % ============================================================================
 \section{Problem Statement}
 \label{sec:problem_statement}
 
-The global interior design market has witnessed remarkable growth, expanding from \$18.32 billion in 2024 toward projected valuations exceeding \$184 billion \cite{marketresearch2024}. Despite this growth, existing AI interior design platforms predominantly cater to Western aesthetic preferences, leaving MENA region users with solutions that fail to understand or respect their cultural design heritage.
+The global interior design technology market has witnessed remarkable growth, expanding from USD 18.32 billion in 2024 toward projected valuations exceeding USD 184 billion by 2032. Despite this growth, a critical practical barrier persists for Egyptian homeowners and online furniture shoppers: the inability to visualize furniture in their actual living spaces before purchase.
 
-Current market leaders such as COOHOM, Interior AI, RoomGPT, and Spacely AI offer powerful generative capabilities but lack the cultural intelligence necessary for meaningful adoption in Egyptian and broader Middle Eastern contexts \cite{competitor_analysis2025}. These platforms cannot recognize or generate designs featuring:
+Online furniture retailers in Egypt report cart abandonment rates exceeding 90\%---far above the e-commerce average of 70--75\%---driven primarily by insufficient visualization tools. Meanwhile, professional interior design consultations cost 500--2,000 EGP per room, making them inaccessible to most households.
+
+Existing AI interior design platforms such as COOHOM, Interior AI, RoomGPT, and Spacely AI offer generative capabilities but fail to address the core Egyptian market needs:
 
 \begin{itemize}
-    \item Islamic geometric patterns and traditional arabesque motifs
-    \item Traditional Arabic calligraphy integration
-    \item Region-specific furniture styles and material preferences
-    \item Local spatial organization patterns, such as sinks positioned near windows common in Egyptian homes
+    \item No integration with Egyptian furniture retailers or local pricing in EGP
+    \item No direct connection between AI-generated designs and purchasable products
+    \item No support for Egyptian payment methods (Fawry, InstaPay)
+    \item No e-commerce checkout or order management workflow
 \end{itemize}
 
-This cultural disconnect creates a substantial barrier to AI adoption in interior design for the MENA region's growing middle class, who seek modern technology solutions that respect and enhance their cultural identity rather than replace it with Western-centric aesthetics.
+This visualization-to-purchase gap creates a substantial commercial opportunity for a platform that connects AI-powered spatial redesign directly to the Egyptian furniture marketplace.
 
 % ============================================================================
 \section{Project Objectives}
 \label{sec:objectives}
 
-The IntelliRoom platform aims to bridge the gap between cutting-edge AI capabilities and cultural design intelligence through the following objectives:
+The IntelliRoom platform aims to bridge the gap between AI-powered spatial design and Egyptian e-commerce integration through the following objectives:
 
 \subsection{Primary Objectives}
 
 \begin{enumerate}
-    \item \textbf{Develop a culturally-aware AI redesign system} that recognizes and generates interior designs aligned with Egyptian and MENA aesthetic preferences, including traditional patterns, furniture styles, and spatial arrangements.
+    \item \textbf{Develop an AI-powered spatial redesign engine} powered by Flux2Klein 4B for high-fidelity room transformations, with SAM2 for precision segmentation, ControlNet for structure-preserving generation, and Florence-2 for room analysis, all orchestrated through ComfyUI workflows.
     
-    \item \textbf{Implement advanced computer vision pipelines} utilizing SAM2 for precision segmentation, Florence-2 for object detection, and ControlNet for style-preserving transformations.
+    \item \textbf{Implement an advanced AI furniture retrieval pipeline} using RF-DETR for furniture detection, SigLIP2 for visual embeddings, Qwen3-VL for taxonomy tagging, and ChromaDB for vector similarity search.
     
     \item \textbf{Create an Egyptian furniture retrieval framework} that connects users with local manufacturers and craftsmen, enabling seamless transition from AI-generated designs to purchasable products.
     
@@ -70,7 +72,7 @@ The IntelliRoom project scope has been carefully defined to ensure deliverable c
         \textbf{In Scope} & 
         \begin{itemize}[nosep,leftmargin=*]
             \item Room photo upload and AI-powered preprocessing
-            \item Style transformation engine with cultural presets
+            \item Style transformation engine with Flux2Klein generative workflows
             \item Furniture detection and selective replacement
             \item Egyptian furniture catalog integration
             \item User authentication and profile management

@@ -1,5 +1,5 @@
 @startuml
-title Admin - AI Model Management
+title Admin - AI Pipeline Management
 
 left to right direction
 skinparam actorStyle awesome
@@ -16,13 +16,13 @@ DataScientist --|> AITeam
 MLEngineer --|> AITeam
 
 rectangle "IntelliRoom Admin" {
-  usecase "Curate Training Data\n(cultural authenticity)" as UC1
-  usecase "Train Custom LoRA Models\n(Egyptian/Islamic styles)" as UC2
+  usecase "Curate Product Catalog\n(e-commerce ingestion)" as UC1
+  usecase "Manage ComfyUI Workflows\n(Flux2Klein & ControlNet)" as UC2
   usecase "A/B Test Model Variants" as UC3
   usecase "Deploy Model Updates" as UC4
-  usecase "Monitor AI Quality" as UC5
+  usecase "Monitor AI Quality\n(Flux2Klein outputs)" as UC5
   usecase "Analyze User Voting Data\n(RLHF-inspired)" as UC6
-  usecase "Monitor Cultural Feedback" as UC7
+  usecase "Monitor Inference Performance\n(latency & throughput)" as UC7
 }
 
 DataScientist --> UC1

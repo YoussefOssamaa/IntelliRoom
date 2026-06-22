@@ -125,6 +125,7 @@ const AppRoutes = () => {
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/payment-failed" element={<PaymentFailed />} />
           <Route path="/pluginReview/:id" element={<PluginReviewPage />} />
+          <Route path="/checkout" element={<Checkout />} />
 
           <Route element={<MarketplaceLayout />}>
             <Route path="/ecomm" element={<Ecomm />} />

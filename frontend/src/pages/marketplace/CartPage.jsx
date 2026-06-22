@@ -305,7 +305,7 @@ const CartPage = () => {
                   type="button"
                   onClick={() => {
                     if (!hasInvalidItems && cart.length > 0) {
-                      navigate("/ecomm/checkout");
+                      navigate("/checkout");
                     }
                   }}
                   disabled={hasInvalidItems || cart.length === 0}

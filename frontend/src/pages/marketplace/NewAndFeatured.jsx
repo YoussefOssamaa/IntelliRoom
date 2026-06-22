@@ -8,6 +8,8 @@ const NewAndFeatured = () => {
     const [newProducts, setNewProducts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
+    
+
     useEffect(() => {
         const fetchNewArrivals = async () => {
             try {
@@ -27,7 +29,6 @@ const NewAndFeatured = () => {
         fetchNewArrivals();
     }, []);
 
-    // 🚀 NEW LOGIC: Vertical Rectangles!
     // We alternate row-span-2 (Tall) and row-span-1 (Square)
     const getGridClass = (index) => {
         // Indices 1, 3, 4, and 6 will be tall vertical rectangles
@@ -64,15 +65,15 @@ const NewAndFeatured = () => {
                     <h3 className="text-3xl font-extrabold text-gray-900 tracking-tight">New Arrivals</h3>
                     <p className="text-lg text-gray-500 mt-2">Discover the latest pieces added to the marketplace.</p>
                 </div>
-                <button 
+                {/* <button 
                     onClick={() => navigate('/ecomm')}
                     className="text-sky-600 hover:text-sky-700 font-bold tracking-wide transition-colors"
                 >
                     SHOP ALL NEW
-                </button>
+                </button> */}
             </div>
 
-            {/* 🚀 NEW GRID LAYOUT: 
+            {/* 
                 - grid-cols-2 on mobile, grid-cols-4 on desktop
                 - grid-flow-dense perfectly packs the squares into the gaps 
                 - auto-rows-[250px] forces a strict height so math works out perfectly

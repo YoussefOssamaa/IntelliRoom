@@ -68,7 +68,7 @@ const ShopByRoom = () => {
         </div>
 
         {/* Custom Left/Right Navigation Buttons (Hide if no rooms) */}
-        {rooms.length > 0 && (
+        {/* {rooms.length > 0 && (
           <div className="hidden md:flex space-x-3">
             <button
               onClick={() => slide("left")}
@@ -107,7 +107,7 @@ const ShopByRoom = () => {
               </svg>
             </button>
           </div>
-        )}
+        )} */}
       </div>
 
       {/* The Slider Container OR Empty State */}

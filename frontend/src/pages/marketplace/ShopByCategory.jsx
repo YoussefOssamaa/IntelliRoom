@@ -44,7 +44,6 @@ const ShopByCategory = () => {
     }
   };
 
-  // 🚀 REMOVED: The `return null` line that was hiding the section!
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -60,7 +59,7 @@ const ShopByCategory = () => {
         </div>
 
         {/* Custom Left/Right Navigation Buttons (Hide if no categories) */}
-        {categories.length > 0 && (
+        {/* {categories.length > 0 && (
           <div className="hidden md:flex space-x-3">
             <button
               onClick={() => slide("left")}
@@ -99,7 +98,7 @@ const ShopByCategory = () => {
               </svg>
             </button>
           </div>
-        )}
+        )} */}
       </div>
 
       {/* The Slider Container OR Empty State */}

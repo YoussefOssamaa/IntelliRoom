@@ -13,7 +13,7 @@ const NewAndFeatured = () => {
     useEffect(() => {
         const fetchNewArrivals = async () => {
             try {
-                const response = await axios.get('/products?limit=8');
+                const response = await axios.get('/products?limit=8&sort=-createdAt&fields=slug,name,pricing,media,categorization');
                 const fetched = response.data.data || response.data;
                 
                 if (Array.isArray(fetched)) {

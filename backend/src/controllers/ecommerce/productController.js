@@ -96,7 +96,6 @@ export const getProducts = async (req, res) => {
             const tagsArray = tags.split(',');
             query['categorization.tags'] = { $in: tagsArray };
         }
-        
 
         // Handle Sorting
         let sortOption = {};

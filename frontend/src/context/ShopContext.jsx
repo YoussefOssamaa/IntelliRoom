@@ -51,10 +51,12 @@ export const ShopProvider = ({ children }) => {
         if (response.ok) {
           const data = await response.json();
           if (data && data.cart && data.cart.items) {
-            const formattedCart = data.cart.items.map((item) => ({
-              ...item.product,
-              cartQuantity: item.quantity,
-            }));
+            const formattedCart = data.cart.items
+              .filter((item) => item.product !== null && item.product !== undefined)
+              .map((item) => ({
+                ...item.product,
+                cartQuantity: item.quantity,
+              }));
             setCart(formattedCart);
           }
         }

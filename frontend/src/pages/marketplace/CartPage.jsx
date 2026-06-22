@@ -5,7 +5,7 @@ import Header from "./MarketHeader";
 
 const CartPage = () => {
   const navigate = useNavigate();
-  
+
   // Pull the data and functions from our global brain
   const {
     cart,
@@ -309,11 +309,10 @@ const CartPage = () => {
                     }
                   }}
                   disabled={hasInvalidItems || cart.length === 0}
-                  className={`w-full font-extrabold py-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 ${
-                    hasInvalidItems || cart.length === 0
+                  className={`w-full font-extrabold py-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 ${hasInvalidItems || cart.length === 0
                       ? "bg-gray-400 text-white cursor-not-allowed opacity-80 pointer-events-none"
                       : "bg-text-accent text-white shadow-md hover:bg-green-600 hover:shadow-lg"
-                  }`}
+                    }`}
                 >
                   {hasInvalidItems
                     ? "Cart Contains Invalid Items"

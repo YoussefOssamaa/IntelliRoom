@@ -7,11 +7,18 @@ export const getCartController = async (req, res) => {
     const userId = req.userId;
     if (!userId) return res.status(401).json({ success: false, message: "Not authenticated" });
 
-    const cart = await Cart.findOne({ user: userId }).populate('items.product');
+    let cart = await Cart.findOne({ user: userId }).populate('items.product');
     
     if (!cart) {
         // Instead of a 404 error, return an empty cart structure so the frontend doesn't crash
-        return res.status(200).json({ items: [], total: 0 });
+        return res.status(200).json({ cart: { items: [] }, total: 0 });
+    }
+
+    // Filter out any orphaned cart items where the product was deleted
+    const originalLength = cart.items.length;
+    cart.items = cart.items.filter(item => item.product !== null && item.product !== undefined);
+    if (cart.items.length !== originalLength) {
+        await cart.save();
     }
 
     // Dynamically calculate the total price before sending
@@ -46,7 +53,7 @@ export const postCartController = async (req, res) => {
     }
 
     // 2. Check if the specific product is already in the items array
-    const existingItemIndex = cart.items.findIndex(item => item.product.toString() === productId);
+    const existingItemIndex = cart.items.findIndex(item => item.product && item.product.toString() === productId);
 
     if (existingItemIndex > -1) {
       // Product is already in the cart, just increase the quantity
@@ -60,6 +67,13 @@ export const postCartController = async (req, res) => {
     await cart.save();
     await cart.populate('items.product');
     
+    // Clean up any deleted/null products after populating
+    const originalLength = cart.items.length;
+    cart.items = cart.items.filter(item => item.product !== null && item.product !== undefined);
+    if (cart.items.length !== originalLength) {
+        await cart.save();
+    }
+
     res.status(200).json(cart);
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -79,7 +93,7 @@ export const putCartController = async (req, res) => {
     const cart = await Cart.findOne({ user: userId });
     if (!cart) return res.status(404).json({ error: "Cart not found" });
 
-    const existingItemIndex = cart.items.findIndex(item => item.product.toString() === productId);
+    const existingItemIndex = cart.items.findIndex(item => item.product && item.product.toString() === productId);
 
     if (existingItemIndex > -1) {
         // 🚀 FIX: Use 'quantity' here instead of 'newQuantity'
@@ -92,6 +106,14 @@ export const putCartController = async (req, res) => {
         }
         await cart.save();
         await cart.populate('items.product');
+
+        // Clean up any deleted/null products after populating
+        const originalLength = cart.items.length;
+        cart.items = cart.items.filter(item => item.product !== null && item.product !== undefined);
+        if (cart.items.length !== originalLength) {
+            await cart.save();
+        }
+
         res.status(200).json(cart);
     } else {
         res.status(404).json({ error: "Item not found in cart" });
@@ -115,10 +137,17 @@ export const deleteCartController = async (req, res) => {
     if (!cart) return res.status(404).json({ error: "Cart not found" });
 
     // Filter out the specific product
-    cart.items = cart.items.filter(item => item.product.toString() !== productId);
+    cart.items = cart.items.filter(item => item.product && item.product.toString() !== productId);
 
     await cart.save();
     await cart.populate('items.product');
+
+    // Clean up any deleted/null products after populating
+    const originalLength = cart.items.length;
+    cart.items = cart.items.filter(item => item.product !== null && item.product !== undefined);
+    if (cart.items.length !== originalLength) {
+        await cart.save();
+    }
 
     res.status(200).json(cart);
   } catch (err) {

@@ -146,7 +146,6 @@ const ProductCard = ({ product }) => {
           </span>
         </div>
 
-        {/* 🚀 Safely extracts the Category Name from the populated model */}
         <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
           {product.categorization?.primary?.name ||
             product.categorization?.primary ||

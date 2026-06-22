@@ -25,7 +25,7 @@ import LandingPage from "./pages/landingPage/landingPage";
 import Ecomm from "./pages/marketplace/MarketPlacePage";
 import CategoryListingPage from "./pages/marketplace/CategoryListingPage";
 import CategoryPage from "./pages/marketplace/CategoryPage";
-//import AestheticsPage from "./pages/marketplace/AestheticsPage";
+import AestheticsPage from "./pages/marketplace/AestheticsPage";
 import ProductDetailsPage from "./pages/marketplace/ProductDetailsPage";
 import SpecialOffersPage from "./pages/marketplace/SpecialOffersPage";
 import AboutPage from "./pages/about/AboutPage";
@@ -38,9 +38,9 @@ import MarketHeader from "./pages/marketplace/MarketHeader";
 import FavoritesPage from "./pages/marketplace/FavoritesPage";
 import RoomPage from "./pages/marketplace/RoomPage";
 import CheckoutPage from "./pages/marketplace/CheckoutPage";
-//import ProductsListPage from "./pages/marketplace/ProductsListPage";
+import ProductsListPage from "./pages/marketplace/ProductsListPage";
 import AdminLayout from "./pages/marketplace/admin/AdminLayout";
-//import AdminDashboardOverview from "./pages/marketplace/admin/AdminDashboardOverview";
+import AdminDashboardOverview from "./pages/marketplace/admin/AdminDashboardOverview";
 import AdminProductsPage from "./pages/marketplace/admin/AdminProductsPage";
 import AdminProductGridPage from "./pages/marketplace/admin/AdminProductGridPage";
 import AdminProductCreatePage from "./pages/marketplace/admin/AdminProductCreatePage";
@@ -50,7 +50,7 @@ import AdminCategoryCreatePage from "./pages/marketplace/admin/AdminCategoryCrea
 import AdminCategoryEditPage from "./pages/marketplace/admin/AdminCategoryEditPage";
 import AdminRoomsPage from "./pages/marketplace/admin/AdminRoomsPage";
 import AdminOrdersPage from "./pages/marketplace/admin/AdminOrdersPage";
-// import SearchInput from "./components/common/SearchInput";
+import SearchInput from "./components/common/SearchInput";
 import AdminRoomFormPage from "./pages/marketplace/admin/AdminRoomFormPage";
 
 import AdminLogin from "./pages/admin/AdminLogin";
@@ -127,13 +127,13 @@ const AppRoutes = () => {
 
           <Route element={<MarketplaceLayout />}>
             <Route path="/ecomm" element={<Ecomm />} />
-            {/* <Route path="/ecomm/products/search" element={<ProductsListPage />} />  */}
+            <Route path="/ecomm/products/search" element={<ProductsListPage />} /> 
             <Route path="/ecomm/product/:slug" element={<ProductDetailsPage />} />
             <Route
               path="/ecomm/category/:categoryId"
               element={<CategoryPage />}
             />
-            {/* <Route path="/ecomm/aesthetic/:aestheticId" element={<AestheticsPage />} /> */}
+            <Route path="/ecomm/aesthetic/:aestheticId" element={<AestheticsPage />} />
             <Route path="/ecomm/offers" element={<SpecialOffersPage />} />
             <Route path="/ecomm/cart" element={<CartPage />} />
             <Route
@@ -146,7 +146,7 @@ const AppRoutes = () => {
 
           <Route path="/ecomm/admin" element={<AdminLayout />}>
 
-            {/* <Route index element={<AdminDashboardOverview />} /> */}
+            <Route index element={<AdminDashboardOverview />} />
             <Route path="products/list" element={<AdminProductsPage />} />
             <Route path="products/grid" element={<AdminProductGridPage />} />
             <Route path="products/create" element={<AdminProductCreatePage />} />
@@ -167,7 +167,7 @@ const AppRoutes = () => {
             <Route path="rooms/create" element={<AdminRoomFormPage />} />
             <Route path="rooms/edit/:id" element={<AdminRoomFormPage />} />
             <Route path="orders" element={<AdminOrdersPage />} />
-            {/* <Route path="search" element={<SearchInput />} /> */}
+            <Route path="search" element={<SearchInput />} />
           </Route>
 
           <Route path="/upload" element={<UploadImagePage />} />

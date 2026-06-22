@@ -41,7 +41,9 @@ const protect = (req, res, next) => {
             return res.status(403).json({ success: false, message: "Access denied. User role required." });
         }
     } catch (e) {
-        console.log("protect middleware : token verification message", e.message);
+        if (e.name !== 'TokenExpiredError') {
+            console.log("protect middleware : token verification message", e.message);
+        }
         return res.status(401).json({ success: false, message: genericError })
     }
 

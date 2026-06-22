@@ -1,0 +1,37 @@
+@startuml
+title Marketplace - Consumer Shopping
+
+left to right direction
+skinparam actorStyle awesome
+skinparam usecase {
+  BackgroundColor #E6F2F7
+  BorderColor #2E86AB
+}
+
+actor "Consumer" as Consumer
+actor "Registered User" as RegUser
+
+RegUser --|> Consumer
+
+rectangle "IntelliRoom Marketplace" {
+  usecase "Browse Furniture Catalog\n(Egyptian retailers)" as UC1
+  usecase "Shop This Look\n(AI-identified items)" as UC2
+  usecase "Filter by Style/Culture" as UC3
+  usecase "Compare Prices\n(multiple retailers)" as UC4
+  usecase "View Retailer Ratings" as UC5
+  usecase "Add to Cart" as UC6
+  usecase "Place Order\n(Cash-on-Delivery 85%)" as UC7
+  usecase "Track Order Status" as UC8
+}
+
+Consumer --> UC1
+Consumer --> UC3
+
+RegUser --> UC2
+RegUser --> UC4
+RegUser --> UC5
+RegUser --> UC6
+RegUser --> UC7
+RegUser --> UC8
+
+@enduml

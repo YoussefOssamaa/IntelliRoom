@@ -1,0 +1,35 @@
+@startuml
+title Consumer - Subscription & Account
+
+left to right direction
+skinparam actorStyle awesome
+skinparam usecase {
+  BackgroundColor #E6F2F7
+  BorderColor #2E86AB
+}
+
+actor "Registered User" as RegUser
+actor "Premium User" as Premium
+
+Premium --|> RegUser
+
+rectangle "IntelliRoom AI" {
+  usecase "View Usage Stats\n(generations left)" as UC1
+  usecase "Manage Profile" as UC2
+  usecase "View Pricing Plans" as UC3
+  usecase "Upgrade to Premium" as UC4
+  usecase "Manage Payment\n(Stripe/PayMob)" as UC5
+  usecase "Cancel Subscription" as UC6
+  usecase "Access Priority Support" as UC7
+}
+
+RegUser --> UC1
+RegUser --> UC2
+RegUser --> UC3
+RegUser --> UC4
+
+Premium --> UC5
+Premium --> UC6
+Premium --> UC7
+
+@enduml

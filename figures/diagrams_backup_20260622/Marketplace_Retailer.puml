@@ -1,0 +1,27 @@
+@startuml
+title Marketplace - Retailer Operations
+
+left to right direction
+skinparam actorStyle awesome
+skinparam usecase {
+  BackgroundColor #E6F2F7
+  BorderColor #2E86AB
+}
+
+actor "Retailer" as Retailer
+
+rectangle "IntelliRoom Marketplace" {
+  usecase "List Products" as UC1
+  usecase "Update Inventory" as UC2
+  usecase "Receive Orders" as UC3
+  usecase "View Sales Analytics" as UC4
+  usecase "Purchase Featured Placement" as UC5
+}
+
+Retailer --> UC1
+Retailer --> UC2
+Retailer --> UC3
+Retailer --> UC4
+Retailer --> UC5
+
+@enduml

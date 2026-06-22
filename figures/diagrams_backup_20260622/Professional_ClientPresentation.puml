@@ -1,0 +1,35 @@
+@startuml
+title Professional - Client Presentation
+
+left to right direction
+skinparam actorStyle awesome
+skinparam usecase {
+  BackgroundColor #E6F2F7
+  BorderColor #2E86AB
+}
+
+actor "Professional" as Pro
+actor "Client" as Client
+
+rectangle "IntelliRoom Professional" {
+  usecase "Share Client Preview Link\n(read-only)" as UC1
+  usecase "Present in Client Mode\n(white-labeled)" as UC2
+  usecase "Show Before/After Comparisons" as UC3
+  usecase "Collect Client Feedback" as UC4
+  usecase "Export Branded PDF Report" as UC5
+  usecase "Generate Shopping List\n(Egyptian retailer links)" as UC6
+  usecase "Use Custom Branding" as UC7
+}
+
+Pro --> UC1
+Pro --> UC2
+Pro --> UC3
+Pro --> UC4
+Pro --> UC5
+Pro --> UC6
+Pro --> UC7
+
+Client --> UC1
+Client --> UC4
+
+@enduml

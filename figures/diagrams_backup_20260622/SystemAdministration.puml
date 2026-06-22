@@ -1,0 +1,40 @@
+@startuml
+title Admin - System Management
+
+left to right direction
+skinparam actorStyle awesome
+skinparam usecase {
+  BackgroundColor #E6F2F7
+  BorderColor #2E86AB
+}
+
+actor "Admin" as Admin
+actor "Super Admin" as SuperAdmin
+actor "Support Admin" as Support
+
+SuperAdmin --|> Admin
+Support --|> Admin
+
+rectangle "IntelliRoom Admin" {
+  usecase "Manage User Accounts\n(suspend, delete)" as UC1
+  usecase "Process Subscription Payments\n(Stripe/PayMob)" as UC2
+  usecase "Monitor Free Tier Limits\n(3 gen/month)" as UC3
+  usecase "Handle Support Tickets" as UC4
+  usecase "Monitor System Performance\n(API latency, uptime)" as UC5
+  usecase "Moderate Gallery Content" as UC6
+  usecase "Generate Business Reports\n(MRR, ARPU, LTV)" as UC7
+  usecase "Configure System Settings" as UC8
+}
+
+Support --> UC4
+
+Admin --> UC1
+Admin --> UC2
+Admin --> UC3
+Admin --> UC5
+Admin --> UC6
+Admin --> UC7
+
+SuperAdmin --> UC8
+
+@enduml

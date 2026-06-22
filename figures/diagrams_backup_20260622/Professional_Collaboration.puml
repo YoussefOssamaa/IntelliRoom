@@ -1,0 +1,39 @@
+@startuml
+title Professional - Team Collaboration
+
+left to right direction
+skinparam actorStyle awesome
+skinparam usecase {
+  BackgroundColor #E6F2F7
+  BorderColor #2E86AB
+}
+
+actor "Team Member" as TeamMember
+actor "Project Lead" as Lead
+actor "Designer" as Designer
+actor "Junior Designer" as Junior
+
+Lead --|> TeamMember
+Designer --|> TeamMember
+Junior --|> TeamMember
+
+rectangle "IntelliRoom Professional" {
+  usecase "Invite Team Members" as UC1
+  usecase "Assign Team Roles" as UC2
+  usecase "Multi-User Real-Time Editing" as UC3
+  usecase "Comment & Annotate Designs" as UC4
+  usecase "Track Revision History" as UC5
+  usecase "Approve Design Changes" as UC6
+  usecase "Manage Team Access Levels" as UC7
+}
+
+TeamMember --> UC3
+TeamMember --> UC4
+TeamMember --> UC5
+
+Lead --> UC1
+Lead --> UC2
+Lead --> UC6
+Lead --> UC7
+
+@enduml

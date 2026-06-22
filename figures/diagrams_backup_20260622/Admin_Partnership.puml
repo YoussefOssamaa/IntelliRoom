@@ -1,0 +1,38 @@
+@startuml
+title Admin - Partnership Management
+
+left to right direction
+skinparam actorStyle awesome
+skinparam usecase {
+  BackgroundColor #E6F2F7
+  BorderColor #2E86AB
+}
+
+actor "Partnership Team" as Partner
+actor "Partnership Manager" as Manager
+actor "Account Manager" as Account
+
+Manager --|> Partner
+Account --|> Partner
+
+rectangle "IntelliRoom Admin" {
+  usecase "Onboard Egyptian Retailers\n(Mobica, Divano, Danube)" as UC1
+  usecase "Manage Retailer Catalog\n(products, pricing)" as UC2
+  usecase "Configure Commission Rates\n(5-15%)" as UC3
+  usecase "Manage Featured Placements" as UC4
+  usecase "Process Partnership Payments" as UC5
+  usecase "Review Artisan Applications" as UC6
+  usecase "View Sales Analytics" as UC7
+}
+
+Manager --> UC1
+Manager --> UC3
+Manager --> UC6
+
+Account --> UC2
+Account --> UC4
+Account --> UC7
+
+Partner --> UC5
+
+@enduml

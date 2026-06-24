@@ -82,6 +82,7 @@ export default class Scene3DViewer extends React.Component {
     this.draggedItemMesh = null; // The actual mesh being dragged
     this.dragStartPosition = null; // Original position for cancel
     this.draggedItemFootprint = null; // Local-space { halfWidth, halfDepth }
+    this._gizmoDragFootprint = null;
     this.targetRotation = null; // Auto-rotation target (wall snap)
 
     // 3D hole placement state
@@ -157,6 +158,7 @@ export default class Scene3DViewer extends React.Component {
     this._endGizmoDragOnWindowMouseUp = null;
     this._resizeObserver = null;
     this._handleViewportResize = null;
+    this._lastHoverRaycastTime = 0;
 
     this._renderFrame = this._renderFrame.bind(this);
     this._markSceneDirty = this._markSceneDirty.bind(this);
@@ -527,6 +529,7 @@ export default class Scene3DViewer extends React.Component {
     this.snapState.reset();
     this.targetRotation = null;
     this.currentRotation = 0;
+    this._gizmoDragFootprint = null;
     this._markSceneDirty();
   }
 
@@ -691,13 +694,16 @@ export default class Scene3DViewer extends React.Component {
         this._ensureRenderLoop();
       }
     } catch (error) {
-      this._sceneDirtyForFrame = true;
-      this._reportRenderLoopError(error);
+        this._sceneDirtyForFrame = true;
+        this._reportRenderLoopError(error);
+        if (this._viewerActive && !this.renderingID) {
+          this._ensureRenderLoop();
+        }
     }
 
-    if (this._viewerActive && this._sceneDirtyForFrame && !this.renderingID) {
-      this._ensureRenderLoop();
-    }
+    // if (this._viewerActive && this._sceneDirtyForFrame && !this.renderingID) {
+    //   this._ensureRenderLoop();
+    // }
   }
 
   _getRaycastElementData(object) {
@@ -1254,7 +1260,7 @@ export default class Scene3DViewer extends React.Component {
     let axisHelper = new Three.AxesHelper(100);
     scene3D.add(axisHelper);
     // sky sphere with blue at top, white at horizon
-    const skyGeometry = new Three.SphereGeometry(100000, 32, 15);
+    const skyGeometry = new Three.SphereGeometry(100000, 8, 6);
     const skyMaterial = new Three.ShaderMaterial({
       vertexShader: `
         varying vec3 vWorldPosition;
@@ -1286,6 +1292,8 @@ export default class Scene3DViewer extends React.Component {
     this.width = initialViewport.width;
     this.height = initialViewport.height;
     this.renderer.setSize(this.width, this.height);
+
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
 
     let aspectRatio = this.width / this.height;
     let camera = new Three.PerspectiveCamera(45, aspectRatio, 1, 300000);
@@ -1507,6 +1515,7 @@ export default class Scene3DViewer extends React.Component {
             this.gizmoManager.selectedTarget
           ) {
             this.currentRotation = this.gizmoManager.selectedTarget.rotation.y;
+            this._gizmoDragFootprint = computeItemFootprint(this.gizmoManager.selectedTarget);
           }
           this.orbitControls.enabled = false;
           event.preventDefault();
@@ -1755,31 +1764,37 @@ export default class Scene3DViewer extends React.Component {
       ) {
         raycaster.setFromCamera(mouse, camera);
 
-        // Filter out preview/placement objects and validate geometry before raycasting
+        // Skip preview/ghost objects; the plan root itself is always valid
         const validObjects = [];
         toIntersect.forEach((obj) => {
-          if (obj.userData && (obj.userData.isGhost || obj.userData.isPreview))
-            return; // Skip preview
-
-          let hasValidGeometry = false;
-          obj.traverse((child) => {
-            // Check if this child has valid geometry for raycasting
-            if (child.isMesh && child.geometry && !child.geometry.isDisposed) {
-              hasValidGeometry = true;
-            }
-            // Mark preview children to skip
-            if (
-              child.userData &&
-              (child.userData.isGhost || child.userData.isPreview)
-            ) {
-              hasValidGeometry = false;
-            }
-          });
-
-          if (hasValidGeometry) {
-            validObjects.push(obj);
-          }
+          if (obj.userData && (obj.userData.isGhost || obj.userData.isPreview)) return;
+          validObjects.push(obj);
         });
+        // // Filter out preview/placement objects and validate geometry before raycasting
+        // const validObjects = [];
+        // toIntersect.forEach((obj) => {
+        //   if (obj.userData && (obj.userData.isGhost || obj.userData.isPreview))
+        //     return; // Skip preview
+
+        //   let hasValidGeometry = false;
+        //   obj.traverse((child) => {
+        //     // Check if this child has valid geometry for raycasting
+        //     if (child.isMesh && child.geometry && !child.geometry.isDisposed) {
+        //       hasValidGeometry = true;
+        //     }
+        //     // Mark preview children to skip
+        //     if (
+        //       child.userData &&
+        //       (child.userData.isGhost || child.userData.isPreview)
+        //     ) {
+        //       hasValidGeometry = false;
+        //     }
+        //   });
+
+        //   if (hasValidGeometry) {
+        //     validObjects.push(obj);
+        //   }
+        // });
 
         // Reuse the hidden wall set maintained by wallVisibilityManager
         const hiddenWallMeshes = wallVisibilityManager.hiddenWallMeshes;
@@ -1960,7 +1975,7 @@ export default class Scene3DViewer extends React.Component {
               z: gizmoResult.position.z,
               y: selectedMesh.position.y,
               itemID: gizmoResult.elementInfo.elementID,
-              footprint: computeItemFootprint(selectedMesh),
+              footprint: this._gizmoDragFootprint || computeItemFootprint(selectedMesh),
               syncGizmo: true,
             });
 
@@ -1985,7 +2000,12 @@ export default class Scene3DViewer extends React.Component {
         this.planData.raycastPlane,
         false,
       );
-      const surfaceHint = this._getPlacementSurfaceHint(raycaster);
+
+      const _needsSurfaceHint = mode === MODE_DRAWING_ITEM_3D ||
+        mode === MODE_DRAGGING_ITEM_3D || this.isDragging3D ||
+        mode === MODE_DRAWING_HOLE_3D || mode === MODE_DRAGGING_HOLE_3D;
+      const surfaceHint = _needsSurfaceHint ? this._getPlacementSurfaceHint(raycaster) : null;
+
       const intersectionPoint =
         surfaceHint?.point ||
         (intersects.length > 0 ? intersects[0].point : null);
@@ -2099,26 +2119,28 @@ export default class Scene3DViewer extends React.Component {
       } else {
         this.currentCursor3D.valid = false;
       }
-
       // ── Hover detection & gizmo arrow highlight (idle / view mode only) ──
       if (
         this.gizmoManager &&
         !this.isDragging3D &&
         (mode === MODE_3D_VIEW || mode === MODE_IDLE)
       ) {
-        // Build set of hidden wall meshes for filtering (includes holes of hidden walls)
-        const hiddenMeshes = wallVisibilityManager.hiddenWallMeshes;
-        const hiddenHoleIDs = wallVisibilityManager.hiddenHoleIDs;
-        this.gizmoManager.updateHover(
-          mouse.x,
-          mouse.y,
-          toIntersect,
-          hiddenMeshes,
-          hiddenHoleIDs,
-        );
-        this.gizmoManager.highlightGizmoOnHover(mouse.x, mouse.y);
+        const _now = Date.now();
+        if (_now - this._lastHoverRaycastTime >= 33) {
+          this._lastHoverRaycastTime = _now;
+          const hiddenMeshes = wallVisibilityManager.hiddenWallMeshes;
+          const hiddenHoleIDs = wallVisibilityManager.hiddenHoleIDs;
+          this.gizmoManager.updateHover(
+            mouse.x,
+            mouse.y,
+            toIntersect,
+            hiddenMeshes,
+            hiddenHoleIDs,
+          );
+          this.gizmoManager.highlightGizmoOnHover(mouse.x, mouse.y);
+        }
 
-        // Cursor hint
+        // Cursor hint — read cached state, no new raycast
         if (this.gizmoManager.isOverGizmo(mouse.x, mouse.y)) {
           this.renderer.domElement.style.cursor = "grab";
         } else if (this.gizmoManager.hoverTarget) {
@@ -2127,6 +2149,33 @@ export default class Scene3DViewer extends React.Component {
           this.renderer.domElement.style.cursor = "";
         }
       }
+      // // ── Hover detection & gizmo arrow highlight (idle / view mode only) ──
+      // if (
+      //   this.gizmoManager &&
+      //   !this.isDragging3D &&
+      //   (mode === MODE_3D_VIEW || mode === MODE_IDLE)
+      // ) {
+      //   // Build set of hidden wall meshes for filtering (includes holes of hidden walls)
+      //   const hiddenMeshes = wallVisibilityManager.hiddenWallMeshes;
+      //   const hiddenHoleIDs = wallVisibilityManager.hiddenHoleIDs;
+      //   this.gizmoManager.updateHover(
+      //     mouse.x,
+      //     mouse.y,
+      //     toIntersect,
+      //     hiddenMeshes,
+      //     hiddenHoleIDs,
+      //   );
+      //   this.gizmoManager.highlightGizmoOnHover(mouse.x, mouse.y);
+
+      //   // Cursor hint
+      //   if (this.gizmoManager.isOverGizmo(mouse.x, mouse.y)) {
+      //     this.renderer.domElement.style.cursor = "grab";
+      //   } else if (this.gizmoManager.hoverTarget) {
+      //     this.renderer.domElement.style.cursor = "pointer";
+      //   } else {
+      //     this.renderer.domElement.style.cursor = "";
+      //   }
+      // }
 
       this._markSceneDirty();
     };

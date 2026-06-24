@@ -752,7 +752,8 @@ export default class Viewer3DFirstPerson extends React.Component {
     this.renderer.toneMapping = Three.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.0;
     this.renderer.setClearColor(new Three.Color(SharedStyle.COLORS.white));
-    this.renderer.setSize(this.width, this.height);
+    
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
 
     /* Set user initial position */
     let humanHeight = this.clampRenderCameraHeight(this.renderCameraHeight);
@@ -1094,15 +1095,16 @@ export default class Viewer3DFirstPerson extends React.Component {
           for (let index = 0; index < this._lodEntries.length; index++) {
             this._lodEntries[index].update(camera);
           }
-          this._sceneDirtyForFrame = false;
         }
 
 
-        this.renderer.clear();                     // clear buffers
-        this.renderer.render(scene3D, camera);     // render scene 1
-        this.renderer.clearDepth();                // clear depth buffer
-        this.renderer.render(sceneOnTop, camera);  // render scene 2
-
+      if (cameraChanged || this._sceneDirtyForFrame) {
+        this.renderer.clear();
+        this.renderer.render(scene3D, camera);
+        this.renderer.clearDepth();
+        this.renderer.render(sceneOnTop, camera);
+        this._sceneDirtyForFrame = false;
+      }
       } catch (error) {
         this._sceneDirtyForFrame = true;
         this._reportRenderLoopError(error);

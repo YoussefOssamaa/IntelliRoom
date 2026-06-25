@@ -224,8 +224,10 @@ export class WallVisibilityManager {
   registerArea(areaID, mesh) {
     if (!mesh) return;
     this.prepareMaterialsForTransparency(mesh);
-    this.areaStates.set(areaID, {
+   this.areaStates.set(areaID, {
       mesh,
+      ceilingMesh: mesh.getObjectByName('ceiling') || null,
+      floorMesh: mesh.getObjectByName('floor') || null,
       ceilingOpacity: 1.0,
       floorOpacity: 1.0
     });
@@ -282,6 +284,22 @@ export class WallVisibilityManager {
         }
 
         this.setMeshOpacity(state.mesh, state.currentOpacity);
+
+        // Sync holes with parent wall opacity
+        if (state.holeIDs && state.holeIDs.length > 0 && this.planData.sceneGraph) {
+          const layers = this.planData.sceneGraph.layers;
+          for (const layerID in layers) {
+            const layerHoles = layers[layerID].holes;
+            if (!layerHoles) continue;
+            for (const hID of state.holeIDs) {
+              const holeMesh = layerHoles[hID];
+              if (holeMesh) {
+                this.setMeshOpacity(holeMesh, state.currentOpacity);
+                this.holeOpacities.set(hID, state.currentOpacity);
+              }
+            }
+          }
+        }
         didMutate = true;
       }
       
@@ -292,22 +310,22 @@ export class WallVisibilityManager {
         if (state.holeIDs) state.holeIDs.forEach(hID => this.hiddenHoleIDs.add(hID));
       }
       
-      // Apply the same opacity to every hole that belongs to this wall
-      if (state.holeIDs && state.holeIDs.length > 0 && this.planData.sceneGraph) {
-        const layers = this.planData.sceneGraph.layers;
-        for (const layerID in layers) {
-          const layerHoles = layers[layerID].holes;
-          if (!layerHoles) continue;
-          for (const hID of state.holeIDs) {
-            const holeMesh = layerHoles[hID];
-            if (holeMesh) {
-              // Force full sync: set visibility + opacity to match parent wall
-              this.setMeshOpacity(holeMesh, state.currentOpacity);
-              this.holeOpacities.set(hID, state.currentOpacity);
-            }
-          }
-        }
-      }
+      // // Apply the same opacity to every hole that belongs to this wall
+      // if (state.holeIDs && state.holeIDs.length > 0 && this.planData.sceneGraph) {
+      //   const layers = this.planData.sceneGraph.layers;
+      //   for (const layerID in layers) {
+      //     const layerHoles = layers[layerID].holes;
+      //     if (!layerHoles) continue;
+      //     for (const hID of state.holeIDs) {
+      //       const holeMesh = layerHoles[hID];
+      //       if (holeMesh) {
+      //         // Force full sync: set visibility + opacity to match parent wall
+      //         this.setMeshOpacity(holeMesh, state.currentOpacity);
+      //         this.holeOpacities.set(hID, state.currentOpacity);
+      //       }
+      //     }
+      //   }
+      // }
     });
 
     // ---------- Ceiling / Floor ----------
@@ -321,7 +339,7 @@ export class WallVisibilityManager {
       if (!mesh) return;
 
       // Ceiling child
-      const ceiling = mesh.getObjectByName('ceiling');
+      const ceiling = aState.ceilingMesh;
       if (ceiling) {
         if (Math.abs(aState.ceilingOpacity - ceilTarget) > 0.01) {
           hasActiveTransitions = true;
@@ -336,7 +354,7 @@ export class WallVisibilityManager {
       }
 
       // Floor child
-      const floor = mesh.getObjectByName('floor');
+      const floor = aState.floorMesh;
       if (floor) {
         if (Math.abs(aState.floorOpacity - floorTarget) > 0.01) {
           hasActiveTransitions = true;
@@ -419,27 +437,31 @@ export class WallVisibilityManager {
             mat.userData.__plannerBaseDepthWrite = mat.depthWrite !== false;
           }
 
-          const baseOpacity = mat.userData.__plannerBaseOpacity;
+         const baseOpacity = mat.userData.__plannerBaseOpacity;
           const effectiveOpacity = Math.max(0, Math.min(1, baseOpacity * normalizedOpacity));
 
-          mat.opacity = effectiveOpacity;
-          mat.transparent = mat.userData.__plannerBaseTransparent || effectiveOpacity < 0.999;
-
-          // Keep original depthWrite=false materials (for glass) from turning opaque white.
-          if (mat.userData.__plannerBaseDepthWrite === false) {
-            mat.depthWrite = false;
-          } else {
-            mat.depthWrite = effectiveOpacity > 0.9;
+          if (mat.opacity !== effectiveOpacity ||
+              mat.transparent !== (mat.userData.__plannerBaseTransparent || effectiveOpacity < 0.999) ||
+              mat.depthWrite !== (mat.userData.__plannerBaseDepthWrite === false ? false : effectiveOpacity > 0.9)) {
+            mat.opacity = effectiveOpacity;
+            mat.transparent = mat.userData.__plannerBaseTransparent || effectiveOpacity < 0.999;
+            if (mat.userData.__plannerBaseDepthWrite === false) {
+              mat.depthWrite = false;
+            } else {
+              mat.depthWrite = effectiveOpacity > 0.9;
+            }
+            mat.needsUpdate = true;
           }
-          mat.needsUpdate = true;
         });
       }
       
       // Also handle LineSegments for edge lines
-      if (child.isLineSegments && child.material) {
-        child.material.opacity = opacity;
-        child.material.transparent = true;
-        child.material.needsUpdate = true;
+     if (child.isLineSegments && child.material) {
+        if (child.material.opacity !== opacity) {
+          child.material.opacity = opacity;
+          child.material.transparent = true;
+          child.material.needsUpdate = true;
+        }
       }
     });
     
@@ -533,7 +555,7 @@ export class WallVisibilityManager {
     this.areaStates.forEach((aState) => {
       const mesh = aState.mesh;
       if (!mesh) return;
-      const ceiling = mesh.getObjectByName('ceiling');
+      const ceiling = aState.ceilingMesh;
       if (ceiling) {
         aState.ceilingOpacity = this.maxOpacity;
         this.setMeshOpacity(ceiling, this.maxOpacity);
